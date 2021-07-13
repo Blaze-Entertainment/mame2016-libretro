@@ -10,10 +10,8 @@
 
 ***************************************************************************/
 
-#if (!defined(MAME_DEBUG) || defined(__OPTIMIZE__)) && (defined(__SSE2__) || defined(_MSC_VER)) && defined(PTR64)
-
 #include "emu.h"
-#include <emmintrin.h>
+#include <sse2neon.h>
 #include "rgbsse.h"
 
 /***************************************************************************
@@ -190,5 +188,3 @@ void rgbaint_t::scale_imm_and_clamp(const INT32 scale)
 	sra_imm(8);
 	clamp_to_uint8();
 }
-
-#endif // defined(__SSE2__) || defined(_MSC_VER)

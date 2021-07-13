@@ -15,6 +15,8 @@
 #include <libretro.h>
 #include "libretro_shared.h"
 
+#include <sys/syscall.h>
+#define gettid() syscall(SYS_gettid)
 /* forward decls / externs / prototypes */
 
 extern const char bare_build_version[];
@@ -38,6 +40,7 @@ char RPATH[512];
 static char option_mouse[50];
 static char option_cheats[50];
 static char option_overclock[50];
+static char option_scheduler_allow_target_update[60];
 static char option_nag[50];
 static char option_info[50];
 static char option_renderer[50];
@@ -57,6 +60,7 @@ static char option_saves[50];
 
 static int cpu_overclock = 100;
 
+int scheduler_allow_target_update;
 const char *retro_save_directory;
 const char *retro_system_directory;
 const char *retro_content_directory;
@@ -136,6 +140,7 @@ void retro_set_environment(retro_environment_t cb)
    sprintf(option_mouse, "%s_%s", core, "mouse_enable");
    sprintf(option_cheats, "%s_%s", core, "cheats_enable");
    sprintf(option_overclock, "%s_%s", core, "cpu_overclock");
+   sprintf(option_scheduler_allow_target_update, "%s_%s", core, "scheduler_allow_target_update");
    sprintf(option_nag, "%s_%s",core,"hide_nagscreen");
    sprintf(option_info, "%s_%s",core,"hide_infoscreen");
    sprintf(option_warnings,"%s_%s",core,"hide_warnings");
@@ -166,6 +171,7 @@ void retro_set_environment(retro_environment_t cb)
     { option_throttle, "Enable throttle; disabled|enabled" },
     { option_cheats, "Enable cheats; disabled|enabled" },
     { option_overclock, "Main CPU Overclock; default|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|60|65|70|75|80|85|90|95|100|105|110|115|120|125|130|135|140|145|150" },
+    { option_scheduler_allow_target_update, "Allow Scheduler Target Update; enabled|disabled" },
     { option_renderer, "Alternate render method; disabled|enabled" },
 
     { option_softlist, "Enable softlists; enabled|disabled" },
@@ -181,6 +187,12 @@ void retro_set_environment(retro_environment_t cb)
 
    environ_cb = cb;
 
+   pthread_attr_t tattr;
+   int policy;
+   int ret;
+
+   /* set the scheduling policy to SCHED_RR */
+   ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 }
 
@@ -259,6 +271,17 @@ static void check_variables(void)
       cpu_overclock = 100;
       if (strcmp(var.value, "default"))
         cpu_overclock = atoi(var.value);
+   }
+
+   var.key   = option_scheduler_allow_target_update;
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "disabled"))
+         scheduler_allow_target_update = 0;
+      if (!strcmp(var.value, "enabled"))
+         scheduler_allow_target_update = 1;
    }
 
    var.key   = option_nag;
@@ -549,7 +572,6 @@ void retro_run (void)
    {
       mfirst++;
       mmain(1,RPATH);
-      printf("MAIN FIRST\n");
       retro_load_ok=true;
       update_runtime_variables();
       return;

@@ -10,6 +10,10 @@
 
 #include "emu.h"
 #include "debugger.h"
+#include <thread>
+
+// Defined in libretro.cpp
+extern int scheduler_allow_target_update;
 
 //**************************************************************************
 //  DEBUGGING
@@ -17,7 +21,7 @@
 
 #define VERBOSE 0
 
-#define LOG(x)  do { if (VERBOSE) machine().logerror x; } while (0)
+#define LOG(x)
 #define PRECISION
 
 
@@ -432,14 +436,12 @@ void device_scheduler::timeslice()
 		if (m_timer_list->m_expire < target)
 			target = m_timer_list->m_expire;
 
-		LOG(("------------------\n"));
-		LOG(("cpu_timeslice: target = %s\n", target.as_string(PRECISION)));
-
 		// do we have pending suspension changes?
 		if (m_suspend_changes_pending)
 			apply_suspend_changes();
 
 		// loop over all CPUs
+		#pragma omp parallel for
 		for (device_execute_interface *exec = m_execute_list; exec != nullptr; exec = exec->m_nextexec)
 		{
 			// only process if this CPU is executing or truly halted (not yielding)
@@ -457,33 +459,21 @@ void device_scheduler::timeslice()
 				{
 					// compute how many cycles we want to execute
 					int ran = exec->m_cycles_running = divu_64x32((UINT64)delta >> exec->m_divshift, exec->m_divisor);
-					LOG(("  cpu '%s': %d (%d cycles)\n", exec->device().tag(), delta, exec->m_cycles_running));
 
 					// if we're not suspended, actually execute
 					if (exec->m_suspend == 0)
 					{
-						g_profiler.start(exec->m_profiler);
-
 						// note that this global variable cycles_stolen can be modified
 						// via the call to cpu_execute
 						exec->m_cycles_stolen = 0;
 						m_executing_device = exec;
 						*exec->m_icountptr = exec->m_cycles_running;
-						if (!call_debugger)
-							exec->run();
-						else
-						{
-							debugger_start_cpu_hook(&exec->device(), target);
-							exec->run();
-							debugger_stop_cpu_hook(&exec->device());
-						}
-
+						exec->run();
 						// adjust for any cycles we took back
 						assert(ran >= *exec->m_icountptr);
 						ran -= *exec->m_icountptr;
 						assert(ran >= exec->m_cycles_stolen);
 						ran -= exec->m_cycles_stolen;
-						g_profiler.stop();
 					}
 
 					// account for these cycles
@@ -493,13 +483,13 @@ void device_scheduler::timeslice()
 					attotime deltatime(0, exec->m_attoseconds_per_cycle * ran);
 					assert(deltatime >= attotime::zero);
 					exec->m_localtime += deltatime;
-					LOG(("         %d ran, %d total, time = %s\n", ran, (INT32)exec->m_totalcycles, exec->m_localtime.as_string(PRECISION)));
 
 					// if the new local CPU time is less than our target, move the target up, but not before the base
-					if (exec->m_localtime < target)
+					// This gives a flat 10fps boost for ddragon2 and small gains for others
+					// However this breaks a lot of machines as well
+					if (scheduler_allow_target_update && exec->m_localtime < target)
 					{
 						target = max(exec->m_localtime, m_basetime);
-						LOG(("         (new target)\n"));
 					}
 				}
 			}

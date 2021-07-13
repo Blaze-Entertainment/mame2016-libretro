@@ -44,6 +44,7 @@
 
 #include <fcntl.h>
 #include <limits.h>
+#include <linux/limits.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <unistd.h>

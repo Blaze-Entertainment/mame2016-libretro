@@ -29,6 +29,7 @@ menu_device_config::menu_device_config(mame_ui_manager &mui, render_container *c
 
 void menu_device_config::populate()
 {
+	/*
 	std::ostringstream str;
 	device_t *dev;
 
@@ -268,6 +269,7 @@ void menu_device_config::populate()
 
 	const_cast<machine_config &>(machine().config()).device_remove(&machine().config().root_device(), m_option->name());
 	item_append(str.str().c_str(), nullptr, FLAG_MULTILINE, nullptr);
+	*/
 }
 
 void menu_device_config::handle()

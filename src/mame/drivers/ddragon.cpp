@@ -947,17 +947,17 @@ GFXDECODE_END
 static MACHINE_CONFIG_START( ddragon, ddragon_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", HD6309, MAIN_CLOCK)     /* 12 MHz / 4 internally */
+	MCFG_CPU_ADD("maincpu", HD6309, XTAL_10MHz)     /* 12 MHz / 4 internally */
 	MCFG_CPU_PROGRAM_MAP(ddragon_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", ddragon_state, ddragon_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("sub", HD63701, MAIN_CLOCK / 2)    /* 6 MHz / 4 internally */
+	MCFG_CPU_ADD("sub", HD63701, XTAL_10MHz / 2)    /* 6 MHz / 4 internally */
 	MCFG_CPU_PROGRAM_MAP(sub_map)
 
-	MCFG_CPU_ADD("soundcpu", M6809, MAIN_CLOCK / 8) /* 1.5 MHz */
+	MCFG_CPU_ADD("soundcpu", M6809, XTAL_10MHz / 8) /* 1.5 MHz */
 	MCFG_CPU_PROGRAM_MAP(sound_map)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(60000)) /* heavy interleaving to sync up sprite<->main CPUs */
+	MCFG_QUANTUM_TIME(attotime::from_hz(600)) /* heavy interleaving to sync up sprite<->main CPUs */
 
 	MCFG_MACHINE_START_OVERRIDE(ddragon_state,ddragon)
 	MCFG_MACHINE_RESET_OVERRIDE(ddragon_state,ddragon)
@@ -968,7 +968,7 @@ static MACHINE_CONFIG_START( ddragon, ddragon_state )
 	MCFG_PALETTE_FORMAT(xxxxBBBBGGGGRRRR)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_RAW_PARAMS(PIXEL_CLOCK, 384, 0, 256, 272, 0, 240)
+	MCFG_SCREEN_RAW_PARAMS(XTAL_10MHz / 2, 384, 0, 256, 272, 0, 240)
 	MCFG_SCREEN_UPDATE_DRIVER(ddragon_state, screen_update_ddragon)
 	MCFG_SCREEN_PALETTE("palette")
 
@@ -982,12 +982,12 @@ static MACHINE_CONFIG_START( ddragon, ddragon_state )
 	MCFG_SOUND_ROUTE(0, "mono", 0.60)
 	MCFG_SOUND_ROUTE(1, "mono", 0.60)
 
-	MCFG_SOUND_ADD("adpcm1", MSM5205, MAIN_CLOCK / 32)
+	MCFG_SOUND_ADD("adpcm1", MSM5205, XTAL_10MHz / 32)
 	MCFG_MSM5205_VCLK_CB(WRITELINE(ddragon_state, dd_adpcm_int_1))   /* interrupt function */
 	MCFG_MSM5205_PRESCALER_SELECTOR(MSM5205_S48_4B)  /* 8kHz */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
 
-	MCFG_SOUND_ADD("adpcm2", MSM5205, MAIN_CLOCK / 32)
+	MCFG_SOUND_ADD("adpcm2", MSM5205, XTAL_10MHz / 32)
 	MCFG_MSM5205_VCLK_CB(WRITELINE(ddragon_state, dd_adpcm_int_2))   /* interrupt function */
 	MCFG_MSM5205_PRESCALER_SELECTOR(MSM5205_S48_4B)  /* 8kHz */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
@@ -997,7 +997,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_DERIVED( ddragonb, ddragon )
 
 	/* basic machine hardware */
-	MCFG_CPU_REPLACE("sub", M6809, MAIN_CLOCK / 8)  /* 1.5MHz */
+	MCFG_CPU_REPLACE("sub", M6809, XTAL_10MHz / 8)  /* 1.5MHz */
 	MCFG_CPU_PROGRAM_MAP(sub_map)
 MACHINE_CONFIG_END
 
@@ -1005,7 +1005,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_DERIVED( ddragonba, ddragon )
 
 	/* basic machine hardware */
-	MCFG_CPU_REPLACE("sub", M6803, MAIN_CLOCK / 2)  /* 6MHz / 4 internally */
+	MCFG_CPU_REPLACE("sub", M6803, XTAL_10MHz / 2)  /* 6MHz / 4 internally */
 	MCFG_CPU_PROGRAM_MAP(ddragonba_sub_map)
 	MCFG_CPU_IO_MAP(ddragonba_sub_portmap)
 MACHINE_CONFIG_END
@@ -1074,7 +1074,7 @@ static MACHINE_CONFIG_START( ddragon2, ddragon_state )
 	MCFG_CPU_ADD("soundcpu", Z80, 3579545)
 	MCFG_CPU_PROGRAM_MAP(dd2_sound_map)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(60000)) /* heavy interleaving to sync up sprite<->main CPUs */
+	MCFG_QUANTUM_TIME(attotime::from_hz(600)) /* heavy interleaving to sync up sprite<->main CPUs */
 
 	MCFG_MACHINE_START_OVERRIDE(ddragon_state,ddragon)
 	MCFG_MACHINE_RESET_OVERRIDE(ddragon_state,ddragon)

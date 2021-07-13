@@ -236,7 +236,11 @@ function toolchain(_buildDir, _subDir)
 				premake.gcc.cc   = "@gcc -V 4.2"
 				premake.gcc.cxx  = "@g++-4.2"
 			end
-			premake.gcc.ar  = "ar"
+			premake.gcc.ar  = "arm-linux-gnueabihf-gcc-ar"
+			buildoptions_cpp {
+				"-std=c++14",
+				"-fpermissive"
+			}
 			location (_buildDir .. "projects/" .. _subDir .. "/".. _ACTION .. "-linux")
 		end
 
@@ -306,9 +310,7 @@ function toolchain(_buildDir, _subDir)
 			if not os.getenv("MINGW64") then
 				print("Set MINGW64 envrionment variable.")
 			end
-			if not toolchainPrefix then
-				toolchainPrefix = "$(MINGW64)/bin/x86_64-w64-mingw32-"
-			end
+			toolchainPrefix = "$(MINGW64)/bin/x86_64-w64-mingw32-"
 			premake.gcc.cc  = toolchainPrefix .. "gcc"
 			premake.gcc.cxx = toolchainPrefix .. "g++"
 -- work around GCC 4.9.2 not having proper linker for LTO=1 usage

@@ -820,13 +820,13 @@ if _OPTIONS["OPTIMIZE"] then
 	if _OPTIONS["LTO"]=="1" then
 		buildoptions {
 -- windows native mingw GCC 5.2 fails with -flto=x with x > 1. bug unfixed as of this commit
-			"-flto=1",
+			"-flto=4",
 -- if ld fails, just buy more RAM or uncomment this!
 --          "-Wl,-no-keep-memory",
 			"-Wl,-v",
 -- silence redefine warnings from discrete.c.
 			"-Wl,-allow-multiple-definition",
-			"-fuse-linker-plugin",
+			-- "-fuse-linker-plugin",
 -- these next flags allow MAME to compile in GCC 5.2. odr warnings should be fixed as LTO randomly crashes otherwise
 -- some GCC 4.9.x on Windows do not have -Wodr and -flto-odr-type-merging enabled. adjust accordingly...
 -- no-fat-lto-objects is faster to compile and uses less memory, but you can't mix with a non-lto .o/.a without rebuilding
@@ -835,15 +835,15 @@ if _OPTIONS["OPTIMIZE"] then
 			"-Wodr",
 			"-flto-compression-level=0", -- lto doesn't work with anything <9 on linux with < 12G RAM, much slower if <> 0
 --          "-flto-report", -- if you get an error in lto after [WPA] stage, but before [LTRANS] stage, you need more memory!
---          "-fmem-report-wpa","-fmem-report","-fpre-ipa-mem-report","-fpost-ipa-mem-report","-flto-report-wpa","-fmem-report",
+--            "-fmem-report-wpa","-fmem-report","-fpre-ipa-mem-report","-fpost-ipa-mem-report","-flto-report-wpa","-fmem-report",
 -- this six flag combo lets MAME compile with LTO=1 on linux with no errors and ~2% speed boost, but compile time is much longer
 -- if you are going to wait on lto, you might as well enable these for GCC
---          "-fdevirtualize-at-ltrans","-fgcse-sm","-fgcse-las",
---          "-fipa-pta","-fipa-icf","-fvariable-expansion-in-unroller",
+            "-fdevirtualize-at-ltrans","-fgcse-sm","-fgcse-las",
+            "-fipa-pta","-fipa-icf","-fvariable-expansion-in-unroller",
 		}
 -- same flags are needed by linker
 		linkoptions {
-			"-flto=1",
+			"-flto=30",
 --          "-Wl,-no-keep-memory",
 			"-Wl,-v",
 			"-Wl,-allow-multiple-definition",
@@ -853,11 +853,11 @@ if _OPTIONS["OPTIMIZE"] then
 			"-Wodr",
 			"-flto-compression-level=0", -- lto doesn't work with anything <9 on linux with < 12G RAM, much slower if <> 0
 --          "-flto-report", -- if you get an error in lto after [WPA] stage, but before [LTRANS] stage, you need more memory!
---          "-fmem-report-wpa","-fmem-report","-fpre-ipa-mem-report","-fpost-ipa-mem-report","-flto-report-wpa","-fmem-report",
+           --"-fmem-report-wpa","-fmem-report","-fpre-ipa-mem-report","-fpost-ipa-mem-report","-flto-report-wpa","-fmem-report",
 -- this six flag combo lets MAME compile with LTO=1 on linux with no errors and ~2% speed boost, but compile time is much longer
 -- if you are going to wait on lto, you might as well enable these for GCC
---          "-fdevirtualize-at-ltrans","-fgcse-sm","-fgcse-las",
---          "-fipa-pta","-fipa-icf","-fvariable-expansion-in-unroller",
+           "-fdevirtualize-at-ltrans","-fgcse-sm","-fgcse-las",
+           "-fipa-pta","-fipa-icf","-fvariable-expansion-in-unroller",
 
 		}
 
@@ -947,6 +947,41 @@ end
 		"-Wwrite-strings",
 		"-Wno-sign-compare",
 		"-Wno-conversion",
+		"-marm",
+		"-fcommon",
+		"-DLUA_32BITS",
+		"-mtune=cortex-a7",
+		"-march=armv7ve",
+		"-mfpu=neon-vfpv4",
+		"-mfloat-abi=hard",
+		"-ftree-vectorize",
+		"-ffast-math",
+		"-funsafe-math-optimizations",
+		"-DNDEBUG=1",
+		"-fstrict-aliasing",
+		"-ftree-vectorizer-verbose=0",
+		"-fopt-info-vec",
+		-- "-fopt-info-vec-missed",
+		"-ftree-parallelize-loops=6",
+		"-funroll-loops",
+		"-funswitch-loops",
+		"--param max-unroll-times=8",
+		"-fvariable-expansion-in-unroller",
+		"--param max-variable-expansions-in-unroller=8",
+		"-funsafe-loop-optimizations",
+		"-fvect-cost-model=unlimited",
+		"-ftree-loop-if-convert-stores",
+		"-ftree-loop-distribution",
+		"-ftree-loop-im",
+		"-ftree-loop-ivcanon",
+		"-fivopts",
+	}
+	linkoptions {
+		"-std=c++14",
+		"-fopenmp",
+		"-lstdc++",
+		"-static-libgcc",
+		"-static-libstdc++",
 	}
 -- warnings only applicable to C compiles
 	buildoptions_c {

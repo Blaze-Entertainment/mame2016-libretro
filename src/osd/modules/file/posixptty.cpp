@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include <limits.h>
+#include <linux/limits.h>
 #include <unistd.h>
 #include <stdlib.h>
 

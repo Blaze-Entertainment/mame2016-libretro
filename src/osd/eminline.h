@@ -14,6 +14,8 @@
 
 #include "osdcomm.h"
 #include "osdcore.h"
+#include "libdivide.h"
+#include "sse2neon.h"
 
 #if !defined(MAME_NOASM)
 /* we come with implementations for GCC x86 and PPC */
@@ -144,7 +146,9 @@ static inline UINT32 mulu_32x32_shift(UINT32 a, UINT32 b, UINT8 shift)
 #ifndef div_64x32
 static inline INT32 div_64x32(INT64 a, INT32 b)
 {
-	return a / (INT64)b;
+    libdivide::libdivide_s64_t _b = libdivide::libdivide_s64_gen(b);
+	return libdivide::libdivide_s64_do(a, &_b);
+    // a / b
 }
 #endif
 
@@ -157,7 +161,9 @@ static inline INT32 div_64x32(INT64 a, INT32 b)
 #ifndef divu_64x32
 static inline UINT32 divu_64x32(UINT64 a, UINT32 b)
 {
-	return a / (UINT64)b;
+    // a / b
+    libdivide::libdivide_u64_t _b = libdivide::libdivide_u64_gen(b);
+	return libdivide::libdivide_u64_do(a, &_b);
 }
 #endif
 
@@ -256,7 +262,11 @@ static inline UINT32 modu_64x32(UINT64 a, UINT32 b)
 #ifndef recip_approx
 static inline float recip_approx(float value)
 {
-	return 1.0f / value;
+	__m128 mz = _mm_set_ss(value);
+	__m128 mooz = _mm_rcp_ss(mz);
+	float ooz;
+	_mm_store_ss(&ooz, mooz);
+	return ooz;
 }
 #endif
 
@@ -274,9 +284,7 @@ static inline float recip_approx(float value)
 #ifndef count_leading_zeros
 static inline UINT8 count_leading_zeros(UINT32 val)
 {
-	UINT8 count;
-	for (count = 0; (INT32)val >= 0; count++) val <<= 1;
-	return count;
+	return __builtin_clz(val);
 }
 #endif
 
@@ -310,7 +318,21 @@ static inline UINT8 count_leading_ones(UINT32 val)
 #ifndef get_profile_ticks
 static inline INT64 get_profile_ticks(void)
 {
-	return osd_ticks();
+    uint32_t pmccntr;
+    uint32_t pmuseren;
+    uint32_t pmcntenset;
+    // Read the user mode perf monitor counter access permissions.
+    asm volatile("mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren));
+    if (pmuseren & 1) {  // Allows reading perfmon counters for user mode code.
+        asm volatile("mrc p15, 0, %0, c9, c12, 1" : "=r"(pmcntenset));
+        if (pmcntenset & 0x80000000ul) {  // Is it counting?
+            asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(pmccntr));
+            // The counter is set up to count every 64th cycle
+            return static_cast<int64_t>(pmccntr) * 64;  // Should optimize to << 6
+        }
+    }
+
+    return 0;
 }
 #endif
 

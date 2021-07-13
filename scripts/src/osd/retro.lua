@@ -24,7 +24,7 @@ newoption {
 configuration { "mingw*" }
 		linkoptions {	
 			"-shared ",
-			"-Wl,--version-script=../../../../src/osd/retro/link.T",
+			"-Wl,--version-script=" .. MAME_DIR ..  "src/osd/retro/link.T",
 			"-Wl,--no-undefined", 
 		}
 
