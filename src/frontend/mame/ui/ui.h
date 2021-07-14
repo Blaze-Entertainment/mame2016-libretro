@@ -17,10 +17,10 @@
 
 #include "render.h"
 #include "moptions.h"
-#include "language.h"
-#include "ui/uimain.h"
-#include "ui/menuitem.h"
-#include "ui/slider.h"
+#include "../language.h"
+#include <ui/uimain.h>
+#include "menuitem.h"
+#include "slider.h"
 
 namespace ui {
 

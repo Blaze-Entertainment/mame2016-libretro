@@ -9,6 +9,7 @@
 #include "emuopts.h"
 #include "render.h"
 #include "ui/uimain.h"
+#include "../frontend/mame/ui/ui.h"
 #include "uiinput.h"
 #include "drivenum.h"
 
@@ -556,6 +557,7 @@ void retro_deinit(void)
 void retro_reset (void)
 {
    mame_reset = 1;
+   //mame_machine_manager::instance()->ui().show_menu();
 }
 
 void retro_run (void)
