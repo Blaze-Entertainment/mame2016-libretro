@@ -257,11 +257,13 @@ static MACHINE_CONFIG_START( wrally, wrally_state )
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", wrally_state,  irq6_line_hold)
 
 	MCFG_CPU_ADD("mcu", DS5002FP, XTAL_24MHz/2) /* verified on pcb */
-	MCFG_DS5002FP_CONFIG( 0x88, 0x00, 0x80 )
+	//MCFG_DS5002FP_CONFIG( 0x88, 0x00, 0x80 )
 	MCFG_CPU_PROGRAM_MAP(dallas_rom)
 	MCFG_CPU_IO_MAP(dallas_ram)
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(38400))                 /* heavy sync */
+
+	MCFG_GAELCO_VRAM_CRYPT_ADD("vramcrypt")
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -294,6 +296,12 @@ ROM_START( wrally )
 	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
 
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	// These are the default states stored in NVRAM
+	DS5002FP_SET_MON( 0x88 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
+
 	ROM_REGION( 0x200000, "gfx1", 0 )
 	ROM_LOAD16_BYTE( "worldr21.i13", 0x000000, 0x080000, CRC(b7fddb12) SHA1(619a75daac8cbba7e85c97ca19733e2196d66d5c) )
 	ROM_LOAD16_BYTE( "worldr20.i11", 0x000001, 0x080000, CRC(58b2809a) SHA1(8741ec544c54e2a2f5d17ac2f8400ee2ce382e83) )
@@ -320,6 +328,12 @@ ROM_START( wrallya )
 
 	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
+
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	// These are the default states stored in NVRAM
+	DS5002FP_SET_MON( 0x88 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
 
 	ROM_REGION( 0x200000, "gfx1", 0 )
 	ROM_LOAD16_BYTE( "worldr21.i13", 0x000000, 0x080000, CRC(b7fddb12) SHA1(619a75daac8cbba7e85c97ca19733e2196d66d5c) )
@@ -348,6 +362,12 @@ ROM_START( wrallyb )
 	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
 
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	// These are the default states stored in NVRAM
+	DS5002FP_SET_MON( 0x88 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
+
 	ROM_REGION( 0x200000, "gfx1", 0 )
 	ROM_LOAD( "rally h-12.h12", 0x000000, 0x100000, CRC(3353dc00) SHA1(db3b1686751dcaa231d66c08b5be81fcfe299ad9) ) /* Same data, different layout */
 	ROM_LOAD( "rally h-8.h8",   0x100000, 0x100000, CRC(58dcd024) SHA1(384ff296d3c7c8e0c4469231d1940de3cea89fc2) )
@@ -370,6 +390,12 @@ ROM_START( wrallyat ) /* Board Marked 930217, Atari License */
 
 	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
+
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	// These are the default states stored in NVRAM
+	DS5002FP_SET_MON( 0x88 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
 
 	ROM_REGION( 0x200000, "gfx1", 0 )
 	ROM_LOAD( "rally h-12.h12", 0x000000, 0x100000, CRC(3353dc00) SHA1(db3b1686751dcaa231d66c08b5be81fcfe299ad9) ) /* Same data, different layout */

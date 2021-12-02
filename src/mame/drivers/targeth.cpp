@@ -13,6 +13,8 @@ The DS5002FP has 32KB undumped gameplay code making the game unplayable :_(
 #include "emu.h"
 #include "cpu/m68000/m68000.h"
 #include "sound/okim6295.h"
+#include "cpu/mcs51/mcs51.h"
+
 #include "includes/targeth.h"
 
 static const gfx_layout tilelayout16_0x080000 =
@@ -41,10 +43,14 @@ TIMER_DEVICE_CALLBACK_MEMBER(targeth_state::interrupt)
 		m_maincpu->set_input_line(2, HOLD_LINE);
 	}
 
-	if(scanline == 0)
+	if (scanline == 128)
 	{
 		/* IRQ 4: Read 1P Gun */
 		m_maincpu->set_input_line(4, HOLD_LINE);
+	}
+
+	if (scanline == 160)
+	{
 		/* IRQ 6: Read 2P Gun */
 		m_maincpu->set_input_line(6, HOLD_LINE);
 	}
@@ -82,7 +88,8 @@ static ADDRESS_MAP_START( main_map, AS_PROGRAM, 16, targeth_state )
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)  /* OKI6295 status register */
 	AM_RANGE(0x700010, 0x70001b) AM_WRITENOP                        /* ??? Guns reload related? */
 	AM_RANGE(0x70002a, 0x70003b) AM_WRITE(coin_counter_w)   /* Coin counters */
-	AM_RANGE(0xfe0000, 0xfeffff) AM_RAM                             /* Work RAM (partially shared with DS5002FP) */
+	AM_RANGE(0xfe0000, 0xfe7fff) AM_RAM                                          /* Work RAM */
+	AM_RANGE(0xfe8000, 0xfeffff) AM_RAM AM_SHARE("shareram") 
 ADDRESS_MAP_END
 
 
@@ -94,19 +101,19 @@ ADDRESS_MAP_END
 
 static INPUT_PORTS_START( targeth )
 	PORT_START("GUNX1")
-	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.05, -0.028, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(1)
+	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(1)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("GUNY1")
-	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.041, -0.011, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(1)
+	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.12, -0.055, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(1)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("GUNX2")
-	PORT_BIT( 0x01ff, 400 + 4, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.05, -0.028, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(2)
+	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(2)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("GUNY2")
-	PORT_BIT( 0x01ff, 255, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.041, -0.011, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(2)
+	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.12, -0.055, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(2)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("DSW1")
@@ -176,6 +183,43 @@ static INPUT_PORTS_START( targeth )
 	PORT_BIT( 0xf0, IP_ACTIVE_LOW, IPT_UNKNOWN )
 INPUT_PORTS_END
 
+void targeth_state::machine_start()
+{
+	membank("okibank")->configure_entries(0, 16, memregion("oki")->base(), 0x10000);
+}
+
+READ8_MEMBER(targeth_state::dallas_share_r)
+{
+	uint8_t *shareram = (uint8_t *)m_shareram.target();
+	return shareram[BYTE_XOR_BE(offset)];
+}
+
+WRITE8_MEMBER(targeth_state::dallas_share_w)
+{
+	uint8_t *shareram = (uint8_t *)m_shareram.target();
+	shareram[BYTE_XOR_BE(offset)] = data;
+}
+
+READ8_MEMBER(targeth_state::dallas_ram_r)
+{
+	return m_mcu_ram[offset];
+}
+
+WRITE8_MEMBER(targeth_state::dallas_ram_w)
+{
+	m_mcu_ram[offset] = data;
+}
+
+static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, targeth_state )
+	AM_RANGE(0x0000, 0x7fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* Code in NVRAM */
+ADDRESS_MAP_END
+
+static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, targeth_state )
+	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
+	AM_RANGE(0x10000, 0x17fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* yes, the games access it as data and use it for temporary storage!! */
+ADDRESS_MAP_END
+
+
 
 static MACHINE_CONFIG_START( targeth, targeth_state )
 
@@ -184,12 +228,19 @@ static MACHINE_CONFIG_START( targeth, targeth_state )
 	MCFG_CPU_PROGRAM_MAP(main_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", targeth_state, interrupt, "screen", 0, 1)
 
+	MCFG_CPU_ADD("mcu", DS5002FP, XTAL_24MHz/2) /* ? */
+	//MCFG_DS5002FP_CONFIG( 0x49, 0x00, 0x80 ) /* default config verified on chip */
+	MCFG_CPU_PROGRAM_MAP(dallas_rom)
+	MCFG_CPU_IO_MAP(dallas_ram)
+
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))  
+
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(60)
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
-	MCFG_SCREEN_SIZE(64*16, 32*16)              /* 1024x512 */
-	MCFG_SCREEN_VISIBLE_AREA(0, 24*16-1, 16, 16*16-1)   /* 400x240 */
+	MCFG_SCREEN_SIZE(64*16, 16*16);
+	MCFG_SCREEN_VISIBLE_AREA(3*8, 23*16-8-1, 16, 16*16-8-1);
 	MCFG_SCREEN_UPDATE_DRIVER(targeth_state, screen_update)
 	MCFG_SCREEN_PALETTE("palette")
 
@@ -210,8 +261,14 @@ ROM_START( targeth )
 	ROM_LOAD16_BYTE( "targeth.c23", 0x000000, 0x040000, CRC(840887d6) SHA1(9a36b346608d531a62a2e0704ea44f12e07f9d91) )
 	ROM_LOAD16_BYTE( "targeth.c22", 0x000001, 0x040000, CRC(d2435eb8) SHA1(ce75a115dad8019c8e66a1c3b3e15f54781f65ae) )
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
-	ROM_LOAD( "targeth_ds5002fp.bin", 0x00000, 0x8000, NO_DUMP )
+	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_LOAD( "targeth_ds5002fp.bin", 0x00000, 0x8000, CRC(abcdfee4) SHA1(c5955d5dbbcecbe1c2ae77d59671ae40eb814d30) )
+
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	ROM_LOAD( "targeth_ds5002fp_scratch", 0x00, 0x80, CRC(c927bcb1) SHA1(86b5c7ee6a4a5f0aa538a6742253da1afadb4345) ) // default state so you don't have to manually initialize game
+	DS5002FP_SET_MON( 0x49 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
 
 	ROM_REGION( 0x200000, "gfx1", 0 )   /* Graphics */
 	ROM_LOAD( "targeth.i13",    0x000000, 0x080000, CRC(b892be24) SHA1(9cccaaacf20e77c7358f0ceac60b8a1012f1216c) )
@@ -230,8 +287,14 @@ ROM_START( targetha )
 	ROM_LOAD16_BYTE( "c23.bin", 0x000000, 0x040000, CRC(e38a54e2) SHA1(239bfa6f1c0fc8aa0ad7de9be237bef55b384007) )
 	ROM_LOAD16_BYTE( "c22.bin", 0x000001, 0x040000, CRC(24fe3efb) SHA1(8f48f08a6db28966c9263be119883c9179e349ed) )
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
-	ROM_LOAD( "targeth_ds5002fp.bin", 0x00000, 0x8000, NO_DUMP )
+	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_LOAD( "targeth_ds5002fp.bin", 0x00000, 0x8000, CRC(abcdfee4) SHA1(c5955d5dbbcecbe1c2ae77d59671ae40eb814d30) )
+
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	ROM_LOAD( "targeth_ds5002fp_scratch", 0x00, 0x80, CRC(c927bcb1) SHA1(86b5c7ee6a4a5f0aa538a6742253da1afadb4345) ) // default state so you don't have to manually initialize game
+	DS5002FP_SET_MON( 0x49 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
 
 	ROM_REGION( 0x200000, "gfx1", 0 )   /* Graphics */
 	ROM_LOAD( "targeth.i13",    0x000000, 0x080000, CRC(b892be24) SHA1(9cccaaacf20e77c7358f0ceac60b8a1012f1216c) )
@@ -245,5 +308,5 @@ ROM_START( targetha )
 	ROM_LOAD( "targeth.c3",     0x080000, 0x080000, CRC(d4c771df) SHA1(7cc0a86ef6aa3d26ab8f19d198f62112bf012870) )
 ROM_END
 
-GAME( 1994, targeth,  0,       targeth, targeth, driver_device, 0, ROT0, "Gaelco", "Target Hits (ver 1.1)", MACHINE_UNEMULATED_PROTECTION )
-GAME( 1994, targetha, targeth, targeth, targeth, driver_device, 0, ROT0, "Gaelco", "Target Hits (ver 1.0)", MACHINE_UNEMULATED_PROTECTION )
+GAME( 1994, targeth,  0,       targeth, targeth, driver_device, 0, ROT0, "Gaelco", "Target Hits (ver 1.1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1994, targetha, targeth, targeth, targeth, driver_device, 0, ROT0, "Gaelco", "Target Hits (ver 1.0)", MACHINE_SUPPORTS_SAVE )

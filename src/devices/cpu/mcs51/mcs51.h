@@ -156,8 +156,8 @@ protected:
 	} m_uart;            /* internal uart */
 
 	/* Internal Ram */
-	UINT8   *m_internal_ram;      /* 128 RAM (8031/51) + 128 RAM in second bank (8032/52) */
-	UINT8   *m_sfr_ram;           /* 128 SFR - these are in 0x80 - 0xFF */
+	required_shared_ptr<uint8_t> m_sfr_ram;           /* 128 SFR - these are in 0x80 - 0xFF */
+	required_shared_ptr<uint8_t> m_scratchpad;        /* 128 RAM (8031/51) + 128 RAM in second bank (8032/52) */
 
 	/* SFR Callbacks */
 	virtual void sfr_write(size_t offset, UINT8 data);
@@ -195,7 +195,6 @@ protected:
 	void clear_current_irq();
 	UINT8 r_acc();
 	UINT8 r_psw();
-	void update_ptrs();
 	offs_t external_ram_iaddr(offs_t offset, offs_t mem_mask);
 	UINT8 iram_read(size_t offset);
 	void iram_write(size_t offset, UINT8 data);
@@ -491,12 +490,17 @@ public:
  * Internal ram 128k and security features
  */
 
-#define MCFG_DS5002FP_CONFIG(_mcon, _rpctl, _crc) \
-	ds5002fp_device::set_mcon(*device, _mcon); \
-	ds5002fp_device::set_rpctl(*device, _rpctl); \
-	ds5002fp_device::set_crc(*device, _crc);
+/* these allow the default state of RAM to be set from a region */
+#define DS5002FP_SET_MON( _mcon) \
+	ROM_FILL( 0xc6, 1, _mcon)
 
-class ds5002fp_device : public mcs51_cpu_device
+#define DS5002FP_SET_RPCTL( _rpctl) \
+	ROM_FILL( 0xd8, 1, _rpctl)
+
+#define DS5002FP_SET_CRCR( _crcr) \
+	ROM_FILL( 0xc1, 1, _crcr)
+
+class ds5002fp_device : public mcs51_cpu_device, public device_nvram_interface
 {
 public:
 	// construction/destruction
@@ -506,12 +510,20 @@ public:
 	static void set_rpctl(device_t &device, UINT8 rpctl) { downcast<ds5002fp_device &>(device).m_ds5002fp.rpctl = rpctl; }
 	static void set_crc(device_t &device, UINT8 crc) { downcast<ds5002fp_device &>(device).m_ds5002fp.crc = crc; }
 
+	// device_nvram_interface overrides
+	virtual void nvram_default() override;
+	virtual void nvram_read( emu_file &file ) override;
+	virtual void nvram_write( emu_file &file ) override;
+
 protected:
 	virtual offs_t disasm_disassemble(char *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, UINT32 options) override;
 
 	/* SFR Callbacks */
 	virtual void sfr_write(size_t offset, UINT8 data) override;
 	virtual UINT8 sfr_read(size_t offset) override;
+
+private:
+	optional_memory_region m_region;
 };
 
 

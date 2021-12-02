@@ -1,11 +1,15 @@
 // license:BSD-3-Clause
 // copyright-holders:Manuel Abadia, Mike Coates, Nicola Salmoria, Miguel Angel Horna
+
+#include "machine/gaelcrpt.h"
+
 class wrally_state : public driver_device
 {
 public:
 	wrally_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
 		m_maincpu(*this, "maincpu"),
+		m_vramcrypt(*this, "vramcrypt"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette"),
 		m_videoram(*this, "videoram"),
@@ -14,6 +18,7 @@ public:
 		m_shareram(*this, "shareram") { }
 
 	required_device<cpu_device> m_maincpu;
+	optional_device<gaelco_crypt_device> m_vramcrypt;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 

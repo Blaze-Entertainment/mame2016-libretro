@@ -73,7 +73,7 @@ WRITE16_MEMBER(gaelco_state::OKIM6295_bankswitch_w)
 WRITE16_MEMBER(gaelco_state::gaelco_vram_encrypted_w)
 {
 	// osd_printf_debug("gaelco_vram_encrypted_w!!\n");
-	data = gaelco_decrypt(space, offset, data, 0x0f, 0x4228);
+	data = m_vramcrypt->gaelco_decrypt(space, offset, data, 0x0f, 0x4228);
 	COMBINE_DATA(&m_videoram[offset]);
 
 	m_tilemap[offset >> 11]->mark_tile_dirty(((offset << 1) & 0x0fff) >> 2);
@@ -83,7 +83,7 @@ WRITE16_MEMBER(gaelco_state::gaelco_vram_encrypted_w)
 WRITE16_MEMBER(gaelco_state::gaelco_encrypted_w)
 {
 	// osd_printf_debug("gaelco_encrypted_w!!\n");
-	data = gaelco_decrypt(space, offset, data, 0x0f, 0x4228);
+	data = m_vramcrypt->gaelco_decrypt(space, offset, data, 0x0f, 0x4228);
 	COMBINE_DATA(&m_screenram[offset]);
 }
 
@@ -92,7 +92,7 @@ WRITE16_MEMBER(gaelco_state::gaelco_encrypted_w)
 WRITE16_MEMBER(gaelco_state::thoop_vram_encrypted_w)
 {
 	// osd_printf_debug("gaelco_vram_encrypted_w!!\n");
-	data = gaelco_decrypt(space, offset, data, 0x0e, 0x4228);
+	data = m_vramcrypt->gaelco_decrypt(space, offset, data, 0x0e, 0x4228);
 	COMBINE_DATA(&m_videoram[offset]);
 
 	m_tilemap[offset >> 11]->mark_tile_dirty(((offset << 1) & 0x0fff) >> 2);
@@ -101,7 +101,7 @@ WRITE16_MEMBER(gaelco_state::thoop_vram_encrypted_w)
 WRITE16_MEMBER(gaelco_state::thoop_encrypted_w)
 {
 	// osd_printf_debug("gaelco_encrypted_w!!\n");
-	data = gaelco_decrypt(space, offset, data, 0x0e, 0x4228);
+	data = m_vramcrypt->gaelco_decrypt(space, offset, data, 0x0e, 0x4228);
 	COMBINE_DATA(&m_screenram[offset]);
 }
 
@@ -114,7 +114,7 @@ WRITE16_MEMBER(gaelco_state::thoop_encrypted_w)
 static ADDRESS_MAP_START( bigkarnk_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM                                                         /* ROM */
 	AM_RANGE(0x100000, 0x101fff) AM_RAM_WRITE(gaelco_vram_w) AM_SHARE("videoram")               /* Video RAM */
-	AM_RANGE(0x102000, 0x103fff) AM_RAM                                                         /* Screen RAM */
+	AM_RANGE(0x102000, 0x103fff) AM_RAM AM_SHARE("screenram")                                   /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
 //  AM_RANGE(0x10800c, 0x10800d) AM_DEVWRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
 	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
@@ -126,7 +126,7 @@ static ADDRESS_MAP_START( bigkarnk_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x700008, 0x700009) AM_READ_PORT("SERVICE")
 	AM_RANGE(0x70000e, 0x70000f) AM_WRITE(bigkarnk_sound_command_w)                                     /* Triggers a FIRQ on the sound CPU */
 	AM_RANGE(0x70000a, 0x70003b) AM_WRITE(bigkarnk_coin_w)                                          /* Coin Counters + Coin Lockout */
-	AM_RANGE(0xff8000, 0xffffff) AM_RAM                                                         /* Work RAM */
+	AM_RANGE(0xff8000, 0xffffff) AM_RAM AM_SHARE("mainram")                                                         /* Work RAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( bigkarnk_snd_map, AS_PROGRAM, 8, gaelco_state )
@@ -152,7 +152,7 @@ static ADDRESS_MAP_START( maniacsq_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x700006, 0x700007) AM_READ_PORT("P2")
 	AM_RANGE(0x70000c, 0x70000d) AM_WRITE(OKIM6295_bankswitch_w)                                        /* OKI6295 bankswitch */
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)                      /* OKI6295 status register */
-	AM_RANGE(0xff0000, 0xffffff) AM_RAM                                                         /* Work RAM */
+	AM_RANGE(0xff0000, 0xffffff) AM_RAM AM_SHARE("mainram")                                                        /* Work RAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( squash_map, AS_PROGRAM, 16, gaelco_state )
@@ -169,7 +169,7 @@ static ADDRESS_MAP_START( squash_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x700006, 0x700007) AM_READ_PORT("P2")
 	AM_RANGE(0x70000c, 0x70000d) AM_WRITE(OKIM6295_bankswitch_w)                                        /* OKI6295 bankswitch */
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)                      /* OKI6295 status register */
-	AM_RANGE(0xff0000, 0xffffff) AM_RAM                                                         /* Work RAM */
+	AM_RANGE(0xff0000, 0xffffff) AM_RAM AM_SHARE("mainram")                                                         /* Work RAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( thoop_map, AS_PROGRAM, 16, gaelco_state )
@@ -186,7 +186,7 @@ static ADDRESS_MAP_START( thoop_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x700006, 0x700007) AM_READ_PORT("P2")
 	AM_RANGE(0x70000c, 0x70000d) AM_WRITE(OKIM6295_bankswitch_w)                                        /* OKI6295 bankswitch */
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)                      /* OKI6295 status register */
-	AM_RANGE(0xff0000, 0xffffff) AM_RAM                                                         /* Work RAM */
+	AM_RANGE(0xff8000, 0xffffff) AM_RAM AM_SHARE("mainram")                                                         /* Work RAM */
 ADDRESS_MAP_END
 
 
@@ -505,11 +505,11 @@ void gaelco_state::machine_start()
 static MACHINE_CONFIG_START( bigkarnk, gaelco_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 10000000)   /* MC68000P10, 10 MHz */
+	MCFG_CPU_ADD("maincpu", M68000, 12000000)   /* MC68000P10, 12 MHz */
 	MCFG_CPU_PROGRAM_MAP(bigkarnk_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", gaelco_state,  irq6_line_hold)
 
-	MCFG_CPU_ADD("audiocpu", M6809, 8867000/4)  /* 68B09, 2.21675 MHz? */
+	MCFG_CPU_ADD("audiocpu", M6809, 2000000)  /* 68B09, 2 MHz? */
 	MCFG_CPU_PROGRAM_MAP(bigkarnk_snd_map)
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))
@@ -517,7 +517,7 @@ static MACHINE_CONFIG_START( bigkarnk, gaelco_state )
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_REFRESH_RATE(59) // unknown
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(32*16, 32*16)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
@@ -533,10 +533,10 @@ static MACHINE_CONFIG_START( bigkarnk, gaelco_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_SOUND_ADD("ymsnd", YM3812, 3580000)
+	MCFG_SOUND_ADD("ymsnd", YM3812, 4000000)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
-	MCFG_OKIM6295_ADD("oki", 1056000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_OKIM6295_ADD("oki", 1000000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -574,16 +574,17 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( squash, gaelco_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)   /* MC68000P12, 12 MHz */
+	MCFG_CPU_ADD("maincpu", M68000, 10000000)   /* MC68000P12, 10 MHz */ // needs to be 10mhz to prevent protection fails
 	MCFG_CPU_PROGRAM_MAP(squash_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", gaelco_state,  irq6_line_hold)
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))
 
+	MCFG_GAELCO_VRAM_CRYPT_ADD("vramcrypt")
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_REFRESH_RATE(57.42) // needs to be 57.42 to prevent protection fails
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(32*16, 32*16)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
@@ -594,7 +595,7 @@ static MACHINE_CONFIG_START( squash, gaelco_state )
 	MCFG_PALETTE_ADD("palette", 1024)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_VIDEO_START_OVERRIDE(gaelco_state,maniacsq)
+	MCFG_VIDEO_START_OVERRIDE(gaelco_state,squash)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -607,27 +608,29 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( thoop, gaelco_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)   /* MC68000P12, 12 MHz */
+	MCFG_CPU_ADD("maincpu", M68000, 12000000)   /* MC68000P12, 12 MHz */ // needs to be 12mhz to prevent protection fails
 	MCFG_CPU_PROGRAM_MAP(thoop_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", gaelco_state,  irq6_line_hold)
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))
 
+	MCFG_GAELCO_VRAM_CRYPT_ADD("vramcrypt")
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
-	MCFG_SCREEN_REFRESH_RATE(60)
+	//MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_REFRESH_RATE(57.42) // needs to be 57.42 to prevent protection fails
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(32*16, 32*16)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
-	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_maniacsq)
+	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_thoop)
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
 	MCFG_PALETTE_ADD("palette", 1024)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_VIDEO_START_OVERRIDE(gaelco_state,maniacsq)
+	MCFG_VIDEO_START_OVERRIDE(gaelco_state,bigkarnk)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
@@ -852,6 +855,172 @@ ROM_START( thoop )
 ROM_END
 
 
+#if 0
+Big Karnaks crash is intentional.
+Theres a timer which calls $e988 periodically.  I dont know what
+controls that timer.  Its slow.  Maybe every x vblanks or something.
+Running at 12MHz didnt help.  I can still crash it.
+Anyway, within that routine, during the second stage, grabbing the
+ankh while yellow or black at the "wrong" time triggers a write of $ff
+to $ff8030 via $e9b4.
+
+That value is checked later during sprite positioning routine at $111fe.
+If the new Y position relative to a nearby platform ($11216-11220) is
+ 10 (at $11222) then the game crashes via illegal move at $11228.
+A workaround is to patch $231cc and $232dc to $00 so that $ff8030
+never receives the $ff.
+I cant be sure that there arent other surprises if the $ff is there.
+#endif
+
+WRITE16_MEMBER(gaelco_state::bigkarnak_prot_w)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("bigkarnak_prot_w pc: %06x data: %04x mem_mask %04x\n", pc, data, mem_mask);
+		
+		if ((mem_mask == 0xff00) && ((data & mem_mask) == 0xff00))
+			data = 0x0000;
+
+		printf("    writing data: %04x mem_mask %04x\n", data, mem_mask);
+	}
+
+	COMBINE_DATA(&m_mainram[0x30 / 2]);
+}
+
+READ16_MEMBER(gaelco_state::bigkarnak_prot_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("bigkarnak_prot_r pc: %06x mem_mask %04x\n", pc, mem_mask);
+	}
+	return m_mainram[0x30 / 2];
+}
+
+READ16_MEMBER(gaelco_state::bigkarnak_skip_rom_r )
+{
+	uint16_t data = m_mainrom[0x400/2];
+
+	int pc = space.device().safe_pc();
+
+	// bypass long startup checksum test
+	if (pc == 0x1736 && !space.debugger_access())
+	{
+		m_maincpu->set_state_int(M68K_D0, 1);
+		m_maincpu->set_state_int(M68K_D4, 0x1e38c94);
+		return 0x0000;
+	}
+
+	return data;
+}
+
+READ16_MEMBER(gaelco_state::bigkarnak_skip_r)
+{
+	uint16_t data = m_mainram[0x0000];
+
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		//printf("bigkarnak_skip_r pc %04x\n", pc);
+
+		if (pc == 0x182e) m_maincpu->set_state_int(M68K_D0, 1);
+	}
+
+	return data;
+}
+
+READ16_MEMBER(gaelco_state::bigkarnak_skip2_r)
+{
+	uint16_t data = m_screenram[0x0000];
+
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		//printf("bigkarnak_skip2_r pc %04x\n", pc);
+
+		if (pc == 0x182e) m_maincpu->set_state_int(M68K_D0, 1);
+
+	}
+
+	return data;
+}
+
+
+WRITE16_MEMBER(gaelco_state::bigkarnak_skip_w)
+{
+	COMBINE_DATA(&m_mainram[0x0000]);
+
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		//printf("pc %04x\n", pc);
+
+		if (pc == 0x181e)
+		{
+			m_maincpu->set_state_int(M68K_D0, 1);
+		}
+
+		if (pc == 0x1886)
+		{
+			m_maincpu->set_state_int(M68K_D0, 1);
+		}
+	}
+}
+
+WRITE16_MEMBER(gaelco_state::bigkarnak_skip2_w)
+{
+	COMBINE_DATA(&m_screenram[0x0000]);
+
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		//printf("pc %04x\n", pc);
+
+		if (pc == 0x181e)
+		{
+			m_maincpu->set_state_int(M68K_D0, 1);
+		}
+
+		if (pc == 0x1886)
+		{
+			m_maincpu->set_state_int(M68K_D0, 1);
+		}
+	}
+}
+
+DRIVER_INIT_MEMBER(gaelco_state,bigkarnak)
+{
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x000400, 0x000401, read16_delegate(FUNC(gaelco_state::bigkarnak_skip_rom_r),this));
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xff8000, 0xff8001, read16_delegate(FUNC(gaelco_state::bigkarnak_skip_r),this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xff8000, 0xff8001, write16_delegate(FUNC(gaelco_state::bigkarnak_skip_w),this));
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x102000, 0x102001, read16_delegate(FUNC(gaelco_state::bigkarnak_skip2_r),this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0x102000, 0x102001, write16_delegate(FUNC(gaelco_state::bigkarnak_skip2_w),this));
+	
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xff8030, 0xff8031, write16_delegate(FUNC(gaelco_state::bigkarnak_prot_w),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xff8030, 0xff8031, read16_delegate(FUNC(gaelco_state::bigkarnak_prot_r),this));
+
+}
+
+WRITE16_MEMBER(gaelco_state::thoop_ramhack_w)
+{
+	int pc = m_maincpu->pc();
+
+	printf("%06x: thoop_ramhack_w %04x (%04x)\n", pc, data, mem_mask);
+
+	if ((pc == 0xc36c) && ((data & mem_mask) == 0x2700) && (mem_mask == 0xff00))
+		data = 0x0000;
+
+	COMBINE_DATA(&m_mainram[0x608e / 2]);
+}
+
+DRIVER_INIT_MEMBER(gaelco_state,thoop)
+{
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xffe08e, 0xffe08f, write16_delegate(FUNC(gaelco_state::thoop_ramhack_w),this));
+}
+
 
 /*************************************
  *
@@ -859,9 +1028,9 @@ ROM_END
  *
  *************************************/
 
-GAME( 1991, bigkarnk, 0,        bigkarnk, bigkarnk, driver_device, 0, ROT0, "Gaelco", "Big Karnak", MACHINE_SUPPORTS_SAVE )
+GAME( 1991, bigkarnk, 0,        bigkarnk, bigkarnk, gaelco_state, bigkarnak, ROT0, "Gaelco", "Big Karnak", MACHINE_SUPPORTS_SAVE )
 GAME( 1995, biomtoy,  0,        maniacsq, biomtoy, driver_device,  0, ROT0, "Gaelco", "Biomechanical Toy (Ver. 1.0.1885)", MACHINE_SUPPORTS_SAVE )
 GAME( 1995, biomtoya, biomtoy,  maniacsq, biomtoy, driver_device,  0, ROT0, "Gaelco", "Biomechanical Toy (Ver. 1.0.1884)", MACHINE_SUPPORTS_SAVE )
 GAME( 1996, maniacsp, maniacsq, maniacsq, maniacsq, driver_device, 0, ROT0, "Gaelco", "Maniac Square (prototype)", MACHINE_SUPPORTS_SAVE )
 GAME( 1992, squash,   0,        squash,   squash, driver_device,   0, ROT0, "Gaelco", "Squash (Ver. 1.0)", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, thoop,    0,        thoop,    thoop, driver_device,    0, ROT0, "Gaelco", "Thunder Hoop (Ver. 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, thoop,    0,        thoop,    thoop, gaelco_state,    thoop, ROT0, "Gaelco", "Thunder Hoop (Ver. 1)", MACHINE_SUPPORTS_SAVE )

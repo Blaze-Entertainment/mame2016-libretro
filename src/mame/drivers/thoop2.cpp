@@ -8,15 +8,11 @@ Driver by Manuel Abadia <emumanu+mame@gmail.com>
 
 updated by Peter Ferrie <peter.ferrie@gmail.com>
 
-Very similar to maniacsq and biomtoy but protected :_(
-The DS5002FP has up to 128 KB undumped gameplay code
-pf: its presence might be a distraction, since the game runs at least partially without it
-pf: but some gameplay bugs - sprite positioning is incorrect, no enemies, jump animation never completes
-
 ***************************************************************************/
 
 #include "emu.h"
 #include "cpu/m68000/m68000.h"
+#include "cpu/mcs51/mcs51.h"
 #include "machine/watchdog.h"
 #include "sound/okim6295.h"
 #include "includes/thoop2.h"
@@ -53,12 +49,41 @@ WRITE16_MEMBER(thoop2_state::coin_w)
 	/* 05b unknown */
 }
 
-/* pretend that it's there */
+/*============================================================================
+                            DS5002FP
+  ============================================================================*/
 
-READ16_MEMBER(thoop2_state::DS5002FP_R)
+READ8_MEMBER(thoop2_state::dallas_share_r)
 {
-	return 0x55aa;
+	uint8_t *shareram = (uint8_t *)m_shareram.target();
+	return shareram[BYTE_XOR_BE(offset)];
 }
+
+WRITE8_MEMBER(thoop2_state::dallas_share_w)
+{
+	uint8_t *shareram = (uint8_t *)m_shareram.target();
+	shareram[BYTE_XOR_BE(offset)] = data;
+}
+
+READ8_MEMBER(thoop2_state::dallas_ram_r)
+{
+	return m_mcu_ram[offset];
+}
+
+WRITE8_MEMBER(thoop2_state::dallas_ram_w)
+{
+	m_mcu_ram[offset] = data;
+}
+
+static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, thoop2_state )
+	AM_RANGE(0x0000, 0x7fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* Code in NVRAM */
+ADDRESS_MAP_END
+
+static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, thoop2_state )
+	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
+	AM_RANGE(0x10000, 0x17fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* yes, the games access it as data and use it for temporary storage!! */
+ADDRESS_MAP_END
+
 
 static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
 	AM_RANGE(0x000000, 0x0fffff) AM_ROM                                                 /* ROM */
@@ -75,9 +100,8 @@ static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
 	AM_RANGE(0x70000c, 0x70000d) AM_WRITE(OKIM6295_bankswitch_w)                        /* OKI6295 bankswitch */
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)                  /* OKI6295 data register */
 	AM_RANGE(0x70000a, 0x70005b) AM_WRITE(coin_w)                                /* Coin Counters + Coin Lockout */
-	AM_RANGE(0xfeff00, 0xfeff01) AM_READ(DS5002FP_R)
-	AM_RANGE(0xfeff02, 0xfeff03) AM_WRITENOP  /* pf: 0xfeff02 and 0xfeff03 need to remain zero always */
-	AM_RANGE(0xfe0000, 0xfeffff) AM_RAM                                                 /* Work RAM (partially shared with DS5002FP) */
+	AM_RANGE(0xfe0000, 0xfe7fff) AM_RAM                                          /* Work RAM */
+	AM_RANGE(0xfe8000, 0xfeffff) AM_RAM AM_SHARE("shareram")                     /* Work RAM (shared with D5002FP) */
 ADDRESS_MAP_END
 
 
@@ -206,6 +230,13 @@ static MACHINE_CONFIG_START( thoop2, thoop2_state )
 	MCFG_CPU_PROGRAM_MAP(thoop2_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", thoop2_state,  irq6_line_hold)
 
+	MCFG_CPU_ADD("mcu", DS5002FP, XTAL_24MHz/4) /* ? */
+	//MCFG_DS5002FP_CONFIG( 0x79, 0x00, 0x80 ) /* default config verified on chip */
+	MCFG_CPU_PROGRAM_MAP(dallas_rom)
+	MCFG_CPU_IO_MAP(dallas_ram)
+
+	MCFG_QUANTUM_TIME(attotime::from_hz(4000))  
+
 	MCFG_WATCHDOG_ADD("watchdog")
 
 	/* video hardware */
@@ -224,7 +255,7 @@ static MACHINE_CONFIG_START( thoop2, thoop2_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_OKIM6295_ADD("oki", 1056000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_OKIM6295_ADD("oki", 1000000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
 	MCFG_DEVICE_ADDRESS_MAP(AS_0, oki_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
@@ -235,8 +266,14 @@ ROM_START( thoop2 )
 	ROM_LOAD16_BYTE(    "th2c23.040",   0x000000, 0x080000, CRC(3e465753) SHA1(1ea1173b9fe5d652e7b5fafb822e2535cecbc198) )
 	ROM_LOAD16_BYTE(    "th2c22.040",   0x000001, 0x080000, CRC(837205b7) SHA1(f78b90c2be0b4dddaba26f074ea00eff863cfdb2) )
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
-	ROM_LOAD( "thoop2_ds5002fp.bin", 0x00000, 0x8000, NO_DUMP )
+	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_LOAD( "thoop2_ds5002fp.bin", 0x00000, 0x8000, CRC(6881384d) SHA1(c1eff5558716293e1325b766e2205783286c12f9) ) /* dumped from 3 boards, reconstructed with 2/3 wins rule, all bytes verified by hand as correct */
+
+	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
+	/* these are the default states stored in NVRAM */
+	DS5002FP_SET_MON( 0x79 )
+	DS5002FP_SET_RPCTL( 0x00 )
+	DS5002FP_SET_CRCR( 0x80 )
 
 	ROM_REGION( 0x800000, "gfx1", 0 )
 	ROM_LOAD( "th2-h8.32m",     0x000000, 0x400000, CRC(60328a11) SHA1(fcdb374d2fc7ef5351a4181c471d192199dc2081) )
@@ -247,4 +284,33 @@ ROM_START( thoop2 )
 	/* 0x00000-0x2ffff is fixed, 0x30000-0x3ffff is bank switched */
 ROM_END
 
-GAME( 1994, thoop2,  0, thoop2, thoop2, driver_device,  0, ROT0, "Gaelco", "TH Strikes Back", MACHINE_UNEMULATED_PROTECTION | MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE )
+// fast boot
+READ16_MEMBER(thoop2_state::thoop_rom_r )
+{
+	uint16_t data = m_mainrom[0x40/2];
+
+	if (space.device().safe_pc() == 0x27fe && !space.debugger_access())
+		m_maincpu->set_state_int(M68K_PC, 0x2814);
+
+	return data /*| 0x0100*/;
+}
+
+READ16_MEMBER(thoop2_state::thoop_rom2_r)
+{
+	uint16_t data = m_mainrom[0x400/2];
+	if (space.device().safe_pc() == 0x26ac && !space.debugger_access())
+	{
+		m_maincpu->set_state_int(M68K_A0, 0x7ffff);
+		m_maincpu->set_state_int(M68K_D4, 0x4d6f6b23);
+	}
+	return data;
+}
+
+
+DRIVER_INIT_MEMBER(thoop2_state,thoop2)
+{
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x000040, 0x000041, read16_delegate(FUNC(thoop2_state::thoop_rom_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x000400, 0x000401, read16_delegate(FUNC(thoop2_state::thoop_rom2_r),this));
+}
+
+GAME( 1994, thoop2,  0, thoop2, thoop2, thoop2_state,  thoop2, ROT0, "Gaelco", "TH Strikes Back", MACHINE_SUPPORTS_SAVE )

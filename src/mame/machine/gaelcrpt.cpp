@@ -9,9 +9,35 @@ Thanks to GAELCO SA for information on the algorithm.
 */
 
 #include "emu.h"
-#include "includes/gaelcrpt.h"
+#include "machine/gaelcrpt.h"
 
-static int decrypt(int const param1, int const param2, int const enc_prev_word, int const dec_prev_word, int const enc_word)
+
+extern const device_type GAELCO_VRAM_CRYPT = &device_creator<gaelco_crypt_device>;
+
+
+gaelco_crypt_device::gaelco_crypt_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
+	: device_t(mconfig, GAELCO_VRAM_CRYPT, "Gaelco VRAM Encryption", tag, owner, clock, "gaelocrypt", __FILE__)
+{
+}
+
+
+void gaelco_crypt_device::device_start()
+{
+	save_item(NAME(lastpc));
+	save_item(NAME(lastoffset));
+	save_item(NAME(lastencword));
+	save_item(NAME(lastdecword));
+
+}
+
+void gaelco_crypt_device::device_reset()
+{
+	lastpc = lastoffset = lastencword = lastdecword = 0;
+}
+
+
+
+int gaelco_crypt_device::decrypt(int const param1, int const param2, int const enc_prev_word, int const dec_prev_word, int const enc_word)
 {
 	int const swap = (BIT(dec_prev_word, 8) << 1) | BIT(dec_prev_word, 7);
 	int const type = (BIT(dec_prev_word,12) << 1) | BIT(dec_prev_word, 2);
@@ -122,9 +148,8 @@ static int decrypt(int const param1, int const param2, int const enc_prev_word, 
 
 
 
-UINT16 gaelco_decrypt(address_space &space, int offset, int data, int param1, int param2)
+UINT16 gaelco_crypt_device::gaelco_decrypt(address_space &space, int offset, int data, int param1, int param2)
 {
-	static int lastpc, lastoffset, lastencword, lastdecword;
 
 	int thispc = space.device().safe_pc();
 //  int savedata = data;

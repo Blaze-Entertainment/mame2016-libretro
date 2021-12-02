@@ -62,6 +62,11 @@ protected:
 	// sound stream update overrides
 	virtual void sound_stream_update(sound_stream &stream, stream_sample_t **inputs, stream_sample_t **outputs, int samples) override;
 
+	virtual void device_reset() override;
+	virtual void device_post_load() override;
+	virtual void device_clock_changed() override;
+//	virtual void rom_bank_updated() override;
+
 public:
 	DECLARE_WRITE16_MEMBER( gaelcosnd_w );
 	DECLARE_READ16_MEMBER( gaelcosnd_r );
