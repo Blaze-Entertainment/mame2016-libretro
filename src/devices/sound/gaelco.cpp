@@ -211,37 +211,7 @@ READ16_MEMBER( gaelco_gae1_device::gaelcosnd_r )
                         CG-1V/GAE1 Write Handler
   ============================================================================*/
 
-/*
-void gaelco_gae1_device::logsounds(offs_t offset, uint16_t data, uint16_t mem_mask, bool type, int was_active)
-{
-	//printf("%02d %s (GAE1) %s sample channel: type: %02x, bank: %02x, end: %08x, Length: %04x", offset >> 3, was_active?"WAS ACTIVE":"",type ? "PLAYING" : "LOOPING", (m_sndregs[offset - 2] >> 4) & 0x0f, m_sndregs[offset - 2] & 0x03, m_sndregs[offset - 1] << 8, data);
-
-	int bank = m_sndregs[offset - 2] & 0x03;
-	int end = m_sndregs[offset - 1] << 8;
-	int length = data;
-
-	if (bank == 0x01)
-	{
-		if ((end == 0x275600) && (length == 0x2731)) //printf("  'TWELVE'  ");
-
-		if ((end == 0x298c00) && (length == 0x19ba)) //printf("  'SET'  ");
-		if ((end == 0x29a600) && (length == 0x22bd)) //printf("  'MATCH'  ");
-		if ((end == 0x29c900) && (length == 0x14ed)) //printf("  'FIRST'  ");
-		if ((end == 0x29de00) && (length == 0x1a86)) //printf("  'SECOND'  ");
-		if ((end == 0x29f900) && (length == 0x112d)) //printf("  'THIRD'  ");
-		if ((end == 0x2a0b00) && (length == 0x140e)) //printf("  'FORTH'  ");
-		if ((end == 0x2a2000) && (length == 0x1b91)) //printf("  'FINAL'  ");
-		if ((end == 0x2ccd00) && (length == 0x2548)) //printf("  'FUCK YOU?'  ");
-
-	}
-
-	//printf("\n");
-
-}
-*/
-
 WRITE16_MEMBER( gaelco_gae1_device::gaelcosnd_w )
-//void gaelco_gae1_device::gaelcosnd_w(offs_t offset, uint16_t data, uint16_t mem_mask)
 {
 	gaelco_sound_channel *channel = &m_channel[offset >> 3];
 
@@ -259,7 +229,13 @@ WRITE16_MEMBER( gaelco_gae1_device::gaelcosnd_w )
 			// if sample end position isn't 0, and length isn't 0
 			if ((m_sndregs[offset - 1] != 0) && (data != 0))
 			{
-				//logsounds(offset, data, mem_mask, true, channel->active);
+				// filter bad sound (touchgok)
+				int end = m_sndregs[offset - 1] << 8;
+				if ((end == 0x2ccd00) && (data == 0x2548))
+				{
+					data = 0x1;
+					COMBINE_DATA(&m_sndregs[offset]);
+				}
 
 				channel->loop = 1;
 
@@ -282,7 +258,13 @@ WRITE16_MEMBER( gaelco_gae1_device::gaelcosnd_w )
 			// if sample end position isn't 0, and length isn't 0
 			if ((m_sndregs[offset - 1] != 0) && (data != 0))
 			{
-				//logsounds(offset, data, mem_mask, false, channel->active);
+				// filter bad sound (touchgok)
+				int end = m_sndregs[offset - 1] << 8;
+				if ((end == 0x2ccd00) && (data == 0x2548))
+				{
+					data = 0x1;
+					COMBINE_DATA(&m_sndregs[offset]);
+				}
 
 				channel->loop = 1;
 

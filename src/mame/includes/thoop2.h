@@ -30,6 +30,9 @@ public:
 	DECLARE_READ16_MEMBER(thoop_rom_r);
 	DECLARE_READ16_MEMBER(thoop_rom2_r);
 
+	DECLARE_READ16_MEMBER(main_share_r);
+	DECLARE_WRITE16_MEMBER(main_share_w);
+
 	virtual void machine_start() override;
 	virtual void video_start() override;
 

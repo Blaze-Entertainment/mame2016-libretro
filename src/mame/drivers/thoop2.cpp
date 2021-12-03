@@ -55,12 +55,16 @@ WRITE16_MEMBER(thoop2_state::coin_w)
 
 READ8_MEMBER(thoop2_state::dallas_share_r)
 {
+	//space.machine().scheduler().synchronize();
+	//machine().scheduler().boost_interleave(attotime::zero, attotime::from_usec(50));
 	uint8_t *shareram = (uint8_t *)m_shareram.target();
 	return shareram[BYTE_XOR_BE(offset)];
 }
 
 WRITE8_MEMBER(thoop2_state::dallas_share_w)
 {
+	//space.machine().scheduler().synchronize();
+	//machine().scheduler().boost_interleave(attotime::zero, attotime::from_usec(50));
 	uint8_t *shareram = (uint8_t *)m_shareram.target();
 	shareram[BYTE_XOR_BE(offset)] = data;
 }
@@ -84,6 +88,19 @@ static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, thoop2_state )
 	AM_RANGE(0x10000, 0x17fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
 
+READ16_MEMBER(thoop2_state::main_share_r)
+{
+	//space.machine().scheduler().synchronize();
+	//machine().scheduler().boost_interleave(attotime::zero, attotime::from_usec(50));
+	return m_shareram[offset];
+}
+
+WRITE16_MEMBER(thoop2_state::main_share_w)
+{
+	//space.machine().scheduler().synchronize();
+	//machine().scheduler().boost_interleave(attotime::zero, attotime::from_usec(50));
+	COMBINE_DATA(&m_shareram[offset]);
+}
 
 static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
 	AM_RANGE(0x000000, 0x0fffff) AM_ROM                                                 /* ROM */
@@ -101,7 +118,7 @@ static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)                  /* OKI6295 data register */
 	AM_RANGE(0x70000a, 0x70005b) AM_WRITE(coin_w)                                /* Coin Counters + Coin Lockout */
 	AM_RANGE(0xfe0000, 0xfe7fff) AM_RAM                                          /* Work RAM */
-	AM_RANGE(0xfe8000, 0xfeffff) AM_RAM AM_SHARE("shareram")                     /* Work RAM (shared with D5002FP) */
+	AM_RANGE(0xfe8000, 0xfeffff) AM_RAM AM_READWRITE(main_share_r, main_share_w) AM_SHARE("shareram")                     /* Work RAM (shared with D5002FP) */
 ADDRESS_MAP_END
 
 
@@ -230,12 +247,12 @@ static MACHINE_CONFIG_START( thoop2, thoop2_state )
 	MCFG_CPU_PROGRAM_MAP(thoop2_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", thoop2_state,  irq6_line_hold)
 
-	MCFG_CPU_ADD("mcu", DS5002FP, XTAL_24MHz/4) /* ? */
+	MCFG_CPU_ADD("mcu", DS5002FP, XTAL_24MHz/3) /* ? */
 	//MCFG_DS5002FP_CONFIG( 0x79, 0x00, 0x80 ) /* default config verified on chip */
 	MCFG_CPU_PROGRAM_MAP(dallas_rom)
 	MCFG_CPU_IO_MAP(dallas_ram)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(4000))  
+	MCFG_QUANTUM_TIME(attotime::from_hz(10000))  
 
 	MCFG_WATCHDOG_ADD("watchdog")
 
@@ -243,7 +260,7 @@ static MACHINE_CONFIG_START( thoop2, thoop2_state )
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(60)
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
-	MCFG_SCREEN_SIZE(32*16, 32*16)
+	MCFG_SCREEN_SIZE(320, 256)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
 	MCFG_SCREEN_UPDATE_DRIVER(thoop2_state, screen_update)
 	MCFG_SCREEN_PALETTE("palette")
