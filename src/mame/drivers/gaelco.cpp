@@ -64,7 +64,7 @@ WRITE16_MEMBER(gaelco_state::OKIM6295_bankswitch_w)
 {
 	if (ACCESSING_BITS_0_7)
 	{
-		membank("okibank")->set_entry(data & 0x0f);
+		m_okibank->set_entry(data & 0x0f);
 	}
 }
 
@@ -116,7 +116,7 @@ static ADDRESS_MAP_START( bigkarnk_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x100000, 0x101fff) AM_RAM_WRITE(gaelco_vram_w) AM_SHARE("videoram")               /* Video RAM */
 	AM_RANGE(0x102000, 0x103fff) AM_RAM AM_SHARE("screenram")                                   /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
-//  AM_RANGE(0x10800c, 0x10800d) AM_DEVWRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
+	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_DEVWRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
 	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW1")
@@ -132,7 +132,7 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( bigkarnk_snd_map, AS_PROGRAM, 8, gaelco_state )
 	AM_RANGE(0x0000, 0x07ff) AM_RAM                                         /* RAM */
 	AM_RANGE(0x0800, 0x0801) AM_DEVREADWRITE("oki", okim6295_device, read, write)   /* OKI6295 */
-//  AM_RANGE(0x0900, 0x0900) AM_WRITENOP                                    /* enable sound output? */
+	AM_RANGE(0x0900, 0x0900) AM_WRITENOP                                    /* enable sound output? */
 	AM_RANGE(0x0a00, 0x0a01) AM_DEVREADWRITE("ymsnd", ym3812_device, read, write)        /* YM3812 */
 	AM_RANGE(0x0b00, 0x0b00) AM_READ(soundlatch_byte_r)                         /* Sound latch */
 	AM_RANGE(0x0c00, 0xffff) AM_ROM                                         /* ROM */
@@ -143,7 +143,7 @@ static ADDRESS_MAP_START( maniacsq_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x100000, 0x101fff) AM_RAM_WRITE(gaelco_vram_w) AM_SHARE("videoram")               /* Video RAM */
 	AM_RANGE(0x102000, 0x103fff) AM_RAM                                                         /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
-//  AM_RANGE(0x10800c, 0x10800d) AM_WRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
+	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
 	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW2")
@@ -160,7 +160,7 @@ static ADDRESS_MAP_START( squash_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x100000, 0x101fff) AM_RAM_WRITE(gaelco_vram_encrypted_w) AM_SHARE("videoram")         /* Video RAM */
 	AM_RANGE(0x102000, 0x103fff) AM_RAM_WRITE(gaelco_encrypted_w) AM_SHARE("screenram")                /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
-//  AM_RANGE(0x10800c, 0x10800d) AM_WRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
+	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
 	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW2")
@@ -177,7 +177,7 @@ static ADDRESS_MAP_START( thoop_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x100000, 0x101fff) AM_RAM_WRITE(thoop_vram_encrypted_w) AM_SHARE("videoram")          /* Video RAM */
 	AM_RANGE(0x102000, 0x103fff) AM_RAM_WRITE(thoop_encrypted_w) AM_SHARE("screenram")             /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
-//  AM_RANGE(0x10800c, 0x10800d) AM_WRITE(watchdog_reset_w)                                                     /* INT 6 ACK/Watchdog timer */
+	AM_RANGE(0x10800c, 0x10800d) AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                     /* INT 6 ACK/Watchdog timer */
 	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")        /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW2")
@@ -499,7 +499,7 @@ GFXDECODEINFO(0x100000,64)
 void gaelco_state::machine_start()
 {
 	if (memregion("oki")->bytes() > 0x040000) //bigkarnk oki isn't banked
-		membank("okibank")->configure_entries(0, 16, memregion("oki")->base(), 0x10000);
+		m_okibank->configure_entries(0, 16, memregion("oki")->base(), 0x10000);
 }
 
 static MACHINE_CONFIG_START( bigkarnk, gaelco_state )
@@ -855,7 +855,8 @@ ROM_START( thoop )
 ROM_END
 
 
-#if 0
+/* 
+
 Big Karnaks crash is intentional.
 Theres a timer which calls $e988 periodically.  I dont know what
 controls that timer.  Its slow.  Maybe every x vblanks or something.
@@ -870,19 +871,18 @@ If the new Y position relative to a nearby platform ($11216-11220) is
 A workaround is to patch $231cc and $232dc to $00 so that $ff8030
 never receives the $ff.
 I cant be sure that there arent other surprises if the $ff is there.
-#endif
+
+---
+The workaround below addresses the issue described above
+
+*/
 
 WRITE16_MEMBER(gaelco_state::bigkarnak_prot_w)
 {
 	if (!space.debugger_access())
 	{
-		int pc = space.device().safe_pc();
-		printf("bigkarnak_prot_w pc: %06x data: %04x mem_mask %04x\n", pc, data, mem_mask);
-		
 		if ((mem_mask == 0xff00) && ((data & mem_mask) == 0xff00))
 			data = 0x0000;
-
-		printf("    writing data: %04x mem_mask %04x\n", data, mem_mask);
 	}
 
 	COMBINE_DATA(&m_mainram[0x30 / 2]);
@@ -890,11 +890,6 @@ WRITE16_MEMBER(gaelco_state::bigkarnak_prot_w)
 
 READ16_MEMBER(gaelco_state::bigkarnak_prot_r)
 {
-	if (!space.debugger_access())
-	{
-		int pc = space.device().safe_pc();
-		printf("bigkarnak_prot_r pc: %06x mem_mask %04x\n", pc, mem_mask);
-	}
 	return m_mainram[0x30 / 2];
 }
 
@@ -1008,7 +1003,7 @@ WRITE16_MEMBER(gaelco_state::thoop_ramhack_w)
 {
 	int pc = m_maincpu->pc();
 
-	printf("%06x: thoop_ramhack_w %04x (%04x)\n", pc, data, mem_mask);
+	//printf("%06x: thoop_ramhack_w %04x (%04x)\n", pc, data, mem_mask);
 
 	if ((pc == 0xc36c) && ((data & mem_mask) == 0x2700) && (mem_mask == 0xff00))
 		data = 0x0000;

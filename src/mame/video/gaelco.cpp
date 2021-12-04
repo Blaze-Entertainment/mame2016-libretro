@@ -107,8 +107,11 @@ TILE_GET_INFO_MEMBER(gaelco_state::get_tile_info_gaelco_screen1)
 
 WRITE16_MEMBER(gaelco_state::gaelco_vram_w)
 {
+	uint16_t olddata = m_videoram[offset];
 	COMBINE_DATA(&m_videoram[offset]);
-	m_tilemap[offset >> 11]->mark_tile_dirty(((offset << 1) & 0x0fff) >> 2);
+
+	if (m_videoram[offset] != olddata)
+		m_tilemap[offset >> 11]->mark_tile_dirty(((offset << 1) & 0x0fff) >> 2);
 }
 
 /***************************************************************************

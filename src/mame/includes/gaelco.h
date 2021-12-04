@@ -24,6 +24,7 @@ public:
 		m_screenram(*this, "screenram"),
 		m_mainram(*this, "mainram"),
 		m_mainrom(*this, "maincpu"),
+		m_okibank(*this, "okibank"),
 		m_sprite_palette_force_high(0x38),
 		m_use_squash_sprite_disable(false)
 	{ }
@@ -43,6 +44,7 @@ public:
 	required_shared_ptr<UINT16> m_mainram;
 	
 	required_region_ptr<UINT16> m_mainrom;
+	optional_memory_bank m_okibank;
 
 	/* video-related */
 	tilemap_t      *m_tilemap[2];
