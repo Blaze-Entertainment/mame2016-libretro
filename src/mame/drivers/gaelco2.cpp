@@ -74,23 +74,14 @@ WRITE8_MEMBER(gaelco2_state::dallas_share_w)
 	shareram[BYTE_XOR_BE(offset)] = data;
 }
 
-READ8_MEMBER(gaelco2_state::dallas_ram_r)
-{
-	return m_mcu_ram[offset];
-}
-
-WRITE8_MEMBER(gaelco2_state::dallas_ram_w)
-{
-	m_mcu_ram[offset] = data;
-}
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, gaelco2_state )
-	AM_RANGE(0x0000, 0x7fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_REGION("mcu", 0) /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, gaelco2_state )
 	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
-	AM_RANGE(0x10000, 0x17fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* yes, the games access it as data and use it for temporary storage!! */
+	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_REGION("mcu", 0) /* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
 
 /*============================================================================
@@ -1312,7 +1303,7 @@ static MACHINE_CONFIG_START( wrally2, wrally2_state )
 	MCFG_CPU_PROGRAM_MAP(dallas_rom)
 	MCFG_CPU_IO_MAP(dallas_ram)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(1000))  
+	MCFG_QUANTUM_TIME(attotime::from_hz(10000))  
 
 	MCFG_EEPROM_SERIAL_93C66_ADD("eeprom")
 

@@ -22,8 +22,7 @@ public:
 		m_mcu_ram(*this, "mcu")	
 	{ }
 
-	DECLARE_READ8_MEMBER(dallas_ram_r);
-	DECLARE_WRITE8_MEMBER(dallas_ram_w);
+
 	DECLARE_READ8_MEMBER(dallas_share_r);
 	DECLARE_WRITE8_MEMBER(dallas_share_w);
 
