@@ -20,13 +20,13 @@ updated by Peter Ferrie <peter.ferrie@gmail.com>
 
 void thoop2_state::machine_start()
 {
-	membank("okibank")->configure_entries(0, 16, memregion("oki")->base(), 0x10000);
+	m_okibank->configure_entries(0, 16, memregion("oki")->base(), 0x10000);
 }
 
 WRITE16_MEMBER(thoop2_state::OKIM6295_bankswitch_w)
 {
 	if (ACCESSING_BITS_0_7){
-		membank("okibank")->set_entry(data & 0x0f);
+		m_okibank->set_entry(data & 0x0f);
 	}
 }
 
@@ -69,38 +69,15 @@ WRITE8_MEMBER(thoop2_state::dallas_share_w)
 	shareram[BYTE_XOR_BE(offset)] = data;
 }
 
-READ8_MEMBER(thoop2_state::dallas_ram_r)
-{
-	return m_mcu_ram[offset];
-}
-
-WRITE8_MEMBER(thoop2_state::dallas_ram_w)
-{
-	m_mcu_ram[offset] = data;
-}
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, thoop2_state )
-	AM_RANGE(0x0000, 0x7fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_REGION("mcu", 0) /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, thoop2_state )
 	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
-	AM_RANGE(0x10000, 0x17fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* yes, the games access it as data and use it for temporary storage!! */
+	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_REGION("mcu", 0)/* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
-
-READ16_MEMBER(thoop2_state::main_share_r)
-{
-	//space.machine().scheduler().synchronize();
-	//machine().scheduler().boost_interleave(attotime::zero, attotime::from_usec(50));
-	return m_shareram[offset];
-}
-
-WRITE16_MEMBER(thoop2_state::main_share_w)
-{
-	//space.machine().scheduler().synchronize();
-	//machine().scheduler().boost_interleave(attotime::zero, attotime::from_usec(50));
-	COMBINE_DATA(&m_shareram[offset]);
-}
 
 static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
 	AM_RANGE(0x000000, 0x0fffff) AM_ROM                                                 /* ROM */
@@ -118,7 +95,7 @@ static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
 	AM_RANGE(0x70000e, 0x70000f) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)                  /* OKI6295 data register */
 	AM_RANGE(0x70000a, 0x70005b) AM_WRITE(coin_w)                                /* Coin Counters + Coin Lockout */
 	AM_RANGE(0xfe0000, 0xfe7fff) AM_RAM                                          /* Work RAM */
-	AM_RANGE(0xfe8000, 0xfeffff) AM_RAM AM_READWRITE(main_share_r, main_share_w) AM_SHARE("shareram")                     /* Work RAM (shared with D5002FP) */
+	AM_RANGE(0xfe8000, 0xfeffff) AM_RAM AM_SHARE("shareram")                     /* Work RAM (shared with D5002FP) */
 ADDRESS_MAP_END
 
 
@@ -309,7 +286,7 @@ READ16_MEMBER(thoop2_state::thoop_rom_r )
 	if (space.device().safe_pc() == 0x27fe && !space.debugger_access())
 		m_maincpu->set_state_int(M68K_PC, 0x2814);
 
-	return data /*| 0x0100*/;
+	return data /* | 0x0100*/;
 }
 
 READ16_MEMBER(thoop2_state::thoop_rom2_r)
