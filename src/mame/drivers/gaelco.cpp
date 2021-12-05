@@ -117,7 +117,7 @@ static ADDRESS_MAP_START( bigkarnk_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x102000, 0x103fff) AM_RAM AM_SHARE("screenram")                                   /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
 	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_DEVWRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
-	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
+	AM_RANGE(0x200000, 0x2007ff) AM_RAM_WRITE(gaelco_palette_w) AM_SHARE("paletteram")    /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW1")
 	AM_RANGE(0x700002, 0x700003) AM_READ_PORT("DSW2")
@@ -144,7 +144,7 @@ static ADDRESS_MAP_START( maniacsq_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x102000, 0x103fff) AM_RAM                                                         /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
 	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
-	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
+	AM_RANGE(0x200000, 0x2007ff) AM_RAM_WRITE(gaelco_palette_w) AM_SHARE("paletteram")    /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW2")
 	AM_RANGE(0x700002, 0x700003) AM_READ_PORT("DSW1")
@@ -161,7 +161,7 @@ static ADDRESS_MAP_START( squash_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x102000, 0x103fff) AM_RAM_WRITE(gaelco_encrypted_w) AM_SHARE("screenram")                /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
 	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                 /* INT 6 ACK/Watchdog timer */
-	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")    /* Palette */
+	AM_RANGE(0x200000, 0x2007ff) AM_RAM_WRITE(gaelco_palette_w) AM_SHARE("paletteram")    /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW2")
 	AM_RANGE(0x700002, 0x700003) AM_READ_PORT("DSW1")
@@ -177,8 +177,8 @@ static ADDRESS_MAP_START( thoop_map, AS_PROGRAM, 16, gaelco_state )
 	AM_RANGE(0x100000, 0x101fff) AM_RAM_WRITE(thoop_vram_encrypted_w) AM_SHARE("videoram")          /* Video RAM */
 	AM_RANGE(0x102000, 0x103fff) AM_RAM_WRITE(thoop_encrypted_w) AM_SHARE("screenram")             /* Screen RAM */
 	AM_RANGE(0x108000, 0x108007) AM_WRITEONLY AM_SHARE("vregs")                         /* Video Registers */
-	AM_RANGE(0x10800c, 0x10800d) AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                     /* INT 6 ACK/Watchdog timer */
-	AM_RANGE(0x200000, 0x2007ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")        /* Palette */
+	AM_RANGE(0x10800c, 0x10800d) AM_READNOP AM_WRITENOP // AM_WRITE(watchdog_reset_w)                                                     /* INT 6 ACK/Watchdog timer */
+	AM_RANGE(0x200000, 0x2007ff) AM_RAM_WRITE(gaelco_palette_w) AM_SHARE("paletteram")        /* Palette */
 	AM_RANGE(0x440000, 0x440fff) AM_RAM AM_SHARE("spriteram")                               /* Sprite RAM */
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("DSW2")
 	AM_RANGE(0x700002, 0x700003) AM_READ_PORT("DSW1")
@@ -487,7 +487,7 @@ GFXDECODE_END
 TILELAYOUT8(0x100000);
 TILELAYOUT16(0x100000);
 
-GFXDECODEINFO(0x100000,64*16)
+GFXDECODEINFO(0x100000,64*32)
 
 
 /*************************************
@@ -525,7 +525,7 @@ static MACHINE_CONFIG_START( bigkarnk, gaelco_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024*16)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 1024*32)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,bigkarnk)
@@ -558,7 +558,7 @@ static MACHINE_CONFIG_START( maniacsq, gaelco_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024*16)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 1024*32)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,maniacsq)
@@ -592,7 +592,7 @@ static MACHINE_CONFIG_START( squash, gaelco_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024*16)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 1024*32)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,squash)
@@ -627,7 +627,7 @@ static MACHINE_CONFIG_START( thoop, gaelco_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024*16)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 1024*32)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,bigkarnk)

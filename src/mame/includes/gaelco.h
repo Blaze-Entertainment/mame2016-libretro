@@ -16,6 +16,7 @@ public:
 		m_maincpu(*this, "maincpu"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette"),
+		m_paletteram(*this, "paletteram"),
 		m_audiocpu(*this, "audiocpu"),
 		m_vramcrypt(*this, "vramcrypt"),
 		m_videoram(*this, "videoram"),
@@ -33,6 +34,7 @@ public:
 	required_device<cpu_device> m_maincpu;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+	required_shared_ptr<uint16_t> m_paletteram;
 	optional_device<cpu_device> m_audiocpu;
 	optional_device<gaelco_crypt_device> m_vramcrypt;
 
@@ -58,6 +60,7 @@ public:
 	DECLARE_WRITE16_MEMBER(thoop_encrypted_w);
 	DECLARE_WRITE16_MEMBER(gaelco_vram_w);
 	DECLARE_WRITE16_MEMBER(gaelco_irq6_line_clear);
+	DECLARE_WRITE16_MEMBER(gaelco_palette_w);
 
 	TILE_GET_INFO_MEMBER(get_tile_info_gaelco_screen0);
 	TILE_GET_INFO_MEMBER(get_tile_info_gaelco_screen1);
@@ -71,7 +74,6 @@ public:
 
 	UINT32 screen_update_bigkarnk(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	UINT32 screen_update_thoop(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	UINT32 screen_update_maniacsq(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void draw_sprites( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect );
 	int squash_tilecode_remap(int code);
 

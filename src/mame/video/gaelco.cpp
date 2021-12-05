@@ -76,8 +76,6 @@ TILE_GET_INFO_MEMBER(gaelco_state::get_tile_info_gaelco_screen0)
 	int data2 = m_videoram[(tile_index << 1) + 1];
 	int code = ((data & 0xfffc) >> 2);
 
-//	tileinfo.category = (data2 >> 6) & 0x03;
-
 	if (m_use_squash_sprite_disable)
 		code = squash_tilecode_remap(code);
 
@@ -90,8 +88,6 @@ TILE_GET_INFO_MEMBER(gaelco_state::get_tile_info_gaelco_screen1)
 	int data = m_videoram[(0x1000 / 2) + (tile_index << 1)];
 	int data2 = m_videoram[(0x1000 / 2) + (tile_index << 1) + 1];
 	int code = ((data & 0xfffc) >> 2);
-
-//	tileinfo.category = (data2 >> 6) & 0x03;
 
 	if (m_use_squash_sprite_disable)
 		code = squash_tilecode_remap(code);
@@ -124,27 +120,18 @@ VIDEO_START_MEMBER(gaelco_state,bigkarnk)
 {
 	m_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen0),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen1),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
-
-//	m_tilemap[0]->set_transmask(0, 0xff01, 0x00ff); /* pens 1-7 opaque, pens 0, 8-15 transparent */
-//	m_tilemap[1]->set_transmask(0, 0xff01, 0x00ff); /* pens 1-7 opaque, pens 0, 8-15 transparent */
 }
 
 VIDEO_START_MEMBER(gaelco_state,maniacsq)
 {
 	m_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen0),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen1),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
-
-//	m_tilemap[0]->set_transparent_pen(0);
-//	m_tilemap[1]->set_transparent_pen(0);
 }
 
 VIDEO_START_MEMBER(gaelco_state,squash)
 {
 	m_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen0),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen1),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
-
-//	m_tilemap[0]->set_transparent_pen(0);
-//	m_tilemap[1]->set_transparent_pen(0);
 
 	m_sprite_palette_force_high = 0x3c;
 	m_use_squash_sprite_disable = true;
@@ -178,13 +165,9 @@ VIDEO_START_MEMBER(gaelco_state,squash)
 
 void gaelco_state::draw_sprites( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect )
 {
-	int i, x, y, ex, ey;
-	gfx_element *gfx = m_gfxdecode->gfx(0);
+	gfx_element* gfx;
 
-	static const int x_offset[2] = {0x0,0x2};
-	static const int y_offset[2] = {0x0,0x1};
-
-	for (i = 0x800 - 4 - 1; i >= 3; i -= 4)
+	for (int i = 3; i < 0x800-4; i += 4)
 	{
 		int sx = m_spriteram[i + 2] & 0x01ff;
 		int sy = (240 - (m_spriteram[i] & 0x00ff)) & 0x00ff;
@@ -195,7 +178,6 @@ void gaelco_state::draw_sprites( screen_device &screen, bitmap_ind16 &bitmap, co
 
 		int xflip = attr & 0x20;
 		int yflip = attr & 0x40;
-		int spr_size, pri_mask;
 
 		/* Hide bad sprites that appear after Squash continue screen (unwanted
 		   Insert Coin and Press 1P/2P start message in bad colouds)
@@ -216,37 +198,23 @@ void gaelco_state::draw_sprites( screen_device &screen, bitmap_ind16 &bitmap, co
 		if (color >= m_sprite_palette_force_high)
 			priority = 4;
 
-		switch (priority)
-		{
-			case 0: pri_mask = 0xff00; break;
-			case 1: pri_mask = 0xff00 | 0xf0f0; break;
-			case 2: pri_mask = 0xff00 | 0xf0f0 | 0xcccc; break;
-			case 3: pri_mask = 0xff00 | 0xf0f0 | 0xcccc | 0xaaaa; break;
-			default:
-			case 4: pri_mask = 0; break;
-		}
+		priority += 1;
 
+		color |= (priority << 6);
+		
 		if (attr & 0x04)
-			spr_size = 1;
+			gfx = m_gfxdecode->gfx(0);
 		else
 		{
-			spr_size = 2;
-			number &= (~3);
+			gfx = m_gfxdecode->gfx(1);
+			number >>= 2;
 		}
 
-		for (y = 0; y < spr_size; y++)
-		{
-			for (x = 0; x < spr_size; x++)
-			{
-				ex = xflip ? (spr_size - 1 - x) : x;
-				ey = yflip ? (spr_size - 1 - y) : y;
+		gfx->transpen(bitmap,cliprect,number,
+				color,xflip,yflip,
+				sx-0x0f,sy,
+				0);
 
-				gfx->prio_transpen(bitmap,cliprect,number + x_offset[ex] + y_offset[ey],
-						color,xflip,yflip,
-						sx-0x0f+x*8,sy+y*8,
-						screen.priority(),pri_mask,0);
-			}
-		}
 	}
 }
 
@@ -256,34 +224,1552 @@ void gaelco_state::draw_sprites( screen_device &screen, bitmap_ind16 &bitmap, co
 
 ***************************************************************************/
 
-UINT32 gaelco_state::screen_update_maniacsq(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+WRITE16_MEMBER(gaelco_state::gaelco_palette_w)
 {
-	/* set scroll registers */
-	m_tilemap[0]->set_scrolly(0, m_vregs[0]);
-	m_tilemap[0]->set_scrollx(0, m_vregs[1] + 4);
-	m_tilemap[1]->set_scrolly(0, m_vregs[2]);
-	m_tilemap[1]->set_scrollx(0, m_vregs[3]);
+	uint16_t old = m_paletteram[offset];
 
-	screen.priority().fill(0, cliprect);
-	bitmap.fill(0, cliprect);
+	COMBINE_DATA(&m_paletteram[offset]);
 
-	m_tilemap[1]->draw(screen, bitmap, cliprect, 3, 0);
-	m_tilemap[0]->draw(screen, bitmap, cliprect, 3, 0);
+	if (old != m_paletteram[offset])
+	{
+		const uint16_t color = m_paletteram[offset];
 
-	m_tilemap[1]->draw(screen, bitmap, cliprect, 2, 1);
-	m_tilemap[0]->draw(screen, bitmap, cliprect, 2, 1);
+		/* extract RGB components */
+		const rgb_t col = rgb_t(pal5bit(color & 0x1f), pal5bit(color >> 5), pal5bit(color >> 10));
 
-	m_tilemap[1]->draw(screen, bitmap, cliprect, 1, 2);
-	m_tilemap[0]->draw(screen, bitmap, cliprect, 1, 2);
-
-	m_tilemap[1]->draw(screen, bitmap, cliprect, 0, 4);
-	m_tilemap[0]->draw(screen, bitmap, cliprect, 0, 4);
-
-	draw_sprites(screen, bitmap, cliprect);
-	return 0;
+		/* update game palette */
+		for (int i = 0; i < 32; i++)
+			m_palette->set_pen_color(0x400 * i + offset, col);
+	}
 }
 
-UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
+
+inline void mix_normal(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+					else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+
+inline void mix_above0(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+					else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+inline void mix_above0_1(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+					else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat;; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+inline void mix_above0_1_2(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+					else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */ }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+inline void mix_above0_1_2_4(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+					else if (*pixdat & 0x8) { /* sprite has priority */ }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (*pixdat & 0x8) { /* sprite has priority */ }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */ }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (*pixdat & 0x8) { /* sprite has priority */ }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */ }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */ }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { *dstptr = *pixdat; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */ }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */ }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */ }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */ }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */ }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */ }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat2 & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { *dstptr = *pixdat2; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat & 0x8))
+				{
+					if (*pixdat & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8))
+			{
+				if (*pixdat & 0x7) { /* sprite has priority */; }
+				else if (!(*pixdat2 & 0x8))
+				{
+					if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				}
+				else if (*pixdat2 & 0x8) { /* sprite has priority */; }
+			}
+			else if (!(*pixdat2 & 0x8))
+			{
+				if (*pixdat2 & 0x7) { /* sprite has priority */; }
+				else if (*pixdat & 0x8) { /* sprite has priority */; }
+			}
+			else if (*pixdat & 0x8) { /* sprite has priority */; }
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+UINT32 gaelco_state::screen_update_bigkarnk(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
 {
 	/* set scroll registers */
 	m_tilemap[0]->set_scrolly(0, m_vregs[0]);
@@ -291,11 +1777,12 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 	m_tilemap[1]->set_scrolly(0, m_vregs[2]);
 	m_tilemap[1]->set_scrollx(0, m_vregs[3]);
 
-	screen.priority().fill(0, cliprect);
 	bitmap.fill(0, cliprect);
 
-	bitmap_ind16 &tmb = m_tilemap[0]->pixmap();
-	bitmap_ind16 &tmb2 = m_tilemap[1]->pixmap();
+	draw_sprites(screen, bitmap, cliprect);
+
+	bitmap_ind16& tmb = m_tilemap[0]->pixmap();
+	bitmap_ind16& tmb2 = m_tilemap[1]->pixmap();
 
 	UINT16* srcptr;
 	UINT16* srcptr2;
@@ -314,447 +1801,930 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 		srcptr2 = &tmb2.pix16(realy2);
 
 		UINT16* dstptrx = &bitmap.pix16(y);
-		UINT8* dstpriptrx = &screen.priority().pix8(y);
-		int realx = (scrollx)&0x1ff;
-		int realx2 = (scrollx2)&0x1ff;
+		int realx = (scrollx) & 0x1ff;
+		int realx2 = (scrollx2) & 0x1ff;
 
 		UINT16* dstptr = &dstptrx[cliprect.min_x];
-		UINT16* dstend = &dstptrx[cliprect.max_x+1];
-
-		UINT8* dstpriptr = &dstpriptrx[cliprect.min_x];
+		UINT16* dstend = &dstptrx[cliprect.max_x + 1];
 
 		while (dstptr != dstend)
 		{
-			UINT16 pixdat = srcptr[(realx++)&0x1ff];
-			UINT16 pixdat2 = srcptr2[(realx2++)&0x1ff];
+			uint16_t* pixdat = srcptr + ((realx++) & 0x1ff);
+			uint16_t* pixdat2 = srcptr2 + ((realx2++) & 0x1ff);
 
-			switch (pixdat & 0xc00)
+			//  0 =  no sprites drawn here
+			//  400    priority = 0  above 0
+			//  800    priority = 1  above 0,1
+			//  c00    priority = 2  above 0,1,2
+			//  1000   priority = 3  above 0,1,2,4
+			//  1400   priority = 4  above 0,1,2,4,8
+
+			switch (*dstptr & 0x1c00)
 			{
-			case 0x000:
+			default:
 			{
-				switch (pixdat2 & 0xc00)
-				{
-
-				case 0x000:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) {	*dstptr = pixdat & 0x3ff;	*dstpriptr= 8; }
-						else if (!(pixdat2 & 0x8)) 
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 8; }
-							else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						}
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					}
-					else if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 8; }
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 8; }
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-						}
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-					//else if (!(pixdat2 & 0x8))
-					//{
-					//	if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					//	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					//}
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) {	*dstptr = pixdat & 0x3ff;	*dstpriptr= 8; }
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-						}
-						else if (pixdat2 & 0x8)	{ *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-					//else if (!(pixdat2 & 0x8)) 
-					//{
-					//	if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					//	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					//}
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					break;
-				}
-
-				case 0xc00:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 8; }
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat2 & 0x8))  
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-						}
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-					//else if (!(pixdat2 & 0x8))
-					//{	
-					//	if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					//	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					//}
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					break;
-				}
-				}
-				break;
+				mix_normal(dstptr, pixdat, pixdat2);  // sprites are above nothing
 			}
+			break;
 
 			case 0x400:
 			{
-				switch (pixdat2 & 0xc00)
-				{
-				case 0x000:
-				{
-					if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 8; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat & 0x8))  
-						{
-							if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff;	*dstpriptr= 4; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					}
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					//else if (!(pixdat & 0x8))  
-					//{
-					//	if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-					//	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					//}
-					//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-
-						}
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					}
-					else if (!(pixdat2 & 0x8))  
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						else if (!(pixdat2 & 0x8))  
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-						}
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					//else if (!(pixdat2 & 0x8))  
-					//{
-					//	if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					//	else if (pixdat2 & 0x8)	{ *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					//}
-					//else if (pixdat2 & 0x8)	{ *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					break;
-				}
-
-				case 0xc00:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 4; }
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-						}
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					//else if (!(pixdat2 & 0x8))  
-					//{
-					//	if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					//	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					//}
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-				
-					break;
-				}
-				}
-				break;
+				mix_above0_1_2_4(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2
 			}
+			break;
 
 			case 0x800:
 			{
-				switch (pixdat2 & 0xc00)
-				{
-
-				case 0x000:
-				{
-					if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 8; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat & 0x8)) 
-						{
-							if (pixdat & 0x7) {	*dstptr = pixdat & 0x3ff;	*dstpriptr= 2; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					}
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					//else if (!(pixdat & 0x8))
-					//{
-					//	if (pixdat & 0x7) {	*dstptr = pixdat & 0x3ff;	*dstpriptr= 2; }
-					//	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//}
-					//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-			
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-						else if (!(pixdat & 0x8))
-						{
-							if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					}
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					//else if (!(pixdat & 0x8))  
-					//{
-					//	if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-					//	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//}
-					//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					}
-					else if (!(pixdat2 & 0x8))  
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-
-					break;
-				}
-
-				case 0xc00:
-				{
-
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 2; }
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-						}
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//else if (!(pixdat2 & 0x8))  
-					//{
-					//	if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					//	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					//}
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-				
-					break;
-				}
-				}
-				break;
+				mix_above0_1_2(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2
 			}
+			break;
 
 			case 0xc00:
 			{
-				switch (pixdat2 & 0xc00)
-				{
-
-				case 0x000:
-				{
-					if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 8; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						else if (!(pixdat & 0x8))  
-						{
-							if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-					//else if (!(pixdat & 0x8))  
-					//{
-					//	if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					//}
-					//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 4; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-						else if (!(pixdat & 0x8))  
-						{
-							if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-					//else if (!(pixdat & 0x8))
-					//{
-					//	if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					//}
-					//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat2 & 0x8)) 
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 2; }
-						//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-						else if (!(pixdat & 0x8))  
-						{
-							if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-						}
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-					//else if (!(pixdat & 0x8))
-					//{
-					//	if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-					//	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					//}
-					//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					break;
-				}
-
-				case 0xc00:
-				{
-					if (!(pixdat & 0x8)) 
-					{
-						if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr= 1; }
-						else if (!(pixdat2 & 0x8))
-						{
-							if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-							//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-							//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-						}
-						//else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-						else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (!(pixdat2 & 0x8))  
-					{
-						if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 1; }
-						else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-						//else if (pixdat2 & 0x8)	{ *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					}
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr= 0; }
-					//else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr= 0; }
-					break;
-				}
-				}
-				break;
+				mix_above0_1(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2
 			}
+			break;
+
+			case 0x1000:
+			{
+				mix_above0(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2,4
+			}
+			break;
+
+			case 0x1400: // Highest priority '4' sprites, no possibility of BG rendering
+			{
+				// sprites are above all
+			}
+			break;
+
 			}
 
 			//realx++;
 			//realx2++;
 			dstptr++;
-			dstpriptr++;
 		}
 	}
 
-	draw_sprites(screen, bitmap, cliprect);
 	return 0;
 }
 
+
+inline void mix_normal_thoop(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat2 & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+inline void mix_above0_thoop(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat2 & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+inline void mix_above0_1_thoop(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat2 & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { *dstptr = *pixdat;; }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat;; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+inline void mix_above0_1_2_thoop(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat2 & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 1st */
+			else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat;; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
+
+
+
+inline void mix_above0_1_2_4_thoop(uint16_t* dstptr, uint16_t* pixdat, uint16_t* pixdat2)
+{
+	switch (*pixdat2 & 0xc00)
+	{
+	case 0x000:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* *dstptr = *pixdat;*/; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* *dstptr = *pixdat;*/; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { *dstptr = *pixdat2;; } else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { *dstptr = *pixdat2;; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x400:
+	{
+		switch (*pixdat & 0xc00)
+		{
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* *dstptr = *pixdat2;*/; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* *dstptr = *pixdat2;*/; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* *dstptr = *pixdat;*/; } else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* *dstptr = *pixdat2;*/; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 1st */
+			else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* *dstptr = *pixdat2;*/; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */ } /* 2nd */	else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; }  /* 3rd */	else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* *dstptr = *pixdat2;*/; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* *dstptr = *pixdat2;*/; } else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* *dstptr = *pixdat2;*/; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0x800:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* *dstptr = *pixdat;*/; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+
+		case 0xc00:
+		{
+
+			if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat2 & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 4th */
+
+
+			break;
+		}
+		}
+		break;
+	}
+
+	case 0xc00:
+	{
+		switch (*pixdat & 0xc00)
+		{
+
+		case 0x000:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { *dstptr = *pixdat; } else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { *dstptr = *pixdat; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x400:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* *dstptr = *pixdat;*/; } else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* *dstptr = *pixdat;*/; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0x800:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ } /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; } /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; } }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+
+		case 0xc00:
+		{
+			if (!(*pixdat & 0x8)) { if (*pixdat & 0x7) { /* sprite has priority */; } else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 1st */
+			else if (*pixdat & 0x8) { /* sprite has priority */; }  /* 2nd */	else if (!(*pixdat2 & 0x8)) { if (*pixdat2 & 0x7) { /* sprite has priority */; } else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */ }  /* 3rd */	else if (*pixdat2 & 0x8) { /* sprite has priority */; }  /* 4th */
+
+			break;
+		}
+		}
+		break;
+	}
+	}
+}
 
 
 UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
@@ -765,8 +2735,9 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 	m_tilemap[1]->set_scrolly(0, m_vregs[2]);
 	m_tilemap[1]->set_scrollx(0, m_vregs[3]);
 
-	screen.priority().fill(0, cliprect);
 	bitmap.fill(0, cliprect);
+
+	draw_sprites(screen, bitmap, cliprect);
 
 	bitmap_ind16 &tmb = m_tilemap[0]->pixmap();
 	bitmap_ind16 &tmb2 = m_tilemap[1]->pixmap();
@@ -788,196 +2759,71 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 		srcptr2 = &tmb2.pix16(realy2);
 
 		UINT16* dstptrx = &bitmap.pix16(y);
-		UINT8* dstpriptrx = &screen.priority().pix8(y);
 		int realx = (scrollx)&0x1ff;
 		int realx2 = (scrollx2)&0x1ff;
 
 		UINT16* dstptr = &dstptrx[cliprect.min_x];
 		UINT16* dstend = &dstptrx[cliprect.max_x+1];
 
-		UINT8* dstpriptr = &dstpriptrx[cliprect.min_x];
 
 		while (dstptr != dstend)
 		{
-			UINT16 pixdat = srcptr[(realx++)&0x1ff];
-			UINT16 pixdat2 = srcptr2[(realx2++)&0x1ff];
+			uint16_t* pixdat = srcptr + ((realx++) & 0x1ff);
+			uint16_t* pixdat2 = srcptr2 + ((realx2++) & 0x1ff);
 
+			//  0 =  no sprites drawn here
+			//  400    priority = 0  above 0
+			//  800    priority = 1  above 0,1
+			//  c00    priority = 2  above 0,1,2
+			//  1000   priority = 3  above 0,1,2,4
+			//  1400   priority = 4  above 0,1,2,4,8
 
-			switch (pixdat2 & 0xc00)
+			switch (*dstptr & 0x1c00)
 			{
-			case 0x000:
+			default:
 			{
-				switch (pixdat & 0xc00)
-				{
-
-				case 0x000:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */
-
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 1st */
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */
-
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */
-
-					break;
-				}
-
-				case 0xc00:
-				{
-					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-					break;
-				}
-				}
-				break;
+				mix_normal_thoop(dstptr, pixdat, pixdat2);  // sprites are above nothing
 			}
+			break;
 
 			case 0x400:
 			{
-				switch (pixdat & 0xc00)
-				{
-				case 0x000:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */
-
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 2nd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 1st */
-					else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 2nd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */
-
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */
-
-					break;
-				}
-
-				case 0xc00:
-				{
-					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-
-					break;
-				}
-				}
-				break;
+				mix_above0_1_2_4_thoop(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2
 			}
+			break;
 
 			case 0x800:
 			{
-				switch (pixdat & 0xc00)
-				{
-
-				case 0x000:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */
-
-
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */
-
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */
-
-
-					break;
-				}
-
-				case 0xc00:
-				{
-
-					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
-					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-
-					break;
-				}
-				}
-				break;
+				mix_above0_1_2_thoop(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2
 			}
+			break;
 
 			case 0xc00:
 			{
-				switch (pixdat & 0xc00)
-				{
-
-				case 0x000:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-					break;
-				}
-
-				case 0x400:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-					break;
-				}
-
-				case 0x800:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-					break;
-				}
-
-				case 0xc00:
-				{
-					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 1st */
-					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
-
-					break;
-				}
-				}
-				break;
+				mix_above0_1_thoop(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2
 			}
+			break;
+
+			case 0x1000:
+			{
+				mix_above0_thoop(dstptr, pixdat, pixdat2);  // sprites are above 0,1,2,4
+			}
+			break;
+
+			case 0x1400: // Highest priority '4' sprites, no possibility of BG rendering
+			{
+				// sprites are above all
+			}
+			break;
+
 			}
 
 			//realx++;
 			//realx2++;
 			dstptr++;
-			dstpriptr++;
 		}
 	}
 
-	draw_sprites(screen, bitmap, cliprect);
 	return 0;
 }
 
