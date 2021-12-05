@@ -76,12 +76,12 @@ TILE_GET_INFO_MEMBER(gaelco_state::get_tile_info_gaelco_screen0)
 	int data2 = m_videoram[(tile_index << 1) + 1];
 	int code = ((data & 0xfffc) >> 2);
 
-	tileinfo.category = (data2 >> 6) & 0x03;
+//	tileinfo.category = (data2 >> 6) & 0x03;
 
 	if (m_use_squash_sprite_disable)
 		code = squash_tilecode_remap(code);
 
-	SET_TILE_INFO_MEMBER(1, 0x4000 + code, data2 & 0x3f, TILE_FLIPYX(data & 0x03));
+	SET_TILE_INFO_MEMBER(1, 0x4000 + code, data2 & 0xff, TILE_FLIPYX(data & 0x03));
 }
 
 
@@ -91,12 +91,12 @@ TILE_GET_INFO_MEMBER(gaelco_state::get_tile_info_gaelco_screen1)
 	int data2 = m_videoram[(0x1000 / 2) + (tile_index << 1) + 1];
 	int code = ((data & 0xfffc) >> 2);
 
-	tileinfo.category = (data2 >> 6) & 0x03;
+//	tileinfo.category = (data2 >> 6) & 0x03;
 
 	if (m_use_squash_sprite_disable)
 		code = squash_tilecode_remap(code);
 
-	SET_TILE_INFO_MEMBER(1, 0x4000 + code, data2 & 0x3f, TILE_FLIPYX(data & 0x03));
+	SET_TILE_INFO_MEMBER(1, 0x4000 + code, data2 & 0xff, TILE_FLIPYX(data & 0x03));
 }
 
 /***************************************************************************
@@ -125,8 +125,8 @@ VIDEO_START_MEMBER(gaelco_state,bigkarnk)
 	m_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen0),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen1),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 
-	m_tilemap[0]->set_transmask(0, 0xff01, 0x00ff); /* pens 1-7 opaque, pens 0, 8-15 transparent */
-	m_tilemap[1]->set_transmask(0, 0xff01, 0x00ff); /* pens 1-7 opaque, pens 0, 8-15 transparent */
+//	m_tilemap[0]->set_transmask(0, 0xff01, 0x00ff); /* pens 1-7 opaque, pens 0, 8-15 transparent */
+//	m_tilemap[1]->set_transmask(0, 0xff01, 0x00ff); /* pens 1-7 opaque, pens 0, 8-15 transparent */
 }
 
 VIDEO_START_MEMBER(gaelco_state,maniacsq)
@@ -134,8 +134,8 @@ VIDEO_START_MEMBER(gaelco_state,maniacsq)
 	m_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen0),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen1),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 
-	m_tilemap[0]->set_transparent_pen(0);
-	m_tilemap[1]->set_transparent_pen(0);
+//	m_tilemap[0]->set_transparent_pen(0);
+//	m_tilemap[1]->set_transparent_pen(0);
 }
 
 VIDEO_START_MEMBER(gaelco_state,squash)
@@ -143,8 +143,8 @@ VIDEO_START_MEMBER(gaelco_state,squash)
 	m_tilemap[0] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen0),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 	m_tilemap[1] = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(gaelco_state::get_tile_info_gaelco_screen1),this), TILEMAP_SCAN_ROWS, 16, 16, 32, 32);
 
-	m_tilemap[0]->set_transparent_pen(0);
-	m_tilemap[1]->set_transparent_pen(0);
+//	m_tilemap[0]->set_transparent_pen(0);
+//	m_tilemap[1]->set_transparent_pen(0);
 
 	m_sprite_palette_force_high = 0x3c;
 	m_use_squash_sprite_disable = true;
@@ -297,16 +297,8 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 	bitmap_ind16 &tmb = m_tilemap[0]->pixmap();
 	bitmap_ind16 &tmb2 = m_tilemap[1]->pixmap();
 
-	bitmap_ind8 &flags = m_tilemap[0]->flagsmap();
-	bitmap_ind8 &flags2 = m_tilemap[1]->flagsmap();
-
 	UINT16* srcptr;
 	UINT16* srcptr2;
-	UINT8* flagsptr;
-	UINT8* flagsptr2;
-
-//	UINT16* dstptr;
-//	UINT8* dstpriptr;
 
 	int scrollx = m_tilemap[0]->scrollx(0);
 	int scrolly = m_tilemap[0]->scrolly(0);
@@ -321,10 +313,6 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 		srcptr = &tmb.pix16(realy);
 		srcptr2 = &tmb2.pix16(realy2);
 
-		flagsptr = &flags.pix8(realy);
-		flagsptr2 = &flags2.pix8(realy2);
-
-
 		UINT16* dstptrx = &bitmap.pix16(y);
 		UINT8* dstpriptrx = &screen.priority().pix8(y);
 		int realx = (scrollx)&0x1ff;
@@ -337,21 +325,17 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 
 		while (dstptr != dstend)
 		{
-			
-			UINT8 flagsdat = flagsptr[realx&0x1ff];
-			UINT8 flagsdat2 = flagsptr2[realx2&0x1ff];
-
 			UINT16 pixdat = srcptr[(realx++)&0x1ff];
 			UINT16 pixdat2 = srcptr2[(realx2++)&0x1ff];
 
-			switch (flagsdat & 0x03)
+			switch (pixdat & 0xc00)
 			{
-			case 0x00:
+			case 0x000:
 			{
-				switch (flagsdat2 & 0x03)
+				switch (pixdat2 & 0xc00)
 				{
 
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -376,7 +360,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -399,7 +383,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -422,7 +406,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -448,11 +432,11 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 				break;
 			}
 
-			case 0x01:
+			case 0x400:
 			{
-				switch (flagsdat2 & 0x03)
+				switch (pixdat2 & 0xc00)
 				{
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat2 & 0x8)) 
 					{
@@ -475,7 +459,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -501,7 +485,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -524,7 +508,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -551,12 +535,12 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 				break;
 			}
 
-			case 0x02:
+			case 0x800:
 			{
-				switch (flagsdat2 & 0x03)
+				switch (pixdat2 & 0xc00)
 				{
 
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat2 & 0x8)) 
 					{
@@ -580,7 +564,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat2 & 0x8)) 
 					{
@@ -603,7 +587,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -629,7 +613,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 
 					if (!(pixdat & 0x8)) 
@@ -657,12 +641,12 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 				break;
 			}
 
-			case 0x03:
+			case 0xc00:
 			{
-				switch (flagsdat2 & 0x03)
+				switch (pixdat2 & 0xc00)
 				{
 
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat2 & 0x8)) 
 					{
@@ -685,7 +669,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat2 & 0x8)) 
 					{
@@ -708,7 +692,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat2 & 0x8)) 
 					{
@@ -731,7 +715,7 @@ UINT32 gaelco_state::screen_update_bigkarnk(screen_device &screen, bitmap_ind16 
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 					if (!(pixdat & 0x8)) 
 					{
@@ -784,19 +768,11 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 	screen.priority().fill(0, cliprect);
 	bitmap.fill(0, cliprect);
 
-	bitmap_ind16& tmb = m_tilemap[0]->pixmap();
-	bitmap_ind16& tmb2 = m_tilemap[1]->pixmap();
-
-	bitmap_ind8& flags = m_tilemap[0]->flagsmap();
-	bitmap_ind8& flags2 = m_tilemap[1]->flagsmap();
+	bitmap_ind16 &tmb = m_tilemap[0]->pixmap();
+	bitmap_ind16 &tmb2 = m_tilemap[1]->pixmap();
 
 	UINT16* srcptr;
 	UINT16* srcptr2;
-	UINT8* flagsptr;
-	UINT8* flagsptr2;
-
-	//	UINT16* dstptr;
-	//	UINT8* dstpriptr;
 
 	int scrollx = m_tilemap[0]->scrollx(0);
 	int scrolly = m_tilemap[0]->scrolly(0);
@@ -811,14 +787,10 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 		srcptr = &tmb.pix16(realy);
 		srcptr2 = &tmb2.pix16(realy2);
 
-		flagsptr = &flags.pix8(realy);
-		flagsptr2 = &flags2.pix8(realy2);
-
-
 		UINT16* dstptrx = &bitmap.pix16(y);
 		UINT8* dstpriptrx = &screen.priority().pix8(y);
-		int realx = (scrollx) & 0x1ff;
-		int realx2 = (scrollx2) & 0x1ff;
+		int realx = (scrollx)&0x1ff;
+		int realx2 = (scrollx2)&0x1ff;
 
 		UINT16* dstptr = &dstptrx[cliprect.min_x];
 		UINT16* dstend = &dstptrx[cliprect.max_x+1];
@@ -827,21 +799,18 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 
 		while (dstptr != dstend)
 		{
+			UINT16 pixdat = srcptr[(realx++)&0x1ff];
+			UINT16 pixdat2 = srcptr2[(realx2++)&0x1ff];
 
-			UINT8 flagsdat = flagsptr[realx & 0x1ff];
-			UINT8 flagsdat2 = flagsptr2[realx2 & 0x1ff];
 
-			UINT16 pixdat = srcptr[(realx++) & 0x1ff];
-			UINT16 pixdat2 = srcptr2[(realx2++) & 0x1ff];
-
-			switch (flagsdat2 & 0x03)
+			switch (pixdat2 & 0xc00)
 			{
-			case 0x00:
+			case 0x000:
 			{
-				switch (flagsdat & 0x03)
+				switch (pixdat & 0xc00)
 				{
 
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; }  /* 4th */
@@ -849,7 +818,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 1st */
 					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 4th */
@@ -857,7 +826,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
 					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */
@@ -865,7 +834,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
 					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */
@@ -876,11 +845,11 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 				break;
 			}
 
-			case 0x01:
+			case 0x400:
 			{
-				switch (flagsdat & 0x03)
+				switch (pixdat & 0xc00)
 				{
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */
@@ -888,7 +857,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 2nd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 1st */
 					else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */ } /* 2nd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; }  /* 4th */
@@ -896,7 +865,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
 					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; }  /* 4th */
@@ -904,7 +873,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 4; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
 					else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */
@@ -916,12 +885,12 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 				break;
 			}
 
-			case 0x02:
+			case 0x800:
 			{
-				switch (flagsdat & 0x03)
+				switch (pixdat & 0xc00)
 				{
 
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */
@@ -930,7 +899,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */
@@ -938,7 +907,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; }  /* 4th */
@@ -947,7 +916,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 
 					if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
@@ -960,12 +929,12 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 				break;
 			}
 
-			case 0x03:
+			case 0xc00:
 			{
-				switch (flagsdat & 0x03)
+				switch (pixdat & 0xc00)
 				{
 
-				case 0x00:
+				case 0x000:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 8; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
@@ -973,7 +942,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x01:
+				case 0x400:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 4; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 2; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
@@ -981,7 +950,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x02:
+				case 0x800:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ } /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 1; } /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */
@@ -989,7 +958,7 @@ UINT32 gaelco_state::screen_update_thoop(screen_device& screen, bitmap_ind16& bi
 					break;
 				}
 
-				case 0x03:
+				case 0xc00:
 				{
 					if (!(pixdat & 0x8)) { if (pixdat & 0x7) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; } else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 1st */
 					else if (pixdat & 0x8) { *dstptr = pixdat & 0x3ff; *dstpriptr = 0; }  /* 2nd */	else if (!(pixdat2 & 0x8)) { if (pixdat2 & 0x7) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; } else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */ }  /* 3rd */	else if (pixdat2 & 0x8) { *dstptr = pixdat2 & 0x3ff; *dstpriptr = 0; }  /* 4th */

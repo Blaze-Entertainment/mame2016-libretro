@@ -487,7 +487,7 @@ GFXDECODE_END
 TILELAYOUT8(0x100000);
 TILELAYOUT16(0x100000);
 
-GFXDECODEINFO(0x100000,64)
+GFXDECODEINFO(0x100000,64*16)
 
 
 /*************************************
@@ -519,13 +519,13 @@ static MACHINE_CONFIG_START( bigkarnk, gaelco_state )
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_REFRESH_RATE(59) // unknown
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
-	MCFG_SCREEN_SIZE(32*16, 32*16)
+	MCFG_SCREEN_SIZE(320, 256)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
 	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_bigkarnk)
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024)
+	MCFG_PALETTE_ADD("palette", 1024*16)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,bigkarnk)
@@ -554,11 +554,11 @@ static MACHINE_CONFIG_START( maniacsq, gaelco_state )
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(32*16, 32*16)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
-	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_maniacsq)
+	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_thoop)
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024)
+	MCFG_PALETTE_ADD("palette", 1024*16)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,maniacsq)
@@ -566,7 +566,7 @@ static MACHINE_CONFIG_START( maniacsq, gaelco_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_OKIM6295_ADD("oki", 1056000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_OKIM6295_ADD("oki", 1000000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
 	MCFG_DEVICE_ADDRESS_MAP(AS_0, oki_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
@@ -588,11 +588,11 @@ static MACHINE_CONFIG_START( squash, gaelco_state )
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(32*16, 32*16)
 	MCFG_SCREEN_VISIBLE_AREA(0, 320-1, 16, 256-1)
-	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_maniacsq)
+	MCFG_SCREEN_UPDATE_DRIVER(gaelco_state, screen_update_thoop)
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024)
+	MCFG_PALETTE_ADD("palette", 1024*16)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,squash)
@@ -600,7 +600,7 @@ static MACHINE_CONFIG_START( squash, gaelco_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_OKIM6295_ADD("oki", 1056000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_OKIM6295_ADD("oki", 1000000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
 	MCFG_DEVICE_ADDRESS_MAP(AS_0, oki_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
@@ -627,7 +627,7 @@ static MACHINE_CONFIG_START( thoop, gaelco_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", 0x100000)
-	MCFG_PALETTE_ADD("palette", 1024)
+	MCFG_PALETTE_ADD("palette", 1024*16)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(gaelco_state,bigkarnk)
@@ -635,7 +635,7 @@ static MACHINE_CONFIG_START( thoop, gaelco_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_OKIM6295_ADD("oki", 1056000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_OKIM6295_ADD("oki", 1000000, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
 	MCFG_DEVICE_ADDRESS_MAP(AS_0, oki_map)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
