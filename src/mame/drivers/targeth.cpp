@@ -33,28 +33,7 @@ static GFXDECODE_START( 0x080000 )
 GFXDECODE_END
 
 
-TIMER_DEVICE_CALLBACK_MEMBER(targeth_state::interrupt)
-{
-	int scanline = param;
 
-	if(scanline == 240)
-	{
-		/* IRQ 2: drives the game */
-		m_maincpu->set_input_line(2, HOLD_LINE);
-	}
-
-	if (scanline == 128)
-	{
-		/* IRQ 4: Read 1P Gun */
-		m_maincpu->set_input_line(4, HOLD_LINE);
-	}
-
-	if (scanline == 160)
-	{
-		/* IRQ 6: Read 2P Gun */
-		m_maincpu->set_input_line(6, HOLD_LINE);
-	}
-}
 
 WRITE16_MEMBER(targeth_state::OKIM6295_bankswitch_w)
 {
@@ -101,19 +80,19 @@ ADDRESS_MAP_END
 
 static INPUT_PORTS_START( targeth )
 	PORT_START("GUNX1")
-	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(1)
+	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(35) PORT_KEYDELTA(15) PORT_PLAYER(1)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("GUNY1")
-	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.12, -0.055, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(1)
+	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.12, -0.055, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(35) PORT_KEYDELTA(15) PORT_PLAYER(1)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("GUNX2")
-	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(2)
+	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(35) PORT_KEYDELTA(15) PORT_PLAYER(2)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("GUNY2")
-	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.12, -0.055, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_PLAYER(2)
+	PORT_BIT( 0x01ff, 128, IPT_LIGHTGUN_Y ) PORT_CROSSHAIR(Y, 1.12, -0.055, 0) PORT_MINMAX(4,255) PORT_SENSITIVITY(35) PORT_KEYDELTA(15) PORT_PLAYER(2)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 
 	PORT_START("DSW1")
@@ -183,9 +162,31 @@ static INPUT_PORTS_START( targeth )
 	PORT_BIT( 0xf0, IP_ACTIVE_LOW, IPT_UNKNOWN )
 INPUT_PORTS_END
 
+TIMER_CALLBACK_MEMBER(targeth_state::gun1_irq)
+{
+	/* IRQ 4: Read 1P Gun */
+	m_maincpu->set_input_line(4, HOLD_LINE);
+	m_gun_irq_timer[0]->adjust( m_screen->time_until_pos(128, 0 ) );
+}
+
+TIMER_CALLBACK_MEMBER(targeth_state::gun2_irq)
+{
+	/* IRQ 6: Read 2P Gun */
+	m_maincpu->set_input_line(6, HOLD_LINE);
+	m_gun_irq_timer[1]->adjust( m_screen->time_until_pos(160, 0 ) );
+}
+
+
 void targeth_state::machine_start()
 {
 	membank("okibank")->configure_entries(0, 16, memregion("oki")->base(), 0x10000);
+
+	m_gun_irq_timer[0] = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(targeth_state::gun1_irq), this));
+	m_gun_irq_timer[1] = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(targeth_state::gun2_irq), this));
+
+	m_gun_irq_timer[0]->adjust(m_screen->time_until_pos(128, 0));
+	m_gun_irq_timer[1]->adjust(m_screen->time_until_pos(160, 0));
+
 }
 
 READ8_MEMBER(targeth_state::dallas_share_r)
@@ -200,23 +201,15 @@ WRITE8_MEMBER(targeth_state::dallas_share_w)
 	shareram[BYTE_XOR_BE(offset)] = data;
 }
 
-READ8_MEMBER(targeth_state::dallas_ram_r)
-{
-	return m_mcu_ram[offset];
-}
 
-WRITE8_MEMBER(targeth_state::dallas_ram_w)
-{
-	m_mcu_ram[offset] = data;
-}
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, targeth_state )
-	AM_RANGE(0x0000, 0x7fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_REGION("mcu", 0) /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, targeth_state )
 	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
-	AM_RANGE(0x10000, 0x17fff) AM_READWRITE(dallas_ram_r, dallas_ram_w) /* yes, the games access it as data and use it for temporary storage!! */
+	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_REGION("mcu", 0) /* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
 
 
@@ -226,14 +219,14 @@ static MACHINE_CONFIG_START( targeth, targeth_state )
 	/* basic machine hardware */
 	MCFG_CPU_ADD("maincpu", M68000,24000000/2)          /* 12 MHz */
 	MCFG_CPU_PROGRAM_MAP(main_map)
-	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", targeth_state, interrupt, "screen", 0, 1)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", targeth_state, irq2_line_hold)
 
 	MCFG_CPU_ADD("mcu", DS5002FP, XTAL_24MHz/2) /* ? */
 	//MCFG_DS5002FP_CONFIG( 0x49, 0x00, 0x80 ) /* default config verified on chip */
 	MCFG_CPU_PROGRAM_MAP(dallas_rom)
 	MCFG_CPU_IO_MAP(dallas_ram)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(6000))  
+	MCFG_QUANTUM_TIME(attotime::from_hz(10000))  
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)

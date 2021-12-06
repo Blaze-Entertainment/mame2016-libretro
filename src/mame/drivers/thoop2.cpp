@@ -10,12 +10,16 @@ updated by Peter Ferrie <peter.ferrie@gmail.com>
 
 ***************************************************************************/
 
+
 #include "emu.h"
 #include "cpu/m68000/m68000.h"
 #include "cpu/mcs51/mcs51.h"
 #include "machine/watchdog.h"
 #include "sound/okim6295.h"
 #include "includes/thoop2.h"
+
+// define this to use the 'Thunder Hoop 2' title instead of TH Strikes Back
+#define USE_ALT_THOOP2_TITLE
 
 
 void thoop2_state::machine_start()
@@ -286,7 +290,11 @@ READ16_MEMBER(thoop2_state::thoop_rom_r )
 	if (space.device().safe_pc() == 0x27fe && !space.debugger_access())
 		m_maincpu->set_state_int(M68K_PC, 0x2814);
 
-	return data /* | 0x0100*/;
+#ifdef USE_ALT_THOOP2_TITLE
+	return data | 0x0100;
+#else
+	return data ;
+#endif
 }
 
 READ16_MEMBER(thoop2_state::thoop_rom2_r)
