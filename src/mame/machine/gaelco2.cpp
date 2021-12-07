@@ -189,6 +189,41 @@ WRITE16_MEMBER(bang_state::bang_clr_gun_int_w)
 	m_clr_gun_int = 1;
 }
 
+void bang_state::handle_gunhack(ioport_field* fldsx, ioport_field* fldsy, int shift)
+{
+	if (fldsx && fldsy)
+	{
+		int speed = 0xf;
+
+		int fake = m_fake->read();
+
+		switch ((fake >> shift) & 3)
+		{
+		case 0x00: // nothing pressed
+			speed = 0xf;
+			break;
+
+		case 0x03: // both pressed
+			speed = 0x15;
+			break;
+
+		case 0x01: // Ltrigger pressed
+			speed = 0x5;
+			break;
+
+		case 0x02: // Rtrigger pressed
+			speed = 0x1f;
+			break;
+		}
+
+		ioport_field_live livex = fldsx->live(); livex.analog->set_delta(speed);
+		ioport_field_live livey = fldsy->live(); livey.analog->set_delta(speed);
+	}
+}
+
+#define BANG_GUNHACK1 true
+#define BANG_GUNHACK2 true
+
 TIMER_DEVICE_CALLBACK_MEMBER(bang_state::bang_irq)
 {
 	int scanline = param;
@@ -200,6 +235,12 @@ TIMER_DEVICE_CALLBACK_MEMBER(bang_state::bang_irq)
 
 	if ((scanline % 64) == 0 && m_clr_gun_int)
 		m_maincpu->set_input_line(4, HOLD_LINE);
+
+	if ((scanline % 64) == 0)
+	{
+		if (BANG_GUNHACK1) handle_gunhack(m_light0_x->field(1), m_light0_y->field(1), 0);
+		if (BANG_GUNHACK2) handle_gunhack(m_light1_x->field(1), m_light1_y->field(1), 2);
+	}
 }
 
 /***************************************************************************

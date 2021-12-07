@@ -79,6 +79,13 @@ ADDRESS_MAP_END
 
 
 static INPUT_PORTS_START( targeth )
+	PORT_START("FAKE")
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_PLAYER(1)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_BUTTON6 ) PORT_PLAYER(1)
+	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_PLAYER(2)
+	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_BUTTON6 ) PORT_PLAYER(2)
+
+
 	PORT_START("GUNX1")
 	PORT_BIT( 0x01ff, 200, IPT_LIGHTGUN_X ) PORT_CROSSHAIR(X, 1.20, -0.133, 0) PORT_MINMAX( 0, 400 + 4) PORT_SENSITIVITY(35) PORT_KEYDELTA(15) PORT_PLAYER(1)
 	PORT_BIT( 0xfe00, IP_ACTIVE_HIGH, IPT_UNKNOWN )
@@ -162,11 +169,48 @@ static INPUT_PORTS_START( targeth )
 	PORT_BIT( 0xf0, IP_ACTIVE_LOW, IPT_UNKNOWN )
 INPUT_PORTS_END
 
+#define GUNHACK1 true
+#define GUNHACK2 true
+
+void targeth_state::handle_gunhack(ioport_field* fldsx, ioport_field* fldsy, int shift)
+{
+	if (fldsx && fldsy)
+	{
+		int speed = 0xf;
+
+		int fake = m_fake->read();
+
+		switch ((fake >> shift) & 3)
+		{
+		case 0x00: // nothing pressed
+			speed = 0xf;
+			break;
+
+		case 0x03: // both pressed
+			speed = 0x15;
+			break;
+
+		case 0x01: // Ltrigger pressed
+			speed = 0x5;
+			break;
+
+		case 0x02: // Rtrigger pressed
+			speed = 0x1f;
+			break;
+		}
+
+		ioport_field_live livex = fldsx->live(); livex.analog->set_delta(speed);
+		ioport_field_live livey = fldsy->live(); livey.analog->set_delta(speed);
+	}
+}
+
 TIMER_CALLBACK_MEMBER(targeth_state::gun1_irq)
 {
 	/* IRQ 4: Read 1P Gun */
 	m_maincpu->set_input_line(4, HOLD_LINE);
-	m_gun_irq_timer[0]->adjust( m_screen->time_until_pos(128, 0 ) );
+	m_gun_irq_timer[0]->adjust(m_screen->time_until_pos(128, 0));
+
+	if (GUNHACK1) handle_gunhack(m_gun1x->field(1), m_gun1y->field(1), 0);
 }
 
 TIMER_CALLBACK_MEMBER(targeth_state::gun2_irq)
@@ -174,6 +218,8 @@ TIMER_CALLBACK_MEMBER(targeth_state::gun2_irq)
 	/* IRQ 6: Read 2P Gun */
 	m_maincpu->set_input_line(6, HOLD_LINE);
 	m_gun_irq_timer[1]->adjust( m_screen->time_until_pos(160, 0 ) );
+
+	if (GUNHACK2) handle_gunhack(m_gun2x->field(1), m_gun2y->field(1), 2);
 }
 
 

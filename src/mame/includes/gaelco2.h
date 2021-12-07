@@ -87,12 +87,14 @@ public:
 		, m_light0_y(*this, "LIGHT0_Y")
 		, m_light1_x(*this, "LIGHT1_X")
 		, m_light1_y(*this, "LIGHT1_Y")
+		, m_fake(*this,"FAKE")
 	{}
 
 	required_ioport m_light0_x;
 	required_ioport m_light0_y;
 	required_ioport m_light1_x;
 	required_ioport m_light1_y;
+	required_ioport m_fake;
 
 	int m_clr_gun_int;
 
@@ -103,6 +105,8 @@ public:
 	DECLARE_WRITE16_MEMBER(bang_clr_gun_int_w);
 	TIMER_DEVICE_CALLBACK_MEMBER(bang_irq);
 	DECLARE_DRIVER_INIT(bang);
+	void handle_gunhack(ioport_field* fldsx, ioport_field* fldsy, int shift);
+
 };
 
 

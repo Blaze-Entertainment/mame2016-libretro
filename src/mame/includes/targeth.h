@@ -13,7 +13,12 @@ public:
 		m_vregs(*this, "vregs"),
 		m_spriteram(*this, "spriteram"),
 		m_shareram(*this, "shareram"),
-		m_mcu_ram(*this, "mcu")
+		m_mcu_ram(*this, "mcu"),
+		m_gun1x(*this, "GUNX1"),
+		m_gun1y(*this,"GUNY1"),
+		m_gun2x(*this,"GUNX2"),
+		m_gun2y(*this,"GUNY2"),
+		m_fake(*this,"FAKE")
 	{ }
 
 	required_device<cpu_device> m_maincpu;
@@ -26,10 +31,16 @@ public:
 	required_shared_ptr<UINT16> m_spriteram;
 	required_shared_ptr<uint16_t> m_shareram;
 	required_region_ptr<uint8_t> m_mcu_ram;
+	required_ioport m_gun1x;
+	required_ioport m_gun1y;
+	required_ioport m_gun2x;
+	required_ioport m_gun2y;
+	required_ioport m_fake;
 
 	tilemap_t *m_pant[2];
 	
 	emu_timer       *m_gun_irq_timer[2];
+	void handle_gunhack(ioport_field* fldsx, ioport_field* fldsy, int shift);
 
 	DECLARE_READ8_MEMBER(dallas_share_r);
 	DECLARE_WRITE8_MEMBER(dallas_share_w);

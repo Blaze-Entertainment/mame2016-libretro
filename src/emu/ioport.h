@@ -1364,6 +1364,8 @@ public:
 	float crosshair_read();
 	void frame_update(running_machine &machine);
 
+    void set_delta(INT32 delta) { m_delta = delta; } // HACK for lightgun on dpad workaround
+
 private:
 	// helpers
 	INT32 apply_min_max(INT32 value) const;
