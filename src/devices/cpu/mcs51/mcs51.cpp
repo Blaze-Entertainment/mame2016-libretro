@@ -377,6 +377,8 @@ ds5002fp_device::ds5002fp_device(const machine_config &mconfig, const char *tag,
 	: mcs51_cpu_device(mconfig, DS5002FP, "DS5002FP", tag, owner, clock, "ds5002fp", 0, 7, FEATURE_DS5002FP | FEATURE_CMOS)
 , device_nvram_interface(mconfig, *this)
 	, m_region(*this, "internal")
+	, m_regionsram(*this, "sramrom")
+	, m_sram(*this, "sram")
 {
 }
 
@@ -1344,7 +1346,7 @@ void mcs51_cpu_device::i8051_set_serial_rx_callback(read8_delegate rx_func)
     OPCODES
 ***************************************************************************/
 
-#define OPHANDLER( _name ) void mcs51_cpu_device::_name (UINT8 r)
+#define OPHANDLER( _name ) inline void mcs51_cpu_device::_name (UINT8 r)
 
 #include "mcs51ops.hxx"
 
@@ -2349,18 +2351,28 @@ void ds5002fp_device::nvram_default()
 		   It isn't clear if the various initial MCON registers etc. are just stored in sfr ram
 		   or if the DS5002FP stores them elsewhere and the bootstrap copies them */
 	}
+
+	if (m_regionsram.found())
+	{
+		uint8_t *region = m_regionsram->base();
+		memcpy( m_sram, region, 0x8000 );
+	}
 }
 
 void ds5002fp_device::nvram_read( emu_file &file )
 {
 	file.read( m_scratchpad, 0x80 );
 	file.read( m_sfr_ram, 0x80 );
+	file.read( m_sram, 0x8000 );
+
 }
 
 void ds5002fp_device::nvram_write( emu_file &file )
 {
 	file.write( m_scratchpad, 0x80 );
 	file.write( m_sfr_ram, 0x80 );
+	file.write( m_sram, 0x8000 );
+
 }
 
 

@@ -524,6 +524,8 @@ protected:
 
 private:
 	optional_memory_region m_region;
+	required_memory_region m_regionsram;
+	required_shared_ptr<uint8_t> m_sram;
 };
 
 

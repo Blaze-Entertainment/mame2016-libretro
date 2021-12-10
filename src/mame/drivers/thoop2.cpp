@@ -75,12 +75,12 @@ WRITE8_MEMBER(thoop2_state::dallas_share_w)
 
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, thoop2_state )
-	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_REGION("mcu", 0) /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_SHARE("mcu:sram") /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, thoop2_state )
 	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
-	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_REGION("mcu", 0)/* yes, the games access it as data and use it for temporary storage!! */
+	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_SHARE("mcu:sram")/* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( thoop2_map, AS_PROGRAM, 16, thoop2_state )
@@ -264,7 +264,7 @@ ROM_START( thoop2 )
 	ROM_LOAD16_BYTE(    "th2c23.040",   0x000000, 0x080000, CRC(3e465753) SHA1(1ea1173b9fe5d652e7b5fafb822e2535cecbc198) )
 	ROM_LOAD16_BYTE(    "th2c22.040",   0x000001, 0x080000, CRC(837205b7) SHA1(f78b90c2be0b4dddaba26f074ea00eff863cfdb2) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "thoop2_ds5002fp.bin", 0x00000, 0x8000, CRC(6881384d) SHA1(c1eff5558716293e1325b766e2205783286c12f9) ) /* dumped from 3 boards, reconstructed with 2/3 wins rule, all bytes verified by hand as correct */
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )

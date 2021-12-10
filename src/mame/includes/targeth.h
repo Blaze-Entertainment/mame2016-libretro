@@ -13,7 +13,6 @@ public:
 		m_vregs(*this, "vregs"),
 		m_spriteram(*this, "spriteram"),
 		m_shareram(*this, "shareram"),
-		m_mcu_ram(*this, "mcu"),
 		m_gun1x(*this, "GUNX1"),
 		m_gun1y(*this,"GUNY1"),
 		m_gun2x(*this,"GUNX2"),
@@ -30,7 +29,6 @@ public:
 	required_shared_ptr<UINT16> m_vregs;
 	required_shared_ptr<UINT16> m_spriteram;
 	required_shared_ptr<uint16_t> m_shareram;
-	required_region_ptr<uint8_t> m_mcu_ram;
 	required_ioport m_gun1x;
 	required_ioport m_gun1y;
 	required_ioport m_gun2x;

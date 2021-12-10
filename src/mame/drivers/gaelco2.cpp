@@ -76,12 +76,12 @@ WRITE8_MEMBER(gaelco2_state::dallas_share_w)
 
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, gaelco2_state )
-	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_REGION("mcu", 0) /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_SHARE("mcu:sram") /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, gaelco2_state )
 	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
-	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_REGION("mcu", 0) /* yes, the games access it as data and use it for temporary storage!! */
+	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_SHARE("mcu:sram")/* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
 
 /*============================================================================
@@ -243,7 +243,7 @@ ROM_START( maniacsqa ) // REF 940411
 	ROM_LOAD16_BYTE( "MS_U_45.U45",   0x000000, 0x020000, CRC(98f4fdc0) SHA1(1e4d5b0a8a432de885c96319c21280d304b38db0) )
 	ROM_LOAD16_BYTE( "MS_U_44.U44",   0x000001, 0x020000, CRC(1785dd41) SHA1(5c6a65c00248971ce54c8185858393f2c52cc583) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "maniacsq_ds5002fp_sram.bin", 0x00000, 0x8000, CRC(afe9703d) SHA1(e737bf154bcb268b8f0764879b513489b163e462) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -658,7 +658,7 @@ ROM_START( aligator )
 	ROM_LOAD16_BYTE(    "u45",  0x000000, 0x080000, CRC(61c47c56) SHA1(6dd3fc6fdab252e0fb43c0793eef70203c888d7f) )
 	ROM_LOAD16_BYTE(    "u44",  0x000001, 0x080000, CRC(f0be007a) SHA1(2112b2e5f020028b50c8f2c72c83c9fee7a78224) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "aligator_ds5002fp_sram.bin", 0x00000, 0x8000, CRC(6558f215) SHA1(c961a9c81aa6b746294baf83ea5d1fcf7acab9db) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -938,7 +938,7 @@ ROM_START( touchgo ) /* REF: 950906 */
 	ROM_LOAD16_BYTE( "tg_56", 0x000000, 0x080000, CRC(8ab065f3) SHA1(7664abd7e5f66ffca4a2865bba56ac36bd04f4e9) )
 	ROM_LOAD16_BYTE( "tg_57", 0x000001, 0x080000, CRC(0dfd3f65) SHA1(afb2ce8988c84f211ac71b84928ce4c421de7fee) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "touchgo_ds5002fp_sram.bin", 0x00000, 0x8000, CRC(6a238adb) SHA1(4ac5ff8e3d90454f764477146a0b8dc8c8062420) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -965,7 +965,7 @@ ROM_START( touchgon ) /* REF 950906, no plug-in daughterboard, Non North America
 	ROM_LOAD16_BYTE( "tg56.bin", 0x000000, 0x080000, CRC(fd3b4642) SHA1(3cab42aecad5ee641711763c6047b56784c2bcf3) )
 	ROM_LOAD16_BYTE( "tg57.bin", 0x000001, 0x080000, CRC(ee891835) SHA1(9f8c60e5e3696b70f756c3521e10313005053cc7) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "touchgo_ds5002fp_sram.bin", 0x00000, 0x8000, CRC(6a238adb) SHA1(4ac5ff8e3d90454f764477146a0b8dc8c8062420) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -992,7 +992,7 @@ ROM_START( touchgoe ) /* REF: 950510-1 */
 	ROM_LOAD16_BYTE( "tg56", 0x000000, 0x080000, CRC(6d0f5c65) SHA1(00db7a7da3ec1676169aa78fe4f08a7746c3accf) )
 	ROM_LOAD16_BYTE( "tg57", 0x000001, 0x080000, CRC(845787b5) SHA1(27c9910cd9f38328326ecb5cd093dfeb6d4f6244) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "touchgo_ds5002fp_sram.bin", 0x00000, 0x8000, CRC(6a238adb) SHA1(4ac5ff8e3d90454f764477146a0b8dc8c8062420) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -1495,7 +1495,7 @@ ROM_START( wrally2 )
 	ROM_LOAD16_BYTE( "wr2.64",  0x000000, 0x080000, CRC(4cdf4e1e) SHA1(a3b3ff4a70336b61c7bba5d518527bf4bd901867) )
 	ROM_LOAD16_BYTE( "wr2.63",  0x000001, 0x080000, CRC(94887c9f) SHA1(ad09f1fbeff4c3ba47f72346d261b22fa6a51457) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) // DS5002FP code
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrally2_ds5002fp_sram.bin", 0x00000, 0x8000, CRC(4c532e9e) SHA1(d0aad72b204d4abd3b8d7d5bbaf8d2d2f78edaa6) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )

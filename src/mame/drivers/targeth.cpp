@@ -250,12 +250,12 @@ WRITE8_MEMBER(targeth_state::dallas_share_w)
 
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, targeth_state )
-	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_REGION("mcu", 0) /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_SHARE("mcu:sram") /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, targeth_state )
 	AM_RANGE(0x08000, 0x0ffff) AM_READWRITE(dallas_share_r, dallas_share_w) /* confirmed that 0x8000 - 0xffff is a window into 68k shared RAM */
-	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_REGION("mcu", 0) /* yes, the games access it as data and use it for temporary storage!! */
+	AM_RANGE(0x10000, 0x17fff) AM_RAM AM_SHARE("mcu:sram")/* yes, the games access it as data and use it for temporary storage!! */
 ADDRESS_MAP_END
 
 
@@ -300,7 +300,7 @@ ROM_START( targeth )
 	ROM_LOAD16_BYTE( "targeth.c23", 0x000000, 0x040000, CRC(840887d6) SHA1(9a36b346608d531a62a2e0704ea44f12e07f9d91) )
 	ROM_LOAD16_BYTE( "targeth.c22", 0x000001, 0x040000, CRC(d2435eb8) SHA1(ce75a115dad8019c8e66a1c3b3e15f54781f65ae) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "targeth_ds5002fp.bin", 0x00000, 0x8000, CRC(abcdfee4) SHA1(c5955d5dbbcecbe1c2ae77d59671ae40eb814d30) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -326,7 +326,7 @@ ROM_START( targetha )
 	ROM_LOAD16_BYTE( "c23.bin", 0x000000, 0x040000, CRC(e38a54e2) SHA1(239bfa6f1c0fc8aa0ad7de9be237bef55b384007) )
 	ROM_LOAD16_BYTE( "c22.bin", 0x000001, 0x040000, CRC(24fe3efb) SHA1(8f48f08a6db28966c9263be119883c9179e349ed) )
 
-	ROM_REGION( 0x8000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "targeth_ds5002fp.bin", 0x00000, 0x8000, CRC(abcdfee4) SHA1(c5955d5dbbcecbe1c2ae77d59671ae40eb814d30) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )

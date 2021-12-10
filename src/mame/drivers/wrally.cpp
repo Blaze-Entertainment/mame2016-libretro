@@ -146,7 +146,7 @@ WRITE8_MEMBER(wrally_state::dallas_share_w)
 }
 
 static ADDRESS_MAP_START( dallas_rom, AS_PROGRAM, 8, wrally_state )
-	AM_RANGE(0x0000, 0x7fff) AM_ROM                                 /* Code in NVRAM */
+	AM_RANGE(0x0000, 0x7fff) AM_RAM AM_SHARE("mcu:sram") /* Code in NVRAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( dallas_ram, AS_IO, 8, wrally_state )
@@ -293,7 +293,7 @@ ROM_START( wrally )
 	ROM_LOAD16_BYTE( "worldr17.c23", 0x000000, 0x080000, CRC(050f5629) SHA1(74fc2cd5114f3bc4b2429f1d8d7eeb1658f9f179) ) /* Only difference compared to set 2 is how the Dallas DS5002FP */
 	ROM_LOAD16_BYTE( "worldr16.c22", 0x000001, 0x080000, CRC(9e0d126c) SHA1(369360b7ec2c3497af3bf62b4eba24c3d9f94675) ) /* power failure shows on screen, IE: "Tension  baja " */
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -326,7 +326,7 @@ ROM_START( wrallya )
 	ROM_LOAD16_BYTE( "c23.bin", 0x000000, 0x080000, CRC(8b7d93c3) SHA1(ce4163eebc5d4a0c1266d650523b1ffc702d1b87) ) /* Only difference compared to set 1 is how the Dallas DS5002FP */
 	ROM_LOAD16_BYTE( "c22.bin", 0x000001, 0x080000, CRC(56da43b6) SHA1(02db8f969ed5e7f5e5356c45c0312faf5f000335) ) /* power failure shows on screen, IE: "Power  Failure" */
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -359,7 +359,7 @@ ROM_START( wrallyb )
 	ROM_LOAD16_BYTE( "rally_c23.c23", 0x000000, 0x080000, CRC(ddd6f833) SHA1(f12f82c412fa93f46020d50c2620974ae2fb502b) )
 	ROM_LOAD16_BYTE( "rally_c22.c22", 0x000001, 0x080000, CRC(59a0d35c) SHA1(7c6f376a53c1e6d793cbfb16861ee3298ee013a1) )
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
@@ -388,7 +388,7 @@ ROM_START( wrallyat ) /* Board Marked 930217, Atari License */
 	ROM_LOAD16_BYTE( "rally.c23", 0x000000, 0x080000, CRC(366595ad) SHA1(e16341ed9eacf9b729c28184268150ea9b62f185) ) /* North & South America only... */
 	ROM_LOAD16_BYTE( "rally.c22", 0x000001, 0x080000, CRC(0ad4ec6f) SHA1(991557cf25fe960b1c586e990e6019befe5a11d0) )
 
-	ROM_REGION( 0x10000, "mcu", 0 ) /* DS5002FP code */
+	ROM_REGION( 0x8000, "mcu:sramrom", 0 ) /* DS5002FP code */
 	ROM_LOAD( "wrdallas.bin", 0x00000, 0x8000, CRC(547d1768) SHA1(c58d1edd072d796be0663fb265f4739ec006b688) )
 
 	ROM_REGION( 0x100, "mcu:internal", ROMREGION_ERASE00 )
