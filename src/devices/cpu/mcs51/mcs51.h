@@ -183,6 +183,7 @@ protected:
 		UINT8   mcon;                   /* bootstrap loader MCON register */
 		UINT8   rpctl;                  /* bootstrap loader RPCTL register */
 		UINT8   crc;                    /* bootstrap loader CRC register */
+		INT16    rnr_delay;
 	} m_ds5002fp;
 
 	// for the debugger
@@ -526,6 +527,10 @@ private:
 	optional_memory_region m_region;
 	required_memory_region m_regionsram;
 	required_shared_ptr<uint8_t> m_sram;
+
+	uint8_t handle_rnr();
+	bool is_rnr_ready();
+
 };
 
 
