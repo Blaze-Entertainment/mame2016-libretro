@@ -16,7 +16,8 @@
 ***************************************************************************/
 
 #include "sound/okim6295.h"
-
+#include "sound/2203intf.h"
+#include "sound/2151intf.h"
 
 class megasys1_state : public driver_device
 {
@@ -40,7 +41,10 @@ public:
 		m_io_dsw2(*this, "DSW2"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette"),
-		m_screen(*this, "screen")
+		m_screen(*this, "screen"),
+		m_ymsnd(*this,"ymsnd"),
+		m_mcubaseoffset(0),
+		m_soundstatustrigger(10000)
 		{ }
 
 	required_shared_ptr<UINT16> m_vregs;
@@ -61,6 +65,7 @@ public:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 	required_device<screen_device> m_screen;
+	optional_device<ym2151_device> m_ymsnd;
 
 	bitmap_ind16 m_sprite_buffer_bitmap;
 
@@ -163,9 +168,26 @@ public:
 	void mix_sprite_bitmap(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void partial_clear_sprite_bitmap(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, UINT8 param);
 	void draw_sprites(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect);
-	inline void draw_16x16_priority_sprite(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 flipx, INT32 flipy, UINT8 mosaic, UINT8 mosaicsol, INT32 priority);
+	void draw_spritesz(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
+	inline void draw_16x16_priority_sprite(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 flipx, INT32 flipy, UINT8 mosaic, INT32 priority);
+	inline void draw_16x16_priority_sprite_mosol(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 flipx, INT32 flipy, UINT8 mosaic, INT32 priority);
+
+	inline void draw_16x16_priority_sprite_nomosaic_noyflip(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority);
+	inline void draw_16x16_priority_sprite_nomosaic_noxflip_noyflip(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority);
+	inline void draw_16x16_priority_sprite_nomosaic_noxflip(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority);
+	inline void draw_16x16_priority_sprite_nomosaic(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority);
+
+
 	void rodland_gfx_unmangle(const char *region);
 	void jitsupro_gfx_unmangle(const char *region);
 	void stdragona_gfx_unmangle(const char *region);
 	DECLARE_WRITE_LINE_MEMBER(irqhandler);
+
+	DECLARE_READ16_MEMBER(cybattler_main_skip_r);
+	DECLARE_READ16_MEMBER(cybattler_sound_skip_r);
+
+	uint32_t m_mcubaseoffset;
+	DECLARE_WRITE8_MEMBER(sound_status_changed);
+	int m_soundstatustrigger;
+
 };

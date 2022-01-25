@@ -492,7 +492,7 @@ ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( z80_sound_io_map, AS_IO, 8, megasys1_state )
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
-	AM_RANGE(0x00, 0x01) AM_DEVREADWRITE("ymsnd", ym2203_device, read, write)
+	AM_RANGE(0x00, 0x01) AM_DEVREADWRITE("ymsndz", ym2203_device, read, write)
 ADDRESS_MAP_END
 
 
@@ -1483,6 +1483,12 @@ GFXDECODE_END
  *
  *************************************/
 
+WRITE8_MEMBER(megasys1_state::sound_status_changed)
+{
+	if (data != 0x00)
+		machine().scheduler().trigger(m_soundstatustrigger);
+}
+
 /***************************************************************************
 
                         [  Mega System 1 A,B and C ]
@@ -1528,6 +1534,7 @@ static MACHINE_CONFIG_START( system_A, megasys1_state )
 
 	MCFG_YM2151_ADD("ymsnd", SOUND_CPU_CLOCK/2) /* 3.5MHz (7MHz / 2) verified */
 	MCFG_YM2151_IRQ_HANDLER(WRITELINE(megasys1_state,sound_irq))
+	MCFG_YM2151_STATUS_CHANGED_CALLBACK(WRITE8(megasys1_state, sound_status_changed))
 	MCFG_SOUND_ROUTE(0, "lspeaker", 0.80)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 0.80)
 
@@ -1720,7 +1727,7 @@ static MACHINE_CONFIG_START( system_Z, megasys1_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_SOUND_ADD("ymsnd", YM2203, 1500000)
+	MCFG_SOUND_ADD("ymsndz", YM2203, 1500000)
 	MCFG_YM2203_IRQ_HANDLER(WRITELINE(megasys1_state, irqhandler))
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
 MACHINE_CONFIG_END
@@ -4024,6 +4031,8 @@ DRIVER_INIT_MEMBER(megasys1_state,64street)
 
 READ16_MEMBER(megasys1_state::megasys1A_mcu_hs_r)
 {
+	offset += m_mcubaseoffset;
+
 	if(m_mcu_hs && ((m_mcu_hs_ram[8/2] << 6) & 0x3ffc0) == ((offset*2) & 0x3ffc0))
 	{
 		if(MCU_HS_LOG && !space.debugger_access())
@@ -4109,7 +4118,33 @@ DRIVER_INIT_MEMBER(megasys1_state,chimerab)
 
 }
 
-DRIVER_INIT_MEMBER(megasys1_state,cybattlr)
+READ16_MEMBER(megasys1_state::cybattler_main_skip_r)
+{
+	int pc = m_maincpu->pc();
+
+	if (pc == 0x0156a)
+	{
+		m_maincpu->spin_until_interrupt();
+	}
+
+	return m_ram[0xf202/2];
+}
+
+READ16_MEMBER(megasys1_state::cybattler_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x506)
+	{
+		int result = m_ymsnd->read(space, 1);
+		if (result == 0)
+			space.device().execute().spin_until_trigger(m_soundstatustrigger);//m_audiocpu->spin_until_interrupt();
+	}
+
+	return m_ymsnd->read(space, 1);
+}
+
+DRIVER_INIT_MEMBER(megasys1_state, cybattlr)
 {
 	m_ip_select_values[0] = 0x56;
 	m_ip_select_values[1] = 0x52;
@@ -4119,7 +4154,11 @@ DRIVER_INIT_MEMBER(megasys1_state,cybattlr)
 
 	m_ip_select_values[5] = 0xf2;
 	m_ip_select_values[6] = 0x06;
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1ff202, 0x1ff203, read16_delegate(FUNC(megasys1_state::cybattler_main_skip_r), this));
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::cybattler_sound_skip_r), this));
 }
+
 
 DRIVER_INIT_MEMBER(megasys1_state,edf)
 {
@@ -4174,6 +4213,8 @@ DRIVER_INIT_MEMBER(megasys1_state,hayaosi1)
 
 READ16_MEMBER(megasys1_state::iganinju_mcu_hs_r)
 {
+	offset += m_mcubaseoffset;
+
 	if(m_mcu_hs && ((m_mcu_hs_ram[8/2] << 6) & 0x3ffc0) == ((offset*2) & 0x3ffc0))
 	{
 		if(MCU_HS_LOG && !space.debugger_access())
@@ -4309,6 +4350,8 @@ DRIVER_INIT_MEMBER(megasys1_state,soldam)
 
 READ16_MEMBER(megasys1_state::stdragon_mcu_hs_r)
 {
+	offset += m_mcubaseoffset;
+
 	if(m_mcu_hs && ((m_mcu_hs_ram[8/2] << 6) & 0x3ffc0) == ((offset*2) & 0x3ffc0))
 	{
 		if(MCU_HS_LOG && !space.debugger_access())
@@ -4336,8 +4379,13 @@ WRITE16_MEMBER(megasys1_state::stdragon_mcu_hs_w)
 
 DRIVER_INIT_MEMBER(megasys1_state,stdragon)
 {
+
+	m_mcubaseoffset = 0xcf80 / 2;
+
 	phantasm_rom_decode(machine(), "maincpu");
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00000, 0x3ffff, read16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_r),this));
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00000, 0x3ffff, read16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x0cf80, 0x0cf81, read16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_r),this));
+
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x23ff0, 0x23ff9, write16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_w),this));
 }
 

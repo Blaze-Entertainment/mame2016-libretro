@@ -656,9 +656,8 @@ void megasys1_state::partial_clear_sprite_bitmap(screen_device &screen, bitmap_i
 }
 
 
-inline void megasys1_state::draw_16x16_priority_sprite(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 flipx, INT32 flipy, UINT8 mosaic, UINT8 mosaicsol, INT32 priority)
+inline void megasys1_state::draw_16x16_priority_sprite(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 flipx, INT32 flipy, UINT8 mosaic, INT32 priority)
 {
-//  if (sy >= nScreenHeight || sy < -15 || sx >= nScreenWidth || sx < -15) return;
 	gfx_element *decodegfx = m_gfxdecode->gfx(3);
 	sy = sy + 16;
 
@@ -669,24 +668,23 @@ inline void megasys1_state::draw_16x16_priority_sprite(screen_device &screen, bi
 
 	color = color * 16;
 
+	INT32 basesx = sx;
 
-	for (INT32 y = 0; y < 16; y++, sy++, sx-=16)
+	for (INT32 y = 0; y < 16; y++, sy++)
 	{
-	//  UINT16 *dest = &bitmap.pix16(sy)+ sx;
-	//  UINT8 *prio = &screen.priority().pix8(sy) + sx;
+		sx = basesx;
+
+		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
+			continue;
+
 		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
-			if (sx < cliprect.min_x || sy < cliprect.min_y || sx > cliprect.max_x || sy > cliprect.max_y) continue;
+			if ((sx < cliprect.min_x || sx > cliprect.max_x))
+				continue;
 
-			INT32 pxl;
-
-			if (mosaicsol) {
-				pxl = gfx[(((y ^ flipy) |  mosaic) * 16) + ((x ^ flipx) |  mosaic)];
-			} else {
-				pxl = gfx[(((y ^ flipy) & ~mosaic) * 16) + ((x ^ flipx) & ~mosaic)];
-			}
+			INT32 pxl = gfx[(((y ^ flipy) & ~mosaic) * 16) + ((x ^ flipx) & ~mosaic)]; // not mosol mode
 
 			if (pxl != 0x0f) {
 				if (!(dest[x] & 0x8000)) {
@@ -697,12 +695,207 @@ inline void megasys1_state::draw_16x16_priority_sprite(screen_device &screen, bi
 			}
 		}
 	}
-
 }
+
+inline void megasys1_state::draw_16x16_priority_sprite_nomosaic(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority)
+{
+	gfx_element *decodegfx = m_gfxdecode->gfx(3);
+	sy = sy + 16;
+
+	const UINT8* gfx = decodegfx->get_data(code);
+
+	color = color * 16;
+
+	INT32 basesx = sx;
+
+	for (INT32 y = 0; y < 16; y++, sy++)
+	{
+		sx = basesx;
+
+		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
+			continue;
+
+		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+
+		for (INT32 x = 0; x < 16; x++, sx++)
+		{
+			if ((sx < cliprect.min_x || sx > cliprect.max_x))
+				continue;
+
+			INT32 pxl = gfx[(((y ^ 0xf)) * 16) + ((x ^ 0xf))]; // not mosol mode
+
+			if (pxl != 0x0f) {
+				if (!(dest[x] & 0x8000)) {
+					dest[x] = (pxl+color) | (priority << 14);
+
+					dest[x] |= 0x8000;
+				}
+			}
+		}
+	}
+}
+
+
+inline void megasys1_state::draw_16x16_priority_sprite_nomosaic_noxflip(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority)
+{
+	gfx_element *decodegfx = m_gfxdecode->gfx(3);
+	sy = sy + 16;
+
+	const UINT8* gfx = decodegfx->get_data(code);
+
+	color = color * 16;
+
+	INT32 basesx = sx;
+
+	for (INT32 y = 0; y < 16; y++, sy++)
+	{
+		sx = basesx;
+
+		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
+			continue;
+
+		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+
+		for (INT32 x = 0; x < 16; x++, sx++)
+		{
+			if ((sx < cliprect.min_x || sx > cliprect.max_x))
+				continue;
+
+			INT32 pxl = gfx[(((y ^ 0xf)) * 16) + ((x))]; // not mosol mode
+
+			if (pxl != 0x0f) {
+				if (!(dest[x] & 0x8000)) {
+					dest[x] = (pxl+color) | (priority << 14);
+
+					dest[x] |= 0x8000;
+				}
+			}
+		}
+	}
+}
+
+inline void megasys1_state::draw_16x16_priority_sprite_nomosaic_noxflip_noyflip(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority)
+{
+	gfx_element *decodegfx = m_gfxdecode->gfx(3);
+	sy = sy + 16;
+
+	const UINT8* gfx = decodegfx->get_data(code);
+
+	color = color * 16;
+
+	INT32 basesx = sx;
+
+	for (INT32 y = 0; y < 16; y++, sy++)
+	{
+		sx = basesx;
+
+		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
+			continue;
+
+		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+
+		for (INT32 x = 0; x < 16; x++, sx++)
+		{
+			if ((sx < cliprect.min_x || sx > cliprect.max_x))
+				continue;
+
+			INT32 pxl = gfx[(y * 16) + (x)]; // not mosol mode
+
+			if (pxl != 0x0f) {
+				if (!(dest[x] & 0x8000)) {
+					dest[x] = (pxl+color) | (priority << 14);
+
+					dest[x] |= 0x8000;
+				}
+			}
+		}
+	}
+}
+
+
+inline void megasys1_state::draw_16x16_priority_sprite_nomosaic_noyflip(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 priority)
+{
+	gfx_element *decodegfx = m_gfxdecode->gfx(3);
+	sy = sy + 16;
+
+	const UINT8* gfx = decodegfx->get_data(code);
+
+	color = color * 16;
+
+	INT32 basesx = sx;
+
+	for (INT32 y = 0; y < 16; y++, sy++)
+	{
+		sx = basesx;
+
+		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
+			continue;
+
+		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+
+		for (INT32 x = 0; x < 16; x++, sx++)
+		{
+			if ((sx < cliprect.min_x || sx > cliprect.max_x))
+				continue;
+
+			INT32 pxl = gfx[(((y)) * 16) + ((x ^ 0xf))]; // not mosol mode
+
+			if (pxl != 0x0f) {
+				if (!(dest[x] & 0x8000)) {
+					dest[x] = (pxl+color) | (priority << 14);
+
+					dest[x] |= 0x8000;
+				}
+			}
+		}
+	}
+}
+
+
+inline void megasys1_state::draw_16x16_priority_sprite_mosol(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect, INT32 code, INT32 color, INT32 sx, INT32 sy, INT32 flipx, INT32 flipy, UINT8 mosaic, INT32 priority)
+{
+	gfx_element *decodegfx = m_gfxdecode->gfx(3);
+	sy = sy + 16;
+
+	const UINT8* gfx = decodegfx->get_data(code);
+
+	flipy = (flipy) ? 0x0f : 0;
+	flipx = (flipx) ? 0x0f : 0;
+
+	color = color * 16;
+
+	INT32 basesx = sx;
+
+	for (INT32 y = 0; y < 16; y++, sy++)
+	{
+		sx = basesx;
+
+		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
+			continue;
+
+		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+
+		for (INT32 x = 0; x < 16; x++, sx++)
+		{
+			if ((sx < cliprect.min_x || sx > cliprect.max_x))
+				continue;
+
+			INT32 pxl = gfx[(((y ^ flipy) |  mosaic) * 16) + ((x ^ flipx) |  mosaic)]; // mosol mode
+
+			if (pxl != 0x0f) {
+				if (!(dest[x] & 0x8000)) {
+					dest[x] = (pxl+color) | (priority << 14);
+
+					dest[x] |= 0x8000;
+				}
+			}
+		}
+	}
+}
+
 
 void megasys1_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect)
 {
-	int color,code,sx,sy,flipx,flipy,attr,sprite;
 
 
 
@@ -765,54 +958,92 @@ void megasys1_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap,co
 					sy = 240 - sy;
 				}
 
-				draw_16x16_priority_sprite(screen,bitmap,cliprect,code, color, sx, sy - 16, flipx, flipy, mosaic, mossol, pri);
+				if (!mossol)
+				{
+					if (mosaic == 0x00)
+					{
+
+						if (flipx == 0)
+						{
+							if (flipy == 0)
+							{
+								draw_16x16_priority_sprite_nomosaic_noxflip_noyflip(screen, bitmap, cliprect, code, color, sx, sy - 16, pri);
+							}
+							else
+							{
+								draw_16x16_priority_sprite_nomosaic_noxflip(screen, bitmap, cliprect, code, color, sx, sy - 16, pri);
+							}
+						}
+						else
+						{
+							if (flipy == 0)
+							{
+								draw_16x16_priority_sprite_nomosaic_noyflip(screen, bitmap, cliprect, code, color, sx, sy - 16, pri);
+							}
+							else
+							{
+								draw_16x16_priority_sprite_nomosaic(screen, bitmap, cliprect, code, color, sx, sy - 16, pri);
+							}
+						}
+
+
+
+					}
+					else
+						draw_16x16_priority_sprite(screen, bitmap, cliprect, code, color, sx, sy - 16, flipx, flipy, mosaic, pri);
+				}
+				else 
+					draw_16x16_priority_sprite_mosol(screen,bitmap,cliprect,code, color, sx, sy - 16, flipx, flipy, mosaic, pri);
+
 			}
 		}
 	}   /* non Z hw */
-	else
-	{
-		UINT16 *spriteram16 = m_spriteram;
-
-		/* MS1-Z just draws Sprite Data, and in reverse order */
-
-		for (sprite = 0x80-1;sprite >= 0;sprite--)
-		{
-			UINT16 *spritedata = &spriteram16[ sprite * 0x10/2];
-
-			attr = spritedata[ 8/2 ];
-
-			sx = spritedata[0x0A/2] % 512;
-			sy = spritedata[0x0C/2] % 512;
-
-			if (sx > 256-1) sx -= 512;
-			if (sy > 256-1) sy -= 512;
-
-			code  = spritedata[0x0E/2];
-			color = (attr & 0x0F);
-
-			flipx = attr & 0x40;
-			flipy = attr & 0x80;
-
-			if (m_screen_flag & 1)
-			{
-				flipx = !flipx;     flipy = !flipy;
-				sx = 240-sx;        sy = 240-sy;
-			}
-
-			m_gfxdecode->gfx(2)->prio_transpen(bitmap,cliprect,
-					code,
-					color,
-					flipx, flipy,
-					sx, sy,
-					screen.priority(),
-					(attr & 0x08) ? 0x0c : 0x0a,15);
-		}   /* sprite */
-	}   /* Z hw */
 
 }
 
 
 
+
+void megasys1_state::draw_spritesz(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+{
+	UINT16 *spriteram16 = m_spriteram;
+	int color,code,sx,sy,flipx,flipy,attr,sprite;
+
+	/* MS1-Z just draws Sprite Data, and in reverse order */
+
+	for (sprite = 0x80-1;sprite >= 0;sprite--)
+	{
+		UINT16 *spritedata = &spriteram16[ sprite * 0x10/2];
+
+		attr = spritedata[ 8/2 ];
+
+		sx = spritedata[0x0A/2] % 512;
+		sy = spritedata[0x0C/2] % 512;
+
+		if (sx > 256-1) sx -= 512;
+		if (sy > 256-1) sy -= 512;
+
+		code  = spritedata[0x0E/2];
+		color = (attr & 0x0F);
+
+		flipx = attr & 0x40;
+		flipy = attr & 0x80;
+
+		if (m_screen_flag & 1)
+		{
+			flipx = !flipx;     flipy = !flipy;
+			sx = 240-sx;        sy = 240-sy;
+		}
+
+		m_gfxdecode->gfx(2)->prio_transpen(bitmap,cliprect,
+				code,
+				color,
+				flipx, flipy,
+				sx, sy,
+				screen.priority(),
+				(attr & 0x08) ? 0x0c : 0x0a,15);
+	}   /* sprite */
+}
 
 /***************************************************************************
                         Convert the Priority Prom
@@ -1136,11 +1367,13 @@ UINT32 megasys1_state::screen_update_megasys1(screen_device &screen, bitmap_ind1
 
 	if (active_layers & 0x08)
 	{
-		draw_sprites(screen, bitmap, cliprect);
-
 		if (m_hardware_type_z == 0)
+		{
+			draw_sprites(screen, bitmap, cliprect);
 			mix_sprite_bitmap(screen, bitmap, cliprect);
-
+		}
+		else
+			draw_spritesz(screen, bitmap, cliprect);
 	}
 
 	return 0;

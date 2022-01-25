@@ -28,7 +28,8 @@ ym2151_device::ym2151_device(const machine_config &mconfig, const char *tag, dev
 		m_chip(nullptr),
 		m_lastreg(0),
 		m_irqhandler(*this),
-		m_portwritehandler(*this)
+		m_portwritehandler(*this),
+		m_statushandler(*this)
 {
 }
 
@@ -79,6 +80,7 @@ void ym2151_device::device_start()
 {
 	m_irqhandler.resolve_safe();
 	m_portwritehandler.resolve_safe();
+	m_statushandler.resolve_safe();
 
 	// stream setup
 	int rate = clock() / 64;
@@ -89,6 +91,8 @@ void ym2151_device::device_start()
 
 	ym2151_set_irq_handler(m_chip, irq_frontend);
 	ym2151_set_port_write_handler(m_chip, port_write_frontend);
+	ym2151_set_status_handler(m_chip, status_frontend);
+
 }
 
 
@@ -130,4 +134,9 @@ void ym2151_device::irq_frontend(device_t *device, int irq)
 void ym2151_device::port_write_frontend(device_t *device, offs_t offset, UINT8 data)
 {
 	downcast<ym2151_device *>(device)->m_portwritehandler(offset, data);
+}
+
+void ym2151_device::status_frontend(device_t *device, int status)
+{
+	downcast<ym2151_device *>(device)->m_statushandler(status);
 }

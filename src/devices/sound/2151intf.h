@@ -26,6 +26,9 @@
 #define MCFG_YM2151_PORT_WRITE_HANDLER(_devcb) \
 	devcb = &ym2151_device::set_port_write_handler(*device, DEVCB_##_devcb);
 
+#define MCFG_YM2151_STATUS_CHANGED_CALLBACK(_devcb) \
+	devcb = &ym2151_device::set_status_handler(*device, DEVCB_##_devcb);
+
 
 //**************************************************************************
 //  TYPE DEFINITIONS
@@ -44,6 +47,9 @@ public:
 	// static configuration helpers
 	template<class _Object> static devcb_base &set_irq_handler(device_t &device, _Object object) { return downcast<ym2151_device &>(device).m_irqhandler.set_callback(object); }
 	template<class _Object> static devcb_base &set_port_write_handler(device_t &device, _Object object) { return downcast<ym2151_device &>(device).m_portwritehandler.set_callback(object); }
+
+	template<class _Object> static devcb_base &set_status_handler(device_t &device, _Object object) { return downcast<ym2151_device &>(device).m_statushandler.set_callback(object); }
+
 
 	// read/write
 	DECLARE_READ8_MEMBER( read );
@@ -66,6 +72,7 @@ private:
 	// internal helpers
 	static void irq_frontend(device_t *device, int irq);
 	static void port_write_frontend(device_t *device, offs_t offset, UINT8 data);
+	static void status_frontend(device_t* device, int status);
 
 	// internal state
 	sound_stream *          m_stream;
@@ -74,6 +81,7 @@ private:
 	UINT8                   m_lastreg;
 	devcb_write_line       m_irqhandler;
 	devcb_write8           m_portwritehandler;
+	devcb_write8           m_statushandler;
 };
 
 

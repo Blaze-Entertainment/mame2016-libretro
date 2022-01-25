@@ -166,6 +166,7 @@ struct YM2151
 
 	void (*irqhandler)(device_t *device, int irq);      /* IRQ function handler */
 	void (*porthandler)(device_t *, offs_t, UINT8);     /* port write function handler */
+	void (*statushandler)(device_t *device, int status);      /* Status handler */
 
 	device_t *device;
 	unsigned int clock;                 /* chip clock in Hz (passed from 2151intf.c) */
@@ -826,7 +827,10 @@ static TIMER_CALLBACK( timer_callback_a )
 	chip->timer_A_index_old = chip->timer_A_index;
 	if (chip->irq_enable & 0x04)
 	{
+		UINT32 oldstatus = chip->status;
 		chip->status |= 1;
+		if ((chip->statushandler) && (oldstatus != chip->status))
+			chip->statushandler(chip->device, chip->status);
 		machine.scheduler().timer_set(attotime::zero, FUNC(irqAon_callback), 0, chip);
 	}
 	if (chip->irq_enable & 0x80)
@@ -839,7 +843,10 @@ static TIMER_CALLBACK( timer_callback_b )
 	chip->timer_B_index_old = chip->timer_B_index;
 	if (chip->irq_enable & 0x08)
 	{
+		UINT32 oldstatus = chip->status;
 		chip->status |= 2;
+		if ((chip->statushandler) && (oldstatus != chip->status))
+			chip->statushandler(chip->device, chip->status);
 		machine.scheduler().timer_set(attotime::zero, FUNC(irqBon_callback), 0, chip);
 	}
 }
@@ -847,7 +854,10 @@ static TIMER_CALLBACK( timer_callback_b )
 static TIMER_CALLBACK( timer_callback_chip_busy )
 {
 	YM2151 *chip = (YM2151 *)ptr;
+	UINT32 oldstatus = chip->status;
 	chip->status &= 0x7f;   /* reset busy flag */
+	if ((chip->statushandler) && (oldstatus != chip->status))
+		chip->statushandler(chip->device, chip->status);
 }
 #endif
 #endif
@@ -1053,7 +1063,11 @@ void ym2151_write_reg(void *_chip, int r, int v)
 	/* There is no info on what YM2151 really does when busy flag is set */
 	if ( chip->status & 0x80 ) return;
 	timer_set ( attotime::from_hz(chip->clock) * 64, chip, 0, timer_callback_chip_busy);
+	UINT32 oldstatus = chip->status;
 	chip->status |= 0x80;   /* set busy flag for 64 chip clock cycles */
+	if ((chip->statushandler) && (oldstatus != chip->status)))
+		chip->statushandler(chip->device, chip->status);
+
 #endif
 
 	if (LOG_CYM_FILE && (cymfile) && (r!=0) )
@@ -1100,11 +1114,18 @@ void ym2151_write_reg(void *_chip, int r, int v)
 			if (v&0x10) /* reset timer A irq flag */
 			{
 #ifdef USE_MAME_TIMERS
+				UINT32 oldstatus = chip->status;
 				chip->status &= ~1;
+				if ((chip->statushandler) && (oldstatus != chip->status))
+					chip->statushandler(chip->device, chip->status);
 				chip->device->machine().scheduler().timer_set(attotime::zero, FUNC(irqAoff_callback), 0, chip);
 #else
 				int oldstate = chip->status & 3;
+				UINT32 oldstatus = chip->status;
 				chip->status &= ~1;
+				if ((chip->statushandler) && (oldstatus != chip->status))
+					chip->statushandler(chip->device, chip->status);
+
 				if ((oldstate==1) && (chip->irqhandler)) (*chip->irqhandler)(chip->device, 0);
 #endif
 			}
@@ -1112,11 +1133,20 @@ void ym2151_write_reg(void *_chip, int r, int v)
 			if (v&0x20) /* reset timer B irq flag */
 			{
 #ifdef USE_MAME_TIMERS
+				UINT32 oldstatus = chip->status;
 				chip->status &= ~2;
+				if ((chip->statushandler) && (oldstatus != chip->status))
+					chip->statushandler(chip->device, chip->status);
+
 				chip->device->machine().scheduler().timer_set(attotime::zero, FUNC(irqBoff_callback), 0, chip);
 #else
+				UINT32 oldstatus = chip->status;
 				int oldstate = chip->status & 3;
 				chip->status &= ~2;
+
+				if ((chip->statushandler) && (oldstatus != chip->status))
+					chip->statushandler(chip->device, chip->status);
+
 				if ((oldstate==2) && (chip->irqhandler)) (*chip->irqhandler)(chip->device, 0);
 #endif
 			}
@@ -1525,6 +1555,7 @@ void * ym2151_init(device_t *device, int clock, int rate)
 	PSG->sampfreq = rate ? rate : 44100;    /* avoid division by 0 in init_chip_tables() */
 	PSG->irqhandler = nullptr;                 /* interrupt handler  */
 	PSG->porthandler = nullptr;                /* port write handler */
+	PSG->statushandler = nullptr; 
 	init_chip_tables( PSG );
 
 	PSG->lfo_timer_add = (1<<LFO_SH) * (clock/64.0) / PSG->sampfreq;
@@ -1638,7 +1669,12 @@ void ym2151_reset_chip(void *_chip)
 	chip->noise_f   = chip->noise_tab[0];
 
 	chip->csm_req   = 0;
+
+	UINT32 oldstatus = chip->status;
 	chip->status    = 0;
+
+	if ((chip->statushandler) && (oldstatus != chip->status))
+		chip->statushandler(chip->device, chip->status);
 
 	ym2151_write_reg(chip, 0x1b, 0);    /* only because of CT1, CT2 output pins */
 	ym2151_write_reg(chip, 0x18, 0);    /* set LFO frequency */
@@ -2398,8 +2434,12 @@ void ym2151_update_one(void *chip, SAMP **buffers, int length)
 			PSG->tim_B_val += PSG->tim_B_tab[ PSG->timer_B_index ];
 			if ( PSG->irq_enable & 0x08 )
 			{
+				UINT32 oldstatus = chip->status;
 				int oldstate = PSG->status & 3;
 				PSG->status |= 2;
+				if ((chip->statushandler) && (oldstatus != chip->status))
+					chip->statushandler(chip->device, chip->status);
+
 				if ((!oldstate) && (PSG->irqhandler)) (*PSG->irqhandler)(chip->device, 1);
 			}
 		}
@@ -2476,8 +2516,13 @@ void ym2151_update_one(void *chip, SAMP **buffers, int length)
 				PSG->tim_A_val += PSG->tim_A_tab[ PSG->timer_A_index ];
 				if (PSG->irq_enable & 0x04)
 				{
+					UINT32 oldstatus = PSG->status;
 					int oldstate = PSG->status & 3;
 					PSG->status |= 1;
+					
+					if ((chip->statushandler) && (status != chip->status))
+						chip->statushandler(chip->device, chip->status);
+
 					if ((!oldstate) && (PSG->irqhandler)) (*PSG->irqhandler)(chip->device, 1);
 				}
 				if (PSG->irq_enable & 0x80)
@@ -2499,4 +2544,11 @@ void ym2151_set_port_write_handler(void *chip, void (*handler)(device_t *, offs_
 {
 	YM2151 *PSG = (YM2151 *)chip;
 	PSG->porthandler = handler;
+}
+
+
+void ym2151_set_status_handler(void *chip, void(*handler)(device_t *device, int status))
+{
+	YM2151 *PSG = (YM2151 *)chip;
+	PSG->statushandler = handler;
 }
