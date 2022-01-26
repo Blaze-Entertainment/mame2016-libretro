@@ -44,7 +44,8 @@ public:
 		m_screen(*this, "screen"),
 		m_ymsnd(*this,"ymsnd"),
 		m_mcubaseoffset(0),
-		m_soundstatustrigger(10000)
+		m_soundstatustrigger(10000),
+		m_soundstatustrigger2(10000)
 		{ }
 
 	required_shared_ptr<UINT16> m_vregs;
@@ -146,10 +147,12 @@ public:
 	DECLARE_DRIVER_INIT(edfbl);
 	DECLARE_DRIVER_INIT(stdragona);
 	DECLARE_DRIVER_INIT(stdragonb);
+	DECLARE_DRIVER_INIT(p47);
 	TILEMAP_MAPPER_MEMBER(megasys1_scan_8x8);
 	TILEMAP_MAPPER_MEMBER(megasys1_scan_16x16);
 	TILE_GET_INFO_MEMBER(megasys1_get_scroll_tile_info_8x8);
 	TILE_GET_INFO_MEMBER(megasys1_get_scroll_tile_info_16x16);
+	DECLARE_MACHINE_START(megasys1);
 	DECLARE_MACHINE_RESET(megasys1);
 	DECLARE_VIDEO_START(megasys1);
 	DECLARE_PALETTE_INIT(megasys1);
@@ -185,9 +188,15 @@ public:
 
 	DECLARE_READ16_MEMBER(cybattler_main_skip_r);
 	DECLARE_READ16_MEMBER(cybattler_sound_skip_r);
+	DECLARE_READ16_MEMBER(street_sound_skip_r);
+	DECLARE_READ16_MEMBER(stdragon_sound_skip_r);
+	DECLARE_READ16_MEMBER(rodland_sound_skip_r);
+	DECLARE_READ16_MEMBER(p47_sound_skip_r);
+	DECLARE_READ16_MEMBER(edf_sound_skip_r);
 
 	uint32_t m_mcubaseoffset;
 	DECLARE_WRITE8_MEMBER(sound_status_changed);
 	int m_soundstatustrigger;
+	int m_soundstatustrigger2;
 
 };

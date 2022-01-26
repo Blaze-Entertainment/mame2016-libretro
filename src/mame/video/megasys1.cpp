@@ -230,6 +230,11 @@ VIDEO_START_MEMBER(megasys1_state,megasys1)
 	m_buffer2_objectram = std::make_unique<UINT16[]>(0x2000);
 	m_buffer2_spriteram16 = std::make_unique<UINT16[]>(0x2000);
 
+	save_pointer(NAME(m_buffer_objectram.get()), 0x2000);
+	save_pointer(NAME(m_buffer_spriteram16.get()), 0x2000);
+	save_pointer(NAME(m_buffer2_objectram.get()), 0x2000);
+	save_pointer(NAME(m_buffer2_spriteram16.get()), 0x2000);
+
 	create_tilemaps();
 	m_tmap[0] = m_tilemap[0][0][0];
 	m_tmap[1] = m_tilemap[1][0][0];
@@ -277,6 +282,21 @@ VIDEO_START_MEMBER(megasys1_state,megasys1)
 		m_hardware_type_z = 1;
 
 	m_screen->register_screen_bitmap(m_sprite_buffer_bitmap);
+
+	save_item(NAME(m_scrollx));
+	save_item(NAME(m_scrolly));
+	save_item(NAME(m_active_layers));
+	save_item(NAME(m_bits_per_color_code));
+	save_item(NAME(m_scroll_flag));
+	save_item(NAME(m_sprite_bank));
+	save_item(NAME(m_screen_flag));
+	save_item(NAME(m_sprite_flag));
+	save_item(NAME(m_8x8_scroll_factor));
+	save_item(NAME(m_16x16_scroll_factor));
+	save_item(NAME(m_hardware_type_z));
+	save_item(NAME(m_layers_order));
+
+
 }
 
 /***************************************************************************

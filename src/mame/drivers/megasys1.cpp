@@ -132,6 +132,19 @@ RAM         RW      0f0000-0f3fff       0e0000-0effff?      <
 #include "includes/megasys1.h"
 
 
+MACHINE_START_MEMBER(megasys1_state,megasys1)
+{
+	save_item(NAME(m_ip_select_values));
+	save_item(NAME(m_ip_latched));
+	save_item(NAME(m_ignore_oki_status));
+	save_item(NAME(m_protection_val));
+	save_item(NAME(m_mcu_hs));
+	save_item(NAME(m_mcu_hs_ram));
+	save_item(NAME(m_mcubaseoffset));
+	save_item(NAME(m_soundstatustrigger));
+	save_item(NAME(m_soundstatustrigger2));
+}
+
 MACHINE_RESET_MEMBER(megasys1_state,megasys1)
 {
 	m_ignore_oki_status = 1;    /* ignore oki status due 'protection' */
@@ -1487,6 +1500,8 @@ WRITE8_MEMBER(megasys1_state::sound_status_changed)
 {
 	if (data != 0x00)
 		machine().scheduler().trigger(m_soundstatustrigger);
+	else
+		machine().scheduler().trigger(m_soundstatustrigger2);
 }
 
 /***************************************************************************
@@ -1502,7 +1517,7 @@ WRITE8_MEMBER(megasys1_state::sound_status_changed)
 static MACHINE_CONFIG_START( system_A, megasys1_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, SYS_A_CPU_CLOCK) /* 6MHz verified */
+	MCFG_CPU_ADD("maincpu", M68000, 12000000) /* 6MHz verified */
 	MCFG_CPU_PROGRAM_MAP(megasys1A_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", megasys1_state, megasys1A_scanline, "screen", 0, 1)
 
@@ -1511,6 +1526,7 @@ static MACHINE_CONFIG_START( system_A, megasys1_state )
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(120000))
 
+	MCFG_MACHINE_START_OVERRIDE(megasys1_state,megasys1)
 	MCFG_MACHINE_RESET_OVERRIDE(megasys1_state,megasys1)
 
 	/* video hardware */
@@ -1575,10 +1591,11 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( system_Bbl, megasys1_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, SYS_B_CPU_CLOCK)
+	MCFG_CPU_ADD("maincpu", M68000, 12000000)
 	MCFG_CPU_PROGRAM_MAP(megasys1B_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", megasys1_state, megasys1B_scanline, "screen", 0, 1)
 
+	MCFG_MACHINE_START_OVERRIDE(megasys1_state,megasys1)
 	MCFG_MACHINE_RESET_OVERRIDE(megasys1_state,megasys1)
 
 	/* video hardware */
@@ -1649,7 +1666,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( system_D, megasys1_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, SYS_D_CPU_CLOCK)    /* 8MHz */
+	MCFG_CPU_ADD("maincpu", M68000, 12000000)    /* 8MHz */
 	MCFG_CPU_PROGRAM_MAP(megasys1D_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", megasys1_state,  megasys1D_irq)
 
@@ -1701,7 +1718,7 @@ WRITE_LINE_MEMBER(megasys1_state::irqhandler)
 static MACHINE_CONFIG_START( system_Z, megasys1_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, SYS_A_CPU_CLOCK) /* 6MHz (12MHz / 2) */
+	MCFG_CPU_ADD("maincpu", M68000, 12000000) /* 6MHz (12MHz / 2) */
 	MCFG_CPU_PROGRAM_MAP(megasys1A_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", megasys1_state, megasys1A_scanline, "screen", 0, 1)
 
@@ -4012,6 +4029,22 @@ void megasys1_state::stdragona_gfx_unmangle(const char *region)
 		m_mcu_hs_ram[4/2] == _3_ && \
 		m_mcu_hs_ram[6/2] == _4_)
 
+
+READ16_MEMBER(megasys1_state::street_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x04b0)
+	{
+		int result = m_ymsnd->read(space, 1);
+		if (result == 0)
+			space.device().execute().spin_until_trigger(m_soundstatustrigger);//m_audiocpu->spin_until_interrupt();
+	}
+
+	return m_ymsnd->read(space, 1);
+}
+
+
 DRIVER_INIT_MEMBER(megasys1_state,64street)
 {
 //  UINT16 *ROM = (UINT16 *) memregion("maincpu")->base();
@@ -4027,6 +4060,7 @@ DRIVER_INIT_MEMBER(megasys1_state,64street)
 	m_ip_select_values[5] = 0xfa;
 	m_ip_select_values[6] = 0x06;
 
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::street_sound_skip_r), this));
 }
 
 READ16_MEMBER(megasys1_state::megasys1A_mcu_hs_r)
@@ -4070,8 +4104,17 @@ WRITE16_MEMBER(megasys1_state::megasys1A_mcu_hs_w)
 DRIVER_INIT_MEMBER(megasys1_state,astyanax)
 {
 	astyanax_rom_decode(machine(), "maincpu");
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00000, 0x3ffff, read16_delegate(FUNC(megasys1_state::megasys1A_mcu_hs_r),this));
+
+	m_mcubaseoffset = 0x3ffc0/2;
+
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00000, 0x3ffff, read16_delegate(FUNC(megasys1_state::megasys1A_mcu_hs_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x3ffc0, 0x3ffc1, read16_delegate(FUNC(megasys1_state::megasys1A_mcu_hs_r),this));	
+	
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x20000, 0x20009, write16_delegate(FUNC(megasys1_state::megasys1A_mcu_hs_w),this));
+
+	// yes same skip as edf
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::edf_sound_skip_r), this));
+
 }
 
 DRIVER_INIT_MEMBER(megasys1_state,avspirit)
@@ -4089,6 +4132,9 @@ DRIVER_INIT_MEMBER(megasys1_state,avspirit)
 	// has twice less RAM
 	m_maincpu->space(AS_PROGRAM).unmap_readwrite(0x060000, 0x06ffff);
 	m_maincpu->space(AS_PROGRAM).install_ram(0x070000, 0x07ffff, m_ram);
+
+	// yes same skip as edf
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::edf_sound_skip_r), this));
 }
 
 DRIVER_INIT_MEMBER(megasys1_state,bigstrik)
@@ -4159,6 +4205,20 @@ DRIVER_INIT_MEMBER(megasys1_state, cybattlr)
 	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::cybattler_sound_skip_r), this));
 }
 
+READ16_MEMBER(megasys1_state::edf_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x4b0)
+	{
+		int result = m_ymsnd->read(space, 1);
+		if (result == 0)
+			space.device().execute().spin_until_trigger(m_soundstatustrigger);//m_audiocpu->spin_until_interrupt();
+	}
+
+	return m_ymsnd->read(space, 1);
+}
+
 
 DRIVER_INIT_MEMBER(megasys1_state,edf)
 {
@@ -4170,6 +4230,8 @@ DRIVER_INIT_MEMBER(megasys1_state,edf)
 
 	m_ip_select_values[5] = 0xf0;
 	m_ip_select_values[6] = 0x06;
+
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::edf_sound_skip_r), this));
 
 }
 
@@ -4296,12 +4358,50 @@ DRIVER_INIT_MEMBER(megasys1_state,phantasm)
 	phantasm_rom_decode(machine(), "maincpu");
 }
 
+READ16_MEMBER(megasys1_state::p47_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x496)
+	{
+		int result = m_ymsnd->read(space, 1);
+		if (result == 0)
+			space.device().execute().spin_until_trigger(m_soundstatustrigger);//m_audiocpu->spin_until_interrupt();
+	}
+
+	return m_ymsnd->read(space, 1);
+}
+
+DRIVER_INIT_MEMBER(megasys1_state,p47)
+{
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::p47_sound_skip_r), this));
+}
+
+READ16_MEMBER(megasys1_state::rodland_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x04b0)
+	{
+		int result = m_ymsnd->read(space, 1);
+		if (result == 0)
+			space.device().execute().spin_until_trigger(m_soundstatustrigger);//m_audiocpu->spin_until_interrupt();
+	}
+
+	return m_ymsnd->read(space, 1);
+}
+
+
+
 DRIVER_INIT_MEMBER(megasys1_state,rodland)
 {
 	rodland_gfx_unmangle("gfx1");
 	rodland_gfx_unmangle("gfx4");
 
 	rodland_rom_decode(machine(), "maincpu");
+
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::rodland_sound_skip_r), this));
+
 }
 
 DRIVER_INIT_MEMBER(megasys1_state,rodlandj)
@@ -4377,6 +4477,18 @@ WRITE16_MEMBER(megasys1_state::stdragon_mcu_hs_w)
 }
 
 
+READ16_MEMBER(megasys1_state::stdragon_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x0464)
+	{
+		m_audiocpu->spin_until_interrupt();
+	}
+
+	return 0x4e71;
+}
+
 DRIVER_INIT_MEMBER(megasys1_state,stdragon)
 {
 
@@ -4387,10 +4499,15 @@ DRIVER_INIT_MEMBER(megasys1_state,stdragon)
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x0cf80, 0x0cf81, read16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_r),this));
 
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x23ff0, 0x23ff9, write16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_w),this));
+
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x00464, 0x00465, read16_delegate(FUNC(megasys1_state::stdragon_sound_skip_r),this));
+
 }
 
 DRIVER_INIT_MEMBER(megasys1_state,stdragona)
 {
+	m_mcubaseoffset = 0xcf80 / 2;
+
 	phantasm_rom_decode(machine(), "maincpu");
 
 	stdragona_gfx_unmangle("gfx1");
@@ -4458,9 +4575,9 @@ GAME( 1988, lomakai,  0,        system_Z,          lomakai,  driver_device,  0, 
 GAME( 1988, makaiden, lomakai,  system_Z,          lomakai,  driver_device,  0,        ROT0,   "Jaleco", "Makai Densetsu (Japan)", 0 )
 
 // Type A
-GAME( 1988, p47,      0,        system_A,          p47,      driver_device,  0,        ROT0,   "Jaleco", "P-47 - The Phantom Fighter (World)", 0 )
-GAME( 1988, p47j,     p47,      system_A,          p47,      driver_device,  0,        ROT0,   "Jaleco", "P-47 - The Freedom Fighter (Japan)", 0 )
-GAME( 1988, p47je,    p47,      system_A,          p47,      driver_device,  0,        ROT0,   "Jaleco", "P-47 - The Freedom Fighter (Japan, Export)", 0 )
+GAME( 1988, p47,      0,        system_A,          p47,      megasys1_state,  p47,        ROT0,   "Jaleco", "P-47 - The Phantom Fighter (World)", 0 )
+GAME( 1988, p47j,     p47,      system_A,          p47,      megasys1_state,  p47,        ROT0,   "Jaleco", "P-47 - The Freedom Fighter (Japan)", 0 )
+GAME( 1988, p47je,    p47,      system_A,          p47,      megasys1_state,  p47,        ROT0,   "Jaleco", "P-47 - The Freedom Fighter (Japan, Export)", 0 )
 GAME( 1988, kickoff,  0,        system_A,          kickoff,  driver_device,  0,        ROT0,   "Jaleco", "Kick Off (Japan)", 0 )
 GAME( 1988, tshingen, 0,        system_A,          tshingen, megasys1_state, phantasm, ROT0,   "Jaleco", "Shingen Samurai-Fighter (Japan, English)", MACHINE_IMPERFECT_GRAPHICS )
 GAME( 1988, tshingena,tshingen, system_A,          tshingen, megasys1_state, phantasm, ROT0,   "Jaleco", "Takeda Shingen (Japan, Japanese)", MACHINE_IMPERFECT_GRAPHICS )
