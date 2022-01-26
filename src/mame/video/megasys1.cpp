@@ -217,6 +217,15 @@ actual code sent to the hardware.
 
 #endif
 
+void megasys1_state::device_post_load()
+{
+	m_tmap[0] = m_tilemap[0][(m_scroll_flag[0] >> 4) & 1][m_scroll_flag[0] & 3];
+	m_tmap[1] = m_tilemap[1][(m_scroll_flag[1] >> 4) & 1][m_scroll_flag[1] & 3];
+	m_tmap[2] = m_tilemap[2][(m_scroll_flag[2] >> 4) & 1][m_scroll_flag[2] & 3];
+	m_tmap[0]->mark_all_dirty();
+	m_tmap[1]->mark_all_dirty();
+	m_tmap[2]->mark_all_dirty();
+}
 
 
 VIDEO_START_MEMBER(megasys1_state,megasys1)
@@ -228,7 +237,7 @@ VIDEO_START_MEMBER(megasys1_state,megasys1)
 	m_buffer_objectram = std::make_unique<UINT16[]>(0x2000);
 	m_buffer_spriteram16 = std::make_unique<UINT16[]>(0x2000);
 	m_buffer2_objectram = std::make_unique<UINT16[]>(0x2000);
-	m_buffer2_spriteram16 = std::make_unique<UINT16[]>(0x2000);
+	m_buffer2_spriteram16 = std::make_unique<UINT16[]>(0x2000);	
 
 	save_pointer(NAME(m_buffer_objectram.get()), 0x2000);
 	save_pointer(NAME(m_buffer_spriteram16.get()), 0x2000);
@@ -297,6 +306,7 @@ VIDEO_START_MEMBER(megasys1_state,megasys1)
 	save_item(NAME(m_layers_order));
 	save_item(NAME(m_sprite_buf_bitmap));
 
+	machine().save().register_postload(save_prepost_delegate(FUNC(megasys1_state::device_post_load), this));
 
 }
 
