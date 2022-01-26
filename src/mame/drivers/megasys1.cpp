@@ -4101,6 +4101,19 @@ WRITE16_MEMBER(megasys1_state::megasys1A_mcu_hs_w)
 		printf("MCU HS W %04x (%04x) -> [%02x]\n",data,mem_mask,offset*2);
 }
 
+
+READ16_MEMBER(megasys1_state::astyanax_skipdip_r)
+{
+	int pc = m_maincpu->pc();
+
+	if (pc == 0x10be4)
+	{
+		m_maincpu->set_state_int(M68K_D7, 1);
+	}
+	return 0x5347;
+}
+
+
 DRIVER_INIT_MEMBER(megasys1_state,astyanax)
 {
 	astyanax_rom_decode(machine(), "maincpu");
@@ -4115,6 +4128,7 @@ DRIVER_INIT_MEMBER(megasys1_state,astyanax)
 	// yes same skip as edf
 	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::edf_sound_skip_r), this));
 
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x10BE4, 0x10BE5, read16_delegate(FUNC(megasys1_state::astyanax_skipdip_r),this));	
 }
 
 DRIVER_INIT_MEMBER(megasys1_state,avspirit)
@@ -4372,9 +4386,23 @@ READ16_MEMBER(megasys1_state::p47_sound_skip_r)
 	return m_ymsnd->read(space, 1);
 }
 
+
+WRITE16_MEMBER(megasys1_state::p47_skipdips_w)
+{
+	int pc = m_maincpu->pc();
+	
+	if (pc == 0x112a)
+		data = 1;
+
+	m_ram[0x1c4/2] = data;
+}
+
+
 DRIVER_INIT_MEMBER(megasys1_state,p47)
 {
 	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x80002, 0x80003, read16_delegate(FUNC(megasys1_state::p47_sound_skip_r), this));
+
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf01c4, 0xf01c5, write16_delegate(FUNC(megasys1_state::p47_skipdips_w),this));
 }
 
 READ16_MEMBER(megasys1_state::rodland_sound_skip_r)
@@ -4489,6 +4517,20 @@ READ16_MEMBER(megasys1_state::stdragon_sound_skip_r)
 	return 0x4e71;
 }
 
+
+WRITE16_MEMBER(megasys1_state::stdragon_skipdips_w)
+{
+	int pc = m_maincpu->pc();
+	
+	if (pc == 0x6900)
+		data = 1;
+
+	m_ram[0x8910/2] = data;
+}
+
+
+
+
 DRIVER_INIT_MEMBER(megasys1_state,stdragon)
 {
 
@@ -4501,6 +4543,7 @@ DRIVER_INIT_MEMBER(megasys1_state,stdragon)
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x23ff0, 0x23ff9, write16_delegate(FUNC(megasys1_state::stdragon_mcu_hs_w),this));
 
 	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x00464, 0x00465, read16_delegate(FUNC(megasys1_state::stdragon_sound_skip_r),this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf8910, 0xf8911, write16_delegate(FUNC(megasys1_state::stdragon_skipdips_w),this));
 
 }
 

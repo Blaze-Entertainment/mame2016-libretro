@@ -193,7 +193,9 @@ public:
 	DECLARE_READ16_MEMBER(rodland_sound_skip_r);
 	DECLARE_READ16_MEMBER(p47_sound_skip_r);
 	DECLARE_READ16_MEMBER(edf_sound_skip_r);
-
+	DECLARE_WRITE16_MEMBER(p47_skipdips_w);
+	DECLARE_WRITE16_MEMBER(stdragon_skipdips_w);
+	DECLARE_READ16_MEMBER(astyanax_skipdip_r);
 	uint32_t m_mcubaseoffset;
 	DECLARE_WRITE8_MEMBER(sound_status_changed);
 	int m_soundstatustrigger;
