@@ -281,7 +281,7 @@ VIDEO_START_MEMBER(megasys1_state,megasys1)
 		strcmp(machine().system().name, "makaiden") == 0)
 		m_hardware_type_z = 1;
 
-	m_screen->register_screen_bitmap(m_sprite_buffer_bitmap);
+	//m_screen->register_screen_bitmap(m_sprite_buffer_bitmap);
 
 	save_item(NAME(m_scrollx));
 	save_item(NAME(m_scrolly));
@@ -295,6 +295,7 @@ VIDEO_START_MEMBER(megasys1_state,megasys1)
 	save_item(NAME(m_16x16_scroll_factor));
 	save_item(NAME(m_hardware_type_z));
 	save_item(NAME(m_layers_order));
+	save_item(NAME(m_sprite_buf_bitmap));
 
 
 }
@@ -633,7 +634,9 @@ void megasys1_state::mix_sprite_bitmap(screen_device &screen, bitmap_ind16 &bitm
 
 	for (int y = cliprect.min_y;y <= cliprect.max_y;y++)
 	{
-		UINT16* srcline = &m_sprite_buffer_bitmap.pix16(y);
+		//UINT16* srcline = &m_sprite_buffer_bitmap.pix16(y);
+		UINT16* srcline = m_sprite_buf_bitmap+(256*y);
+		
 		UINT16* dstline = &bitmap.pix16(y);
 		UINT8 *prio = &screen.priority().pix8(y);
 
@@ -661,7 +664,7 @@ void megasys1_state::partial_clear_sprite_bitmap(screen_device &screen, bitmap_i
 {
 	for (int y = cliprect.min_y;y <= cliprect.max_y;y++)
 	{
-		UINT16* srcline = &m_sprite_buffer_bitmap.pix16(y);
+		UINT16* srcline = m_sprite_buf_bitmap+(256*y);
 
 		for (int x = cliprect.min_x;x <= cliprect.max_x;x++)
 		{
@@ -697,7 +700,7 @@ inline void megasys1_state::draw_16x16_priority_sprite(screen_device &screen, bi
 		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
 			continue;
 
-		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+		UINT16* dest = m_sprite_buf_bitmap+(256*sy)+sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
@@ -735,7 +738,7 @@ inline void megasys1_state::draw_16x16_priority_sprite_nomosaic(screen_device &s
 		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
 			continue;
 
-		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+		UINT16* dest = m_sprite_buf_bitmap+(256*sy)+sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
@@ -774,7 +777,7 @@ inline void megasys1_state::draw_16x16_priority_sprite_nomosaic_noxflip(screen_d
 		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
 			continue;
 
-		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+		UINT16* dest = m_sprite_buf_bitmap+(256*sy)+sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
@@ -812,7 +815,7 @@ inline void megasys1_state::draw_16x16_priority_sprite_nomosaic_noxflip_noyflip(
 		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
 			continue;
 
-		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+		UINT16* dest = m_sprite_buf_bitmap+(256*sy)+sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
@@ -851,7 +854,7 @@ inline void megasys1_state::draw_16x16_priority_sprite_nomosaic_noyflip(screen_d
 		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
 			continue;
 
-		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+		UINT16* dest = m_sprite_buf_bitmap+(256*sy)+sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
@@ -893,7 +896,7 @@ inline void megasys1_state::draw_16x16_priority_sprite_mosol(screen_device &scre
 		if ((sy < cliprect.min_y) || (sy > cliprect.max_y))
 			continue;
 
-		UINT16* dest = &m_sprite_buffer_bitmap.pix16(sy)+ sx;
+		UINT16* dest = m_sprite_buf_bitmap+(256*sy)+sx;
 
 		for (INT32 x = 0; x < 16; x++, sx++)
 		{
@@ -925,8 +928,17 @@ void megasys1_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap,co
 
 	if (m_hardware_type_z == 0)  /* standard sprite hardware */
 	{
-		if (!(m_sprite_flag&0x10))
-			m_sprite_buffer_bitmap.fill(0x7fff, cliprect);
+		if (!(m_sprite_flag & 0x10))
+		{
+			for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
+			{
+				UINT16* ptr = m_sprite_buf_bitmap + (y * 256) + cliprect.min_x;
+				for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
+				{
+					*ptr++ = 0x7fff;
+				}
+			}
+		}
 		else
 		{
 			// P47 sprite trails effect.. not quite right tho

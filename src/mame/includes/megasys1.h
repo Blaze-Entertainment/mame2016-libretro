@@ -68,7 +68,8 @@ public:
 	required_device<screen_device> m_screen;
 	optional_device<ym2151_device> m_ymsnd;
 
-	bitmap_ind16 m_sprite_buffer_bitmap;
+	//bitmap_ind16 m_sprite_buffer_bitmap;
+	UINT16 m_sprite_buf_bitmap[256 * 256];
 
 	UINT16 *m_spriteram;
 	UINT16 m_ip_select_values[7];
