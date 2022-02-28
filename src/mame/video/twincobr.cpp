@@ -142,6 +142,32 @@ READ16_MEMBER(twincobr_state::twincobr_txram_r)
 {
 	return m_txvideoram16[m_txoffs];
 }
+
+WRITE16_MEMBER(twincobr_state::twincobr_patched_txram_w)
+{
+	int pc = m_maincpu->pc();
+
+	if (pc == 0x2738)
+	{
+		int a0 = m_maincpu->state_int(SIMPLETOAPLAN_M68K_A0);
+
+		if ((a0 >= 0x38f6) && (a0 <= 0x38f6 + 0x20))
+		{
+			UINT8 table[] = { 0x2d, 0x2d, 0x2e, 0x1D, 0x18, 0x0a, 0x19, 0x15, 0x0a, 0x17, 0x2d, 0x01, 0x09, 0x08, 0x07, 0x2d, 0x2d };
+
+			UINT8 val = table[(a0 - 0x38f6) / 2];
+			data = val;
+		}
+
+		// remove Taito logo
+		if ((a0 >= 0x394e) && (a0 <= 0x3986))
+			return;
+	}
+
+	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
+	m_tx_tilemap->mark_tile_dirty(m_txoffs);
+}
+
 WRITE16_MEMBER(twincobr_state::twincobr_txram_w)
 {
 	COMBINE_DATA(&m_txvideoram16[m_txoffs]);

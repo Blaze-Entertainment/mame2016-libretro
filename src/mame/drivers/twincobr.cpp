@@ -379,7 +379,6 @@ Shark   Zame
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "cpu/tms32010/tms32010.h"
 #include "cpu/mcs48/mcs48.h"
 #include "includes/toaplipt.h"
@@ -1283,7 +1282,8 @@ DRIVER_INIT_MEMBER(twincobr_state,twincobr)
 	twincobr_driver_savestate();
 }
 
-	
+
+
 READ16_MEMBER(twincobr_state::fshark_boot_speed1_r)
 {
 	if (!space.debugger_access())
@@ -1322,7 +1322,8 @@ DRIVER_INIT_MEMBER(twincobr_state,fshark)
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00A036, 0x00A037, read16_delegate(FUNC(twincobr_state::fshark_boot_speed1_r),this));
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00A0BA, 0x00A0BB, read16_delegate(FUNC(twincobr_state::fshark_boot_speed2_r),this));
 
-	
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0x07e000, 0x07e001, write16_delegate(FUNC(twincobr_state::twincobr_patched_txram_w),this));
+
 }
 
 	
