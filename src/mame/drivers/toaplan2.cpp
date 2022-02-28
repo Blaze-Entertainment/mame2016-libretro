@@ -1075,7 +1075,15 @@ INTERRUPT_GEN_MEMBER(toaplan2_state::bbakraid_snd_interrupt)
 	device.execute().set_input_line(0, HOLD_LINE);
 }
 
+READ16_MEMBER(toaplan2_state::in1_r)
+{
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+	int pc = mcpu->pc();
+	if (pc == 0x4ba)
+		return 0xff;
 
+	return m_in1->read();
+}
 
 static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x01ffff) AM_ROM
@@ -1088,7 +1096,7 @@ static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x180020, 0x180021) AM_READ_PORT("SYS")
 	AM_RANGE(0x180030, 0x180031) AM_READ_PORT("JMPR")           // CPU 2 busy and Region Jumper block
 	AM_RANGE(0x180040, 0x180041) AM_WRITE(toaplan2_coin_word_w)
-	AM_RANGE(0x180050, 0x180051) AM_READ_PORT("IN1")
+	AM_RANGE(0x180050, 0x180051) AM_READ(in1_r)
 	AM_RANGE(0x180060, 0x180061) AM_READ_PORT("IN2")
 	AM_RANGE(0x180070, 0x180071) AM_WRITE(tekipaki_mcu_w)
 ADDRESS_MAP_END

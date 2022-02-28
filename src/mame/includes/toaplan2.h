@@ -63,6 +63,7 @@ public:
 	toaplan2_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
 		m_mainrom(*this, "maincpu"),
+		m_in1(*this, "IN1"),
 		m_dswa(*this, "DSWA"),
 		m_dswb(*this, "DSWB"),
 		m_jmpr(*this, "JMPR"),
@@ -163,6 +164,7 @@ public:
 
 	TIMER_DEVICE_CALLBACK_MEMBER(toaplan2_scanline);
 	required_region_ptr<UINT16> m_mainrom;
+	optional_ioport m_in1;
 	optional_ioport m_dswa;
 	optional_ioport m_dswb;
 	optional_ioport m_jmpr;  // 	return ioport("JMPR")->read() ^ 0xff;
@@ -201,6 +203,7 @@ public:
 	// Teki Paki sound
 	uint8_t m_cmdavailable;
 
+	DECLARE_READ16_MEMBER(in1_r);
 	DECLARE_WRITE16_MEMBER(tekipaki_mcu_w);
 	DECLARE_READ8_MEMBER(tekipaki_soundlatch_r);
 	DECLARE_READ8_MEMBER(tekipaki_cmdavailable_r);
