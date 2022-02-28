@@ -137,8 +137,10 @@ public:
 	DECLARE_WRITE16_MEMBER(toaplan1_tileram_offs_w);
 	DECLARE_READ16_MEMBER(toaplan1_tileram16_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_tileram16_w);
+	DECLARE_WRITE16_MEMBER(toaplan1_truxton_tileram16_w);
 	DECLARE_READ16_MEMBER(toaplan1_scroll_regs_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_scroll_regs_w);
+	DECLARE_WRITE16_MEMBER(toaplan1_zerowing_scroll_regs_w);
 
 	DECLARE_READ16_MEMBER(truxton_main_skip_r);
 	DECLARE_READ8_MEMBER(truxton_sound_skip_r);

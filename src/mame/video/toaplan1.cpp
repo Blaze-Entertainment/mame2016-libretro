@@ -636,6 +636,96 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_tileram16_w)
 }
 
 
+WRITE16_MEMBER(toaplan1_state::toaplan1_truxton_tileram16_w)
+{
+	offs_t vram_offset;
+
+	switch (m_pf_voffs & 0xf000)    /* Locate Layer (PlayField) */
+	{
+		case 0x0000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf1_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf1_tilevram16[vram_offset]);
+
+			if (m_pf1_tilevram16[vram_offset] != old)
+				m_pf1_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x1000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf2_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf2_tilevram16[vram_offset]);
+
+			if (m_pf2_tilevram16[vram_offset] != old)
+				m_pf2_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x2000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf3_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf3_tilevram16[vram_offset]);
+
+			if (m_pf3_tilevram16[vram_offset] != old)
+				m_pf3_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x3000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+
+			cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+			int pc = mcpu->pc();
+
+
+			if (pc == 0x2bec)
+			{
+				int a0 = m_maincpu->state_int(SIMPLETOAPLAN_M68K_A0);
+				
+				if (vram_offset & 1)
+				{
+					if ((a0 >= 0x396a) && (a0 <= 0x396a+(0x17*2)))
+					{
+						UINT16 table[] = { 0x002d, 0x002d, 0x002d, 0x002d, 0x002d, 0x002f, 0x001d, 0x0018, 0x000a, 0x0019, 0x0015, 0x000a, 0x0017, 0x002d,
+										   0x0001, 0x0009, 0x0008, 0x0008, 
+										   0x002d, 0x002d, 0x002d, 0x002d, 0x002d, 0x002d };
+
+
+						data = table[(a0 - 0x396a) / 2];
+					}
+				}
+			}
+
+			if (pc == 0x2c9e)
+			{
+				if (vram_offset & 1)
+					if ((data >= 0x1aa0) && (data < 0x1ae0))
+						return;
+			}
+
+
+			UINT16 old = m_pf4_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+
+			if (m_pf4_tilevram16[vram_offset] != old)
+				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		default:
+				logerror("Hmmm, writing %04x to unknown playfield layer address %06x  Offset:%01x\n", data, m_pf_voffs, offset);
+				break;
+	}
+}
+
 
 READ16_MEMBER(toaplan1_state::toaplan1_scroll_regs_r)
 {
@@ -655,6 +745,16 @@ READ16_MEMBER(toaplan1_state::toaplan1_scroll_regs_r)
 					break;
 	}
 	return scroll;
+}
+
+WRITE16_MEMBER(toaplan1_state::toaplan1_zerowing_scroll_regs_w)
+{
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+	int pc = mcpu->pc();
+	
+	// disable obnoxious red flashing
+	if (pc != 0x18e)
+		toaplan1_scroll_regs_w(space, offset, data, mem_mask);
 }
 
 
