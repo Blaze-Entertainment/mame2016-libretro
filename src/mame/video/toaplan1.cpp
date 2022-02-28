@@ -1321,26 +1321,20 @@ void toaplan1_state::draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle& c
 
 			*dstptr = pixdatpf1 & 0x3ff;
 
-			UINT8 pixdatpf4flags = (pixdatpf4 >> 11) & 0xf;
-			if (pixdatpf4flags > existingpri)
-			{
-				if (pixdatpf4 & 0xf)
-				{
-					{
-						*dstptr = pixdatpf4 & 0x3ff;
-						*dstpriptr = existingpri = pixdatpf4flags;
-					}
-				}
-			}
 
-			UINT8 pixdatpf3flags = (pixdatpf3 >> 11) & 0xf;
-			if (pixdatpf3flags > existingpri)
+
+
+
+
+			UINT8 pixdatpf1flags = (pixdatpf1 >> 11) & 0xf;
+			if (pixdatpf1flags > existingpri)
 			{
-				if (pixdatpf3 & 0xf)
+
+				if (pixdatpf1 & 0xf)
 				{
 					{
-						*dstptr = pixdatpf3 & 0x3ff;
-						*dstpriptr = existingpri = pixdatpf3flags;
+						*dstptr = pixdatpf1 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf1flags;
 					}
 				}
 			}
@@ -1358,18 +1352,30 @@ void toaplan1_state::draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle& c
 				}
 			}
 
-			UINT8 pixdatpf1flags = (pixdatpf1 >> 11) & 0xf;
-			if (pixdatpf1flags > existingpri)
+			UINT8 pixdatpf3flags = (pixdatpf3 >> 11) & 0xf;
+			if (pixdatpf3flags > existingpri)
 			{
-
-				if (pixdatpf1 & 0xf)
+				if (pixdatpf3 & 0xf)
 				{
 					{
-						*dstptr = pixdatpf1 & 0x3ff;
-						*dstpriptr = existingpri = pixdatpf1flags;
+						*dstptr = pixdatpf3 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf3flags;
 					}
 				}
 			}
+
+			UINT8 pixdatpf4flags = (pixdatpf4 >> 11) & 0xf;
+			if (pixdatpf4flags > existingpri)
+			{
+				if (pixdatpf4 & 0xf)
+				{
+					{
+						*dstptr = pixdatpf4 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf4flags;
+					}
+				}
+			}
+
 
 			dstptr++;
 			dstpriptr++;
