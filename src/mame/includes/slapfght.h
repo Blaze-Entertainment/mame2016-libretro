@@ -139,6 +139,12 @@ public:
 	DECLARE_DRIVER_INIT(getstarb1);
 	DECLARE_DRIVER_INIT(slapfigh);
 	DECLARE_DRIVER_INIT(getstarb2);
+	DECLARE_DRIVER_INIT(alcon);
+	DECLARE_DRIVER_INIT(grdiana);
+	DECLARE_DRIVER_INIT(tigerh);
+	DECLARE_READ8_MEMBER(grdiana_copyright_r);
+	DECLARE_READ8_MEMBER(alcon_copyright_r);
+	DECLARE_READ8_MEMBER(tigerh_copyright_r);
 
 	TILE_GET_INFO_MEMBER(get_pf_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf1_tile_info);

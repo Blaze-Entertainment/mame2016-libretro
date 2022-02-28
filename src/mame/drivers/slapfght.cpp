@@ -855,6 +855,75 @@ DRIVER_INIT_MEMBER(slapfght_state,slapfigh)
 	init_banks();
 }
 
+READ8_MEMBER(slapfght_state::alcon_copyright_r)
+{
+	int bc = m_maincpu->state_int(Z80_BC);
+
+	UINT8 newstring[] = { 0x2d, 0x2d, 0x2d, 0x2d,0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x06, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d };
+
+	if ((bc >= 0xb6f4) && (bc < 0xb6f4+25))
+	{
+		m_maincpu->set_state_int(Z80_A, newstring[bc-0xb6f4]);
+	}
+
+	return 0xfe;
+}
+
+DRIVER_INIT_MEMBER(slapfght_state,alcon)
+{
+	// it is important to avoid modifying the program ROMS!
+	// b6f4 copyright sring in alcon, read at 99a
+	init_banks();
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x99b, 0x99b, read8_delegate(FUNC(slapfght_state::alcon_copyright_r), this));
+}
+
+
+READ8_MEMBER(slapfght_state::tigerh_copyright_r)
+{
+	int de = m_maincpu->state_int(Z80_DE);
+
+	UINT8 newstring[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x05, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d };
+
+	if ((de >= 0x38e7) && (de < 0x38e7+25))
+	{
+		m_maincpu->set_state_int(Z80_A, newstring[de-0x38e7]);
+	}
+
+	return 0xfe;
+}
+
+DRIVER_INIT_MEMBER(slapfght_state,tigerh)
+{
+	// it is important to avoid modifying the program ROMS!
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x64, 0x64, read8_delegate(FUNC(slapfght_state::tigerh_copyright_r), this));
+}
+
+
+READ8_MEMBER(slapfght_state::grdiana_copyright_r)
+{
+	int de = m_maincpu->state_int(Z80_DE);
+
+	UINT8 newstring[] = { 0x2d, 0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x06, 0x2d, 0x2d };
+
+	if ((de >= 0x67b6) && (de < 0x67b6+17))
+	{
+		m_maincpu->set_state_int(Z80_A, newstring[de-0x67b6]);
+	}
+
+	return 0xfe;
+}
+
+
+DRIVER_INIT_MEMBER(slapfght_state,grdiana)
+{
+	// it is important to avoid modifying the program ROMS!
+	// b6f4 copyright sring in alcon, read at 99a
+	init_banks();
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x65e, 0x65e, read8_delegate(FUNC(slapfght_state::grdiana_copyright_r), this));
+}
+
+
+
 DRIVER_INIT_MEMBER(slapfght_state,getstar)
 {
 	m_getstar_id = GETSTAR;
@@ -2103,13 +2172,13 @@ ROM_END
 GAME( 1985, perfrman,   0,        perfrman,   perfrman,  driver_device,  0,         ROT270, "Toaplan / Data East Corporation", "Performan (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1985, perfrmanu,  perfrman, perfrman,   perfrman,  driver_device,  0,         ROT270, "Toaplan / Data East USA", "Performan (US)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1985, tigerh,     0,        tigerh,     tigerh,    driver_device,  0,         ROT270, "Toaplan / Taito America Corp.", "Tiger Heli (US)", MACHINE_SUPPORTS_SAVE )
+GAME( 1985, tigerh,     0,        tigerh,     tigerh,    slapfght_state,  tigerh,         ROT270, "Toaplan / Taito America Corp.", "Tiger Heli (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1985, tigerhj,    tigerh,   tigerh,     tigerh,    driver_device,  0,         ROT270, "Toaplan / Taito", "Tiger Heli (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1985, tigerhb1,   tigerh,   tigerhb1,   tigerh,    driver_device,  0,         ROT270, "bootleg", "Tiger Heli (bootleg set 1)", MACHINE_SUPPORTS_SAVE )
 GAME( 1985, tigerhb2,   tigerh,   tigerhb2,   tigerh,    driver_device,  0,         ROT270, "bootleg", "Tiger Heli (bootleg set 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1985, tigerhb3,   tigerh,   tigerhb2,   tigerh,    driver_device,  0,         ROT270, "bootleg", "Tiger Heli (bootleg set 3)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1986, alcon,      0,        slapfigh,   slapfigh,  slapfght_state, slapfigh,  ROT270, "Toaplan / Taito America Corp.", "Alcon (US)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
+GAME( 1986, alcon,      0,        slapfigh,   slapfigh,  slapfght_state, alcon,     ROT270, "Toaplan / Taito America Corp.", "Alcon (US)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
 GAME( 1986, slapfigh,   alcon,    slapfigh,   slapfigh,  slapfght_state, slapfigh,  ROT270, "Toaplan / Taito", "Slap Fight (Japan set 1)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
 GAME( 1986, slapfigha,  alcon,    slapfigh,   slapfigh,  slapfght_state, slapfigh,  ROT270, "Toaplan / Taito", "Slap Fight (Japan set 2)", MACHINE_NOT_WORKING | MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL ) /* MCU code not dumped */
 GAME( 1986, slapfighb1, alcon,    slapfighb1, slapfigh,  slapfght_state, slapfigh,  ROT270, "bootleg", "Slap Fight (bootleg set 1)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
@@ -2117,7 +2186,7 @@ GAME( 1986, slapfighb2, alcon,    slapfighb2, slapfigh,  slapfght_state, slapfig
 GAME( 1986, slapfighb3, alcon,    slapfighb2, slapfigh,  slapfght_state, slapfigh,  ROT270, "bootleg", "Slap Fight (bootleg set 3)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL ) // PCB labeled 'slap fighter'
 
 GAME( 1986, grdian,     0,        getstar,    getstar,   slapfght_state, getstar,   ROT0,   "Toaplan / Taito America Corporation (Kitkorp license)", "Guardian (US)", MACHINE_SUPPORTS_SAVE )
-GAME( 1986, grdiana,    grdian,   slapfigh,   getstarj,  slapfght_state, slapfigh,  ROT0,   "Toaplan / Taito", "Guardian (US, set 2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1986, grdiana,    grdian,   slapfigh,    getstarj,  slapfght_state, grdiana,  ROT0,   "Toaplan / Taito", "Guardian (US, set 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1986, getstarj,   grdian,   getstar,    getstarj,  slapfght_state, getstarj,  ROT0,   "Toaplan / Taito", "Get Star (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1986, getstarb1,  grdian,   getstarb1,  getstarj,  slapfght_state, getstarb1, ROT0,   "bootleg", "Get Star (bootleg set 1)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
 GAME( 1986, getstarb2,  grdian,   getstarb2,  getstarb2, slapfght_state, getstarb2, ROT0,   "bootleg", "Get Star (bootleg set 2)", MACHINE_SUPPORTS_SAVE )
