@@ -353,19 +353,125 @@ To Do / Unknowns:
 
 
 #include "emu.h"
-#include "cpu/nec/v25.h"
-#include "cpu/z80/z80.h"
-#include "cpu/z180/z180.h"
-#include "sound/2151intf.h"
-#include "sound/3812intf.h"
-#include "sound/ymz280b.h"
 #include "includes/toaplan2.h"
 #include "includes/toaplipt.h"
+
+
+
+static const gfx_layout vdp_tilelayout =
+{
+	16,16,          /* 16x16 */
+	RGN_FRAC(1,2),  /* Number of tiles */
+	4,              /* 4 bits per pixel */
+	{ RGN_FRAC(1,2)+8, RGN_FRAC(1,2), 8, 0 },
+	{ 0, 1, 2, 3, 4, 5, 6, 7,
+		8*16+0, 8*16+1, 8*16+2, 8*16+3, 8*16+4, 8*16+5, 8*16+6, 8*16+7 },
+	{ 0*16, 1*16, 2*16, 3*16, 4*16, 5*16, 6*16, 7*16,
+		16*16, 17*16, 18*16, 19*16, 20*16, 21*16, 22*16, 23*16 },
+	8*4*16
+};
+
+static const gfx_layout vdp_spritelayout =
+{
+	8,8,            /* 8x8 */
+	RGN_FRAC(1,2),  /* Number of 8x8 sprites */
+	4,              /* 4 bits per pixel */
+	{ RGN_FRAC(1,2)+8, RGN_FRAC(1,2), 8, 0 },
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },
+	{ 0*16, 1*16, 2*16, 3*16, 4*16, 5*16, 6*16, 7*16 },
+	8*16
+};
+
+#define VDP_GFXDECODE \
+	GFXDECODE_ENTRY( "gp9001", 0, vdp_tilelayout,   0, 0x1000 ) \
+	GFXDECODE_ENTRY( "gp9001", 0, vdp_spritelayout, 0, 0x1000 ) \
+
 
 
 /***************************************************************************
   Initialisation handlers
 ***************************************************************************/
+
+MACHINE_START_MEMBER(toaplan2_state, vfive)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, fixeight)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, kbash)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, dogyuun)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, batsugun)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, ghox)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, tekipaki)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, truxton2)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
+
+MACHINE_START_MEMBER(toaplan2_state, batrider)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+
+	MACHINE_START_CALL_MEMBER(toaplan2);
+}
 
 
 MACHINE_START_MEMBER(toaplan2_state,toaplan2)
@@ -380,12 +486,21 @@ MACHINE_START_MEMBER(toaplan2_state,toaplan2)
 WRITE_LINE_MEMBER(toaplan2_state::toaplan2_reset)
 {
 	if (m_audiocpu != nullptr)
+	{
+		machine().scheduler().trigger(700);
 		m_audiocpu->set_input_line(INPUT_LINE_RESET, PULSE_LINE);
+	}
+
+	if (m_v25audiocpu != nullptr)
+		m_v25audiocpu->set_input_line(INPUT_LINE_RESET, PULSE_LINE);
+
 }
 
 
 MACHINE_RESET_MEMBER(toaplan2_state,toaplan2)
 {
+	vdp_reset();
+
 	m_mcu_data = 0x00;
 
 	// All games execute a RESET instruction on init, presumably to reset the sound CPU.
@@ -408,10 +523,53 @@ DRIVER_INIT_MEMBER(toaplan2_state,dogyuun)
 	m_v25_reset_line = 0x20;
 }
 
+READ8_MEMBER(toaplan2_state::tekipaki_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x44f)
+	{
+		m_audiocpu->spin_until_interrupt();
+	}
+
+	return 0xc3;
+}
+
+
+READ16_MEMBER(toaplan2_state::tekipaki_main_skip_r)
+{
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+	if (pc == 0x1c42)
+	{
+		mcpu->spin_until_interrupt();
+	}
+
+	return m_mainram[0x7e/2];
+}
+
+
+DRIVER_INIT_MEMBER(toaplan2_state,tekipaki)
+{
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x44e, 0x44e, read8_delegate(FUNC(toaplan2_state::tekipaki_sound_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x8007e, 0x8007f, read16_delegate(FUNC(toaplan2_state::tekipaki_main_skip_r), this));
+}
+
+
+
+DRIVER_INIT_MEMBER(toaplan2_state,truxton2)
+{
+}
+
+
+
 
 DRIVER_INIT_MEMBER(toaplan2_state,fixeight)
 {
 	m_v25_reset_line = 0x08;
+
 }
 
 
@@ -507,7 +665,9 @@ READ16_MEMBER(toaplan2_state::video_count_r)
 
 	int video_status = 0xff00;    // Set signals inactive
 
-	vpos = (vpos + 15) % 262;
+	vpos = (vpos + 15);// % 262;
+	if (vpos > 262)
+		vpos -= 262;
 
 	bool hblank, vblank;
 
@@ -526,6 +686,7 @@ READ16_MEMBER(toaplan2_state::video_count_r)
 		video_status |= 0xff;
 
 //  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
+
 
 	return video_status;
 }
@@ -583,7 +744,7 @@ WRITE16_MEMBER(toaplan2_state::toaplan2_v25_coin_word_w)
 	{
 		toaplan2_coin_w(space, offset, data & 0x0f);
 
-		m_audiocpu->set_input_line(INPUT_LINE_RESET,  (data & m_v25_reset_line) ? CLEAR_LINE : ASSERT_LINE);
+		m_v25audiocpu->set_input_line(INPUT_LINE_RESET,  (data & m_v25_reset_line) ? CLEAR_LINE : ASSERT_LINE);
 	}
 	if (ACCESSING_BITS_8_15 && (data & 0xff00) )
 	{
@@ -608,6 +769,9 @@ WRITE16_MEMBER(toaplan2_state::shippumd_coin_word_w)
 
 READ16_MEMBER(toaplan2_state::shared_ram_r)
 {
+	//if (offset == 0x74f4)
+	//	printf("shareram read %04x %04x\n", offset, m_shared_ram[offset]);
+
 	return m_shared_ram[offset];
 }
 
@@ -616,6 +780,10 @@ WRITE16_MEMBER(toaplan2_state::shared_ram_w)
 {
 	if (ACCESSING_BITS_0_7)
 	{
+	// 7800 is command port on fixeight
+	//	if (offset == 0x7800)
+	//		printf("shareram write %04x %04x\n", offset, data);
+
 		m_shared_ram[offset] = data;
 	}
 }
@@ -639,9 +807,9 @@ CUSTOM_INPUT_MEMBER(toaplan2_state::c2map_r)
 	// For Teki Paki hardware
 	// bit 4 high signifies secondary CPU is ready
 	// bit 5 is tested low before V-Blank bit ???
-	m_mcu_data = 0xff;
+	//m_mcu_data = 0xff;
 
-	return (m_mcu_data == 0xff) ? 0x01 : 0x00;
+	return (m_cmdavailable) ? 0x00 : 0x01;
 }
 
 
@@ -649,7 +817,7 @@ READ16_MEMBER(toaplan2_state::ghox_p1_h_analog_r)
 {
 	INT8 value, new_value;
 
-	new_value = ioport("PAD1")->read();
+	new_value = m_pad1->read();
 	if (new_value == m_old_p1_paddle_h) return 0;
 	value = new_value - m_old_p1_paddle_h;
 	m_old_p1_paddle_h = new_value;
@@ -661,7 +829,7 @@ READ16_MEMBER(toaplan2_state::ghox_p2_h_analog_r)
 {
 	INT8 value, new_value;
 
-	new_value = ioport("PAD2")->read();
+	new_value = m_pad2->read();
 	if (new_value == m_old_p2_paddle_h) return 0;
 	value = new_value - m_old_p2_paddle_h;
 	m_old_p2_paddle_h = new_value;
@@ -669,85 +837,10 @@ READ16_MEMBER(toaplan2_state::ghox_p2_h_analog_r)
 }
 
 
-READ16_MEMBER(toaplan2_state::ghox_mcu_r)
-{
-	return 0xff;
-}
-
-
-WRITE16_MEMBER(toaplan2_state::ghox_mcu_w)
-{
-	if (ACCESSING_BITS_0_7)
-	{
-		data &= 0xff;
-		m_mcu_data = data;
-		if ((data >= 0xd0) && (data < 0xe0))
-		{
-			offset = ((data & 0x0f) * 2) + (0x38 / 2);
-			m_shared_ram16[offset  ] = 0x0005;   // Return address for
-			m_shared_ram16[offset-1] = 0x0056;   //   RTS instruction
-		}
-		else
-		{
-			logerror("PC:%08x Writing %08x to HD647180 cpu shared ram status port\n", space.device().safe_pcbase(), m_mcu_data);
-		}
-		m_shared_ram16[0x56 / 2] = 0x004e;   // Return a RTS instruction
-		m_shared_ram16[0x58 / 2] = 0x0075;
-
-		if (data == 0xd3)
-		{
-		m_shared_ram16[0x56 / 2] = 0x003a;   //  move.w  d1,d5
-		m_shared_ram16[0x58 / 2] = 0x0001;
-		m_shared_ram16[0x5a / 2] = 0x0008;   //  bclr.b  #0,d5
-		m_shared_ram16[0x5c / 2] = 0x0085;
-		m_shared_ram16[0x5e / 2] = 0x0000;
-		m_shared_ram16[0x60 / 2] = 0x0000;
-		m_shared_ram16[0x62 / 2] = 0x00cb;   //  muls.w  #3,d5
-		m_shared_ram16[0x64 / 2] = 0x00fc;
-		m_shared_ram16[0x66 / 2] = 0x0000;
-		m_shared_ram16[0x68 / 2] = 0x0003;
-		m_shared_ram16[0x6a / 2] = 0x0090;   //  sub.w   d5,d0
-		m_shared_ram16[0x6c / 2] = 0x0045;
-		m_shared_ram16[0x6e / 2] = 0x00e5;   //  lsl.b   #2,d1
-		m_shared_ram16[0x70 / 2] = 0x0009;
-		m_shared_ram16[0x72 / 2] = 0x004e;   //  rts
-		m_shared_ram16[0x74 / 2] = 0x0075;
-		}
-	}
-}
-
-
-READ16_MEMBER(toaplan2_state::ghox_shared_ram_r)
-{
-	// Ghox 68K reads data from MCU shared RAM and writes it to main RAM.
-	// It then subroutine jumps to main RAM and executes this code.
-	// Here, we're just returning a RTS instruction for now.
-	// See above ghox_mcu_w routine.
-
-	// Offset $56 and $58 are accessed from around PC:0F814
-	// Offset $38 and $36 are accessed from around PC:0DA7C
-	// Offset $3c and $3a are accessed from around PC:02E3C
-	// Offset $40 and $3E are accessed from around PC:103EE
-	// Offset $44 and $42 are accessed from around PC:0FB52
-	// Offset $48 and $46 are accessed from around PC:06776
-
-
-	return m_shared_ram16[offset] & 0xff;
-}
-
-
-WRITE16_MEMBER(toaplan2_state::ghox_shared_ram_w)
-{
-	if (ACCESSING_BITS_0_7)
-	{
-		m_shared_ram16[offset] = data & 0xff;
-	}
-}
-
 
 WRITE16_MEMBER(toaplan2_state::fixeight_subcpu_ctrl_w)
 {
-	m_audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_v25_reset_line) ? CLEAR_LINE : ASSERT_LINE);
+	m_v25audiocpu->set_input_line(INPUT_LINE_RESET, (data & m_v25_reset_line) ? CLEAR_LINE : ASSERT_LINE);
 }
 
 
@@ -779,19 +872,19 @@ WRITE16_MEMBER(toaplan2_state::fixeightbl_oki_bankswitch_w)
 
 READ8_MEMBER(toaplan2_state::v25_dswa_r)
 {
-	return ioport("DSWA")->read() ^ 0xff;
+	return m_dswa->read() ^ 0xff;
 }
 
 
 READ8_MEMBER(toaplan2_state::v25_dswb_r)
 {
-	return ioport("DSWB")->read() ^ 0xff;
+	return m_dswb->read() ^ 0xff;
 }
 
 
 READ8_MEMBER(toaplan2_state::v25_jmpr_r)
 {
-	return ioport("JMPR")->read() ^ 0xff;
+	return m_jmpr->read() ^ 0xff;
 }
 
 
@@ -987,9 +1080,9 @@ INTERRUPT_GEN_MEMBER(toaplan2_state::bbakraid_snd_interrupt)
 static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x01ffff) AM_ROM
 	AM_RANGE(0x020000, 0x03ffff) AM_ROM                     // extra for Whoopee
-	AM_RANGE(0x080000, 0x082fff) AM_RAM
-	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
-	AM_RANGE(0x140000, 0x14000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x080000, 0x082fff) AM_RAM AM_SHARE("mainram")
+	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
+	AM_RANGE(0x140000, 0x14000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x180000, 0x180001) AM_READ_PORT("DSWA")
 	AM_RANGE(0x180010, 0x180011) AM_READ_PORT("DSWB")
 	AM_RANGE(0x180020, 0x180021) AM_READ_PORT("SYS")
@@ -997,24 +1090,18 @@ static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x180040, 0x180041) AM_WRITE(toaplan2_coin_word_w)
 	AM_RANGE(0x180050, 0x180051) AM_READ_PORT("IN1")
 	AM_RANGE(0x180060, 0x180061) AM_READ_PORT("IN2")
-	AM_RANGE(0x180070, 0x180071) AM_WRITE(toaplan2_hd647180_cpu_w)
+	AM_RANGE(0x180070, 0x180071) AM_WRITE(tekipaki_mcu_w)
 ADDRESS_MAP_END
-
 
 static ADDRESS_MAP_START( ghox_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x03ffff) AM_ROM
 	AM_RANGE(0x040000, 0x040001) AM_READ(ghox_p2_h_analog_r)
 	AM_RANGE(0x080000, 0x083fff) AM_RAM
-	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x100000, 0x100001) AM_READ(ghox_p1_h_analog_r)
-	AM_RANGE(0x140000, 0x14000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x180000, 0x180001) AM_READWRITE(ghox_mcu_r, ghox_mcu_w)   // really part of shared RAM
-	AM_RANGE(0x180006, 0x180007) AM_READ_PORT("DSWA")
-	AM_RANGE(0x180008, 0x180009) AM_READ_PORT("DSWB")
-	AM_RANGE(0x180010, 0x180011) AM_READ_PORT("SYS")
-	AM_RANGE(0x18000c, 0x18000d) AM_READ_PORT("IN1")
-	AM_RANGE(0x18000e, 0x18000f) AM_READ_PORT("IN2")
-	AM_RANGE(0x180500, 0x180fff) AM_READWRITE(ghox_shared_ram_r, ghox_shared_ram_w) AM_SHARE("shared_ram16")
+
+	AM_RANGE(0x140000, 0x14000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x180000, 0x180fff) AM_READWRITE(shared_ram_r, shared_ram_w)
 	AM_RANGE(0x181000, 0x181001) AM_WRITE(toaplan2_coin_word_w)
 	AM_RANGE(0x18100c, 0x18100d) AM_READ_PORT("JMPR")
 ADDRESS_MAP_END
@@ -1028,8 +1115,8 @@ static ADDRESS_MAP_START( dogyuun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200018, 0x200019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20001c, 0x20001d) AM_WRITE(toaplan2_v25_coin_word_w) // Coin count/lock + v25 reset line
 	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x500000, 0x50000d) AM_DEVREADWRITE("gp9001_1", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)         // test bit 8
 ADDRESS_MAP_END
@@ -1043,8 +1130,8 @@ static ADDRESS_MAP_START( kbash_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x208014, 0x208015) AM_READ_PORT("IN2")
 	AM_RANGE(0x208018, 0x208019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20801c, 0x20801d) AM_WRITE(toaplan2_coin_word_w)
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)         // test bit 8
 ADDRESS_MAP_END
 
@@ -1065,16 +1152,16 @@ static ADDRESS_MAP_START( kbash2_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200024, 0x200025) AM_DEVREADWRITE8("oki1", okim6295_device, read, write, 0x00ff)
 	AM_RANGE(0x200028, 0x200029) AM_WRITE(oki1_bankswitch_w)
 	AM_RANGE(0x20002c, 0x20002d) AM_READ(video_count_r)
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 ADDRESS_MAP_END
 
 
 static ADDRESS_MAP_START( truxton2_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
-	AM_RANGE(0x100000, 0x10ffff) AM_RAM
-	AM_RANGE(0x200000, 0x20000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x300000, 0x300fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x100000, 0x10ffff) AM_RAM AM_SHARE("mainram")
+	AM_RANGE(0x200000, 0x20000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x300000, 0x300fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x400000, 0x401fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
 	AM_RANGE(0x402000, 0x402fff) AM_RAM AM_SHARE("tx_lineselect")
 	AM_RANGE(0x403000, 0x4031ff) AM_RAM_WRITE(toaplan2_tx_linescroll_w) AM_SHARE("tx_linescroll")
@@ -1088,7 +1175,7 @@ static ADDRESS_MAP_START( truxton2_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x700008, 0x700009) AM_READ_PORT("IN2")
 	AM_RANGE(0x70000a, 0x70000b) AM_READ_PORT("SYS")
 	AM_RANGE(0x700010, 0x700011) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
-	AM_RANGE(0x700014, 0x700017) AM_DEVREADWRITE8("ymsnd", ym2151_device, read, write, 0x00ff)
+	AM_RANGE(0x700014, 0x700017) AM_DEVREADWRITE8("ym2151snd", ym2151_device, read, write, 0x00ff)
 	AM_RANGE(0x70001e, 0x70001f) AM_WRITE(toaplan2_coin_word_w)
 ADDRESS_MAP_END
 
@@ -1096,8 +1183,8 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( pipibibs_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x03ffff) AM_ROM
 	AM_RANGE(0x080000, 0x082fff) AM_RAM
-	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
-	AM_RANGE(0x140000, 0x14000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
+	AM_RANGE(0x140000, 0x14000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x190000, 0x190fff) AM_READWRITE(shared_ram_r, shared_ram_w)
 	AM_RANGE(0x19c01c, 0x19c01d) AM_WRITE(toaplan2_coin_word_w)
 	AM_RANGE(0x19c020, 0x19c021) AM_READ_PORT("DSWA")
@@ -1112,13 +1199,13 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( pipibibi_bootleg_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x03ffff) AM_ROM
 	AM_RANGE(0x080000, 0x082fff) AM_RAM
-	AM_RANGE(0x083000, 0x0837ff) AM_DEVREADWRITE("gp9001", gp9001vdp_device, pipibibi_bootleg_spriteram16_r, pipibibi_bootleg_spriteram16_w)   // SpriteRAM
+	AM_RANGE(0x083000, 0x0837ff) AM_READWRITE(pipibibi_bootleg_spriteram16_r, pipibibi_bootleg_spriteram16_w)   // SpriteRAM
 	AM_RANGE(0x083800, 0x087fff) AM_RAM             // SpriteRAM (unused)
-	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x120000, 0x120fff) AM_RAM             // Copy of SpriteRAM ?
 //  AM_RANGE(0x13f000, 0x13f001) AM_WRITENOP        // ???
-	AM_RANGE(0x180000, 0x182fff) AM_DEVREADWRITE("gp9001", gp9001vdp_device, pipibibi_bootleg_videoram16_r, pipibibi_bootleg_videoram16_w) // TileRAM
-	AM_RANGE(0x188000, 0x18800f) AM_DEVWRITE("gp9001", gp9001vdp_device, pipibibi_bootleg_scroll_w)
+	AM_RANGE(0x180000, 0x182fff) AM_READWRITE(pipibibi_bootleg_videoram16_r, pipibibi_bootleg_videoram16_w) // TileRAM
+	AM_RANGE(0x188000, 0x18800f) AM_WRITE(pipibibi_bootleg_scroll_w)
 	AM_RANGE(0x190002, 0x190003) AM_READ(shared_ram_r)  // Z80 ready ?
 	AM_RANGE(0x190010, 0x190011) AM_WRITE(shared_ram_w) // Z80 task to perform
 	AM_RANGE(0x19c01c, 0x19c01d) AM_WRITE(toaplan2_coin_word_w)
@@ -1140,8 +1227,9 @@ static ADDRESS_MAP_START( fixeight_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200010, 0x200011) AM_READ_PORT("SYS")
 	AM_RANGE(0x20001c, 0x20001d) AM_WRITE(toaplan2_coin_word_w)
 	AM_RANGE(0x280000, 0x28ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	//AM_RANGE(0x30000c, 0x30000d) AM_READ(ghox_vdp_status_r)
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x500000, 0x501fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
 	AM_RANGE(0x502000, 0x5021ff) AM_RAM AM_SHARE("tx_lineselect")
 	AM_RANGE(0x503000, 0x5031ff) AM_RAM_WRITE(toaplan2_tx_linescroll_w) AM_SHARE("tx_linescroll")
@@ -1162,12 +1250,31 @@ static ADDRESS_MAP_START( fixeightbl_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200014, 0x200015) AM_WRITE(fixeightbl_oki_bankswitch_w)  // Sound banking. Code at $4084c, $5070
 	AM_RANGE(0x200018, 0x200019) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
 	AM_RANGE(0x20001c, 0x20001d) AM_READ_PORT("DSWA")
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x500000, 0x501fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
 	AM_RANGE(0x800000, 0x87ffff) AM_ROM AM_REGION("maincpu", 0x80000)
 ADDRESS_MAP_END
+
+
+
+	
+
+WRITE16_MEMBER(toaplan2_state::v5_shared_ram_w)
+{
+	if (ACCESSING_BITS_0_7)
+	{
+	//	if (offset == 0x7FF9)
+	//	{
+	//		printf("write to share 7ff9 %04x\n", data);
+	//		machine().scheduler().trigger(666);
+	//	}
+
+		m_shared_ram[offset] = data;
+	}
+}
+
 
 
 static ADDRESS_MAP_START( vfive_68k_mem, AS_PROGRAM, 16, toaplan2_state )
@@ -1178,11 +1285,13 @@ static ADDRESS_MAP_START( vfive_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200014, 0x200015) AM_READ_PORT("IN2")
 	AM_RANGE(0x200018, 0x200019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20001c, 0x20001d) AM_WRITE(toaplan2_v25_coin_word_w) // Coin count/lock + v25 reset line
-	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, v5_shared_ram_w )
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
 ADDRESS_MAP_END
+
+
 
 
 static ADDRESS_MAP_START( batsugun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
@@ -1193,8 +1302,8 @@ static ADDRESS_MAP_START( batsugun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200018, 0x200019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20001c, 0x20001d) AM_WRITE(toaplan2_v25_coin_word_w) // Coin count/lock + v25 reset line
 	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x500000, 0x50000d) AM_DEVREADWRITE("gp9001_1", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
 ADDRESS_MAP_END
@@ -1204,8 +1313,8 @@ static ADDRESS_MAP_START( pwrkick_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x100000, 0x10ffff) AM_RAM
 
 	AM_RANGE(0x200000, 0x20000f) AM_DEVREADWRITE8("rtc", upd4992_device, read, write, 0x00ff )
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x600000, 0x600001) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
 
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
@@ -1225,8 +1334,8 @@ static ADDRESS_MAP_START( othldrby_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x100000, 0x10ffff) AM_RAM
 
 	AM_RANGE(0x200000, 0x20000f) AM_DEVREADWRITE8("rtc", upd4992_device, read, write, 0x00ff )
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x600000, 0x600001) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
 
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
@@ -1244,9 +1353,9 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( snowbro2_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
 	AM_RANGE(0x100000, 0x10ffff) AM_RAM
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
-	AM_RANGE(0x500000, 0x500003) AM_DEVREADWRITE8("ymsnd", ym2151_device, read, write, 0x00ff)
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
+	AM_RANGE(0x500000, 0x500003) AM_DEVREADWRITE8("ym2151snd", ym2151_device, read, write, 0x00ff)
 	AM_RANGE(0x600000, 0x600001) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
 	AM_RANGE(0x700000, 0x700001) AM_READ_PORT("JMPR")
 	AM_RANGE(0x700004, 0x700005) AM_READ_PORT("DSWA")
@@ -1273,8 +1382,8 @@ static ADDRESS_MAP_START( mahoudai_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x21c030, 0x21c031) AM_READ_PORT("DSWB")
 	AM_RANGE(0x21c034, 0x21c035) AM_READ_PORT("JMPR")
 	AM_RANGE(0x21c03c, 0x21c03d) AM_READ(video_count_r)
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x401000, 0x4017ff) AM_RAM                         // Unused palette RAM
 	AM_RANGE(0x500000, 0x501fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
 	AM_RANGE(0x502000, 0x502fff) AM_RAM AM_SHARE("tx_lineselect")
@@ -1296,8 +1405,8 @@ static ADDRESS_MAP_START( shippumd_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x21c030, 0x21c031) AM_READ_PORT("DSWB")
 	AM_RANGE(0x21c034, 0x21c035) AM_READ_PORT("JMPR")
 	AM_RANGE(0x21c03c, 0x21c03d) AM_READ(video_count_r)
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x401000, 0x4017ff) AM_RAM                         // Unused palette RAM
 	AM_RANGE(0x500000, 0x501fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
 	AM_RANGE(0x502000, 0x502fff) AM_RAM AM_SHARE("tx_lineselect")
@@ -1318,8 +1427,8 @@ static ADDRESS_MAP_START( bgaregga_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x21c030, 0x21c031) AM_READ_PORT("DSWB")
 	AM_RANGE(0x21c034, 0x21c035) AM_READ_PORT("JMPR")
 	AM_RANGE(0x21c03c, 0x21c03d) AM_READ(video_count_r)
-	AM_RANGE(0x300000, 0x30000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
-	AM_RANGE(0x400000, 0x400fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x500000, 0x501fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
 	AM_RANGE(0x502000, 0x502fff) AM_RAM AM_SHARE("tx_lineselect")
 	AM_RANGE(0x503000, 0x5031ff) AM_RAM_WRITE(toaplan2_tx_linescroll_w) AM_SHARE("tx_linescroll")
@@ -1332,13 +1441,13 @@ static ADDRESS_MAP_START( batrider_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x1fffff) AM_ROM
 	// actually 200000 - 20ffff is probably all main RAM, and the text and palette RAM are written via DMA
 	AM_RANGE(0x200000, 0x201fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
-	AM_RANGE(0x202000, 0x202fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x202000, 0x202fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x203000, 0x2031ff) AM_RAM AM_SHARE("tx_lineselect")
 	AM_RANGE(0x203200, 0x2033ff) AM_RAM_WRITE(toaplan2_tx_linescroll_w) AM_SHARE("tx_linescroll")
 	AM_RANGE(0x203400, 0x207fff) AM_RAM AM_SHARE("mainram16")
 	AM_RANGE(0x208000, 0x20ffff) AM_RAM
 	AM_RANGE(0x300000, 0x37ffff) AM_READ(batrider_z80rom_r)
-	AM_RANGE(0x400000, 0x40000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_alt_r, gp9001_vdp_alt_w)
+	AM_RANGE(0x400000, 0x40000d) AM_READWRITE(gp9001_vdp_alt_r, gp9001_vdp_alt_w)
 	AM_RANGE(0x500000, 0x500001) AM_READ_PORT("IN")
 	AM_RANGE(0x500002, 0x500003) AM_READ_PORT("SYS-DSW")
 	AM_RANGE(0x500004, 0x500005) AM_READ_PORT("DSW")
@@ -1362,13 +1471,13 @@ static ADDRESS_MAP_START( bbakraid_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x1fffff) AM_ROM
 	// actually 200000 - 20ffff is probably all main RAM, and the text and palette RAM are written via DMA
 	AM_RANGE(0x200000, 0x201fff) AM_RAM_WRITE(toaplan2_tx_videoram_w) AM_SHARE("tx_videoram")
-	AM_RANGE(0x202000, 0x202fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x202000, 0x202fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x203000, 0x2031ff) AM_RAM AM_SHARE("tx_lineselect")
 	AM_RANGE(0x203200, 0x2033ff) AM_RAM_WRITE(toaplan2_tx_linescroll_w) AM_SHARE("tx_linescroll")
 	AM_RANGE(0x203400, 0x207fff) AM_RAM AM_SHARE("mainram16")
 	AM_RANGE(0x208000, 0x20ffff) AM_RAM
 	AM_RANGE(0x300000, 0x33ffff) AM_READ(batrider_z80rom_r)
-	AM_RANGE(0x400000, 0x40000d) AM_DEVREADWRITE("gp9001", gp9001vdp_device, gp9001_vdp_alt_r, gp9001_vdp_alt_w)
+	AM_RANGE(0x400000, 0x40000d) AM_READWRITE(gp9001_vdp_alt_r, gp9001_vdp_alt_w)
 	AM_RANGE(0x500000, 0x500001) AM_READ_PORT("IN")
 	AM_RANGE(0x500002, 0x500003) AM_READ_PORT("SYS-DSW")
 	AM_RANGE(0x500004, 0x500005) AM_READ_PORT("DSW")
@@ -1399,7 +1508,7 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( raizing_sound_z80_mem, AS_PROGRAM, 8, toaplan2_state )
 	AM_RANGE(0x0000, 0xbfff) AM_ROM
 	AM_RANGE(0xc000, 0xdfff) AM_RAM AM_SHARE("shared_ram")
-	AM_RANGE(0xe000, 0xe001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	AM_RANGE(0xe000, 0xe001) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0xe004, 0xe004) AM_DEVREADWRITE("oki", okim6295_device, read, write)
 	AM_RANGE(0xe00e, 0xe00e) AM_WRITE(toaplan2_coin_w)
 ADDRESS_MAP_END
@@ -1409,7 +1518,7 @@ static ADDRESS_MAP_START( bgaregga_sound_z80_mem, AS_PROGRAM, 8, toaplan2_state 
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0xbfff) AM_ROMBANK("bank1")
 	AM_RANGE(0xc000, 0xdfff) AM_RAM AM_SHARE("shared_ram")
-	AM_RANGE(0xe000, 0xe001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	AM_RANGE(0xe000, 0xe001) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0xe004, 0xe004) AM_DEVREADWRITE("oki", okim6295_device, read, write)
 	AM_RANGE(0xe006, 0xe008) AM_WRITE(raizing_oki_bankswitch_w)
 	AM_RANGE(0xe00a, 0xe00a) AM_WRITE(raizing_z80_bankswitch_w)
@@ -1434,7 +1543,7 @@ static ADDRESS_MAP_START( batrider_sound_z80_port, AS_IO, 8, toaplan2_state )
 	AM_RANGE(0x46, 0x46) AM_WRITE(batrider_clear_nmi_w)
 	AM_RANGE(0x48, 0x48) AM_READ(soundlatch_byte_r)
 	AM_RANGE(0x4a, 0x4a) AM_READ(soundlatch2_byte_r)
-	AM_RANGE(0x80, 0x81) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	AM_RANGE(0x80, 0x81) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0x82, 0x82) AM_DEVREADWRITE("oki1", okim6295_device, read, write)
 	AM_RANGE(0x84, 0x84) AM_DEVREADWRITE("oki2", okim6295_device, read, write)
 	AM_RANGE(0x88, 0x88) AM_WRITE(raizing_z80_bankswitch_w)
@@ -1469,7 +1578,7 @@ ADDRESS_MAP_END
 
 
 static ADDRESS_MAP_START( v25_mem, AS_PROGRAM, 8, toaplan2_state )
-	AM_RANGE(0x00000, 0x00001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	AM_RANGE(0x00000, 0x00001) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0x00004, 0x00004) AM_DEVREADWRITE("oki", okim6295_device, read, write)
 	AM_RANGE(0x80000, 0x87fff) AM_MIRROR(0x78000) AM_RAM AM_SHARE("shared_ram")
 ADDRESS_MAP_END
@@ -1477,22 +1586,71 @@ ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( kbash_v25_mem, AS_PROGRAM, 8, toaplan2_state )
 	AM_RANGE(0x00000, 0x007ff) AM_RAM AM_SHARE("shared_ram")
-	AM_RANGE(0x04000, 0x04001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	AM_RANGE(0x04000, 0x04001) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0x04002, 0x04002) AM_DEVREADWRITE("oki", okim6295_device, read, write)
 	AM_RANGE(0x80000, 0x87fff) AM_MIRROR(0x78000) AM_ROM AM_REGION("audiocpu", 0)
 ADDRESS_MAP_END
 
+#if 0 // useless
+READ8_MEMBER(toaplan2_state::fixeight_sound_skip_r)
+{
+	int pc = m_v25audiocpu->pc();
+
+	int result = m_ymsnd->read(space, 1);
+
+	if (pc == 0xa02a7)
+	{
+		if (result == 0)
+		{
+			space.device().execute().spin_until_trigger(12345);
+		}
+	}
+	else if (pc == 0xa0477)
+	{
+		if (result == 0)
+		{
+			space.device().execute().spin_until_trigger(12345);
+		}
+	}
+	else
+	{
+		printf("pc %06x result %02x\n", pc, result);
+	}
+	return result;
+}
+#endif
+
 
 static ADDRESS_MAP_START( fixeight_v25_mem, AS_PROGRAM, 8, toaplan2_state )
 	AM_RANGE(0x00004, 0x00004) AM_READ(fixeight_region_r)
-	AM_RANGE(0x0000a, 0x0000b) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	//AM_RANGE(0x0000b, 0x0000b) AM_READ(fixeight_sound_skip_r)
+	AM_RANGE(0x0000a, 0x0000b) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0x0000c, 0x0000c) AM_DEVREADWRITE("oki", okim6295_device, read, write)
 	AM_RANGE(0x80000, 0x87fff) AM_MIRROR(0x78000) AM_RAM AM_SHARE("shared_ram")
 ADDRESS_MAP_END
 
 
+#if 0 
+READ8_MEMBER(toaplan2_state::v5_sound_skip_r)
+{
+	int pc = m_v25audiocpu->pc();
+
+	int result = m_ymsnd->read(space, 1);
+
+	if (pc == 0xa02a7)
+	{
+
+	}
+	else
+	{
+		printf("pc %06x result %02x\n", pc, result);
+	}
+	return result;
+}
+#endif
 static ADDRESS_MAP_START( vfive_v25_mem, AS_PROGRAM, 8, toaplan2_state )
-	AM_RANGE(0x00000, 0x00001) AM_DEVREADWRITE("ymsnd", ym2151_device, read, write)
+	//AM_RANGE(0x00001, 0x00001) AM_READ(v5_sound_skip_r)
+	AM_RANGE(0x00000, 0x00001) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
 	AM_RANGE(0x80000, 0x87fff) AM_MIRROR(0x78000) AM_RAM AM_SHARE("shared_ram")
 ADDRESS_MAP_END
 
@@ -1522,6 +1680,97 @@ static ADDRESS_MAP_START( fixeightbl_oki, AS_0, 8, toaplan2_state )
 	AM_RANGE(0x00000, 0x2ffff) AM_ROM
 	AM_RANGE(0x30000, 0x3ffff) AM_ROMBANK("bank1")
 ADDRESS_MAP_END
+
+
+WRITE8_MEMBER(toaplan2_state::sound_status_changed)
+{
+
+	if (data != 0x00)
+	{
+		//printf("triggera\n");
+
+		machine().scheduler().trigger(12345);
+	}
+	else
+	{
+		//printf("triggerb\n");
+		machine().scheduler().trigger(12346);
+	}
+}
+
+
+READ8_MEMBER(toaplan2_state::ghox_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0xbc)
+	{
+		int result = m_ymsnd->read(space, 1);
+		if (result == 0)
+			space.device().execute().spin_until_trigger(12345);
+	}
+
+	return m_ymsnd->read(space, 1);
+}
+
+static ADDRESS_MAP_START( ghox_hd647180_mem_map, AS_PROGRAM, 8, toaplan2_state )
+	AM_RANGE(0x00000, 0x03fff) AM_ROM   /* Internal 16k byte ROM */
+	AM_RANGE(0x0fe00, 0x0ffff) AM_RAM   /* Internal 512 byte RAM */
+
+	AM_RANGE(0x3fe00, 0x3ffff) AM_RAM   /* RAM (is this actually just internal RAM getting mapped badly?) */
+
+	AM_RANGE(0x40000, 0x4f7ff) AM_RAM AM_SHARE("shared_ram") 
+
+	AM_RANGE(0x80002, 0x80002) AM_READ_PORT("DSWA")
+	AM_RANGE(0x80004, 0x80004) AM_READ_PORT("DSWB")
+	AM_RANGE(0x80006, 0x80006) AM_READNOP // nothing?
+	AM_RANGE(0x80008, 0x80008) AM_READ_PORT("IN1")
+	AM_RANGE(0x8000a, 0x8000a) AM_READ_PORT("IN2")
+
+	AM_RANGE(0x8000c, 0x8000e) AM_READ_PORT("SYS")
+
+	AM_RANGE(0x8000f, 0x8000f) AM_READ(ghox_sound_skip_r)
+	AM_RANGE(0x8000e, 0x8000f) AM_DEVREADWRITE("ym2151snd", ym2151_device, read, write)
+ADDRESS_MAP_END
+
+
+WRITE16_MEMBER(toaplan2_state::tekipaki_mcu_w)
+{
+	if (ACCESSING_BITS_0_7)
+	{
+		m_mcu_data = data & 0xff;
+		m_cmdavailable = 1;
+	}
+};
+
+READ8_MEMBER(toaplan2_state::tekipaki_soundlatch_r)
+{
+	m_cmdavailable = 0;
+	return m_mcu_data;
+};
+
+READ8_MEMBER(toaplan2_state::tekipaki_cmdavailable_r)
+{
+	if (m_cmdavailable) return 0xff;
+	else return 0x00;
+};
+
+static ADDRESS_MAP_START( hd647180_mem_map, AS_PROGRAM, 8, toaplan2_state )
+	AM_RANGE(0x00000, 0x03fff) AM_ROM   /* Internal 16k byte ROM */
+	AM_RANGE(0x0fe00, 0x0ffff) AM_RAM   /* Internal 512 byte RAM */
+ADDRESS_MAP_END
+
+static ADDRESS_MAP_START( hd647180_io_map, AS_IO, 8, toaplan2_state )
+	ADDRESS_MAP_GLOBAL_MASK(0xff)
+
+	AM_RANGE(0x60, 0x60) AM_READ(tekipaki_cmdavailable_r)
+	AM_RANGE(0x84, 0x84) AM_READ(tekipaki_soundlatch_r)
+
+	AM_RANGE(0x82, 0x82) AM_DEVREADWRITE("ymsnd", ym3812_device, status_port_r, control_port_w)
+	AM_RANGE(0x83, 0x83) AM_DEVREADWRITE("ymsnd", ym3812_device, read_port_r, write_port_w)
+ADDRESS_MAP_END
+
+
 
 
 /*****************************************************************************
@@ -1727,6 +1976,17 @@ static INPUT_PORTS_START( ghox )
 	PORT_START("PAD2")      /* Paddle 2 (left-right)  read at $040000 */
 	PORT_BIT( 0xff, 0x00, IPT_DIAL ) PORT_SENSITIVITY(25) PORT_KEYDELTA(15) PORT_PLAYER(2)
 	PORT_BIT( 0xff00, IP_ACTIVE_HIGH, IPT_UNKNOWN ) // Unknown/Unused
+INPUT_PORTS_END
+
+
+static INPUT_PORTS_START( ghoxj )
+	PORT_INCLUDE( ghox )
+
+	PORT_MODIFY("PAD1") 
+	PORT_BIT( 0xffff, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+	
+	PORT_MODIFY("PAD2") 
+	PORT_BIT( 0xffff, IP_ACTIVE_HIGH, IPT_UNKNOWN )
 INPUT_PORTS_END
 
 
@@ -3057,36 +3317,133 @@ static const gfx_layout fixeightblayout =
 	8*8*4
 };
 
+static GFXDECODE_START( toaplan2 )
+	VDP_GFXDECODE
+GFXDECODE_END
+
 static GFXDECODE_START( truxton2 )
+	VDP_GFXDECODE
 	GFXDECODE_ENTRY( nullptr,   0, truxton2_tx_tilelayout, 64*16, 64 )
 GFXDECODE_END
 
 static GFXDECODE_START( raizing )
+	VDP_GFXDECODE
 	GFXDECODE_ENTRY( "text", 0, raizing_textlayout, 64*16, 64 )
 GFXDECODE_END
 
 static GFXDECODE_START( batrider )
+	VDP_GFXDECODE
 	GFXDECODE_ENTRY( nullptr,   0, batrider_tx_tilelayout, 64*16, 64 )
 GFXDECODE_END
 
 static GFXDECODE_START( fixeightbl )
+	VDP_GFXDECODE
 	GFXDECODE_ENTRY( "text", 0, fixeightblayout, 64*16, 64 )
 GFXDECODE_END
+
+
+TIMER_DEVICE_CALLBACK_MEMBER(toaplan2_state::toaplan2_scanline)
+{
+	//printf("%d %d\n", param, gp9001_vdpstatus_r());
+	
+	if (param == 230)
+	{
+		//if (m_vdp0)
+		//{
+			set_status(1);
+			machine().scheduler().trigger(54321);
+		//}
+		if (m_vdp1)
+		{
+			m_vdp1->set_status(1);
+		}
+	}
+
+	if (param == 247)
+	{
+		//if (m_vdp0)
+		//{
+			set_status(0);
+			machine().scheduler().trigger(54312);
+		//}
+		if (m_vdp1)
+			m_vdp1->set_status(0);
+	}
+
+
+	/*
+	229 0
+	230 1
+	231 1
+	232 1
+	233 1
+	234 1
+	235 1
+	236 1
+	237 1
+	238 1
+	239 1
+	240 1
+	241 1
+	242 1
+	243 1
+	244 1
+	245 1
+	246 1
+	247 0
+	248 0
+	249 0
+	250 0
+	251 0
+	252 0
+	253 0
+	254 0
+	255 0
+	256 0
+	257 0
+	258 0
+	259 0
+	260 0
+	261 0
+	0 0
+	1 0
+	*/
+}
+
+
+
+
+WRITE16_MEMBER(toaplan2_state::toaplan2_palette_w)
+{
+	uint16_t old = m_paletteram[offset];
+
+	COMBINE_DATA(&m_paletteram[offset]);
+
+	if (old != m_paletteram[offset])
+	{
+		const uint16_t color = m_paletteram[offset];
+		//m_palette->set_pen_color(offset, expanded_palette[color]);
+		m_palette->set_pen_color(offset, rgb_t( (color & 0x001f) << 3, (color & 0x03e0) >> 2, (color & 0x7c00) >> 7));
+		//	rgb_t rgb = rgb_t(pal5bit(col & 0x1f), pal5bit(col >> 5), pal5bit(col >> 10));
+	}
+}
 
 
 static MACHINE_CONFIG_START( tekipaki, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_10MHz)         /* 10MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_10MHz)         /* 10MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(tekipaki_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-#ifdef USE_HD64x180
 	MCFG_CPU_ADD("audiocpu", Z180, XTAL_10MHz)          /* HD647180 CPU actually */
-	MCFG_CPU_PROGRAM_MAP(hd647180_mem)
-#endif
+	MCFG_CPU_PROGRAM_MAP(hd647180_mem_map)
+	MCFG_CPU_IO_MAP(hd647180_io_map)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+//	MCFG_QUANTUM_TIME(attotime::from_hz(600))
+
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,tekipaki)
 	MCFG_MACHINE_RESET_OVERRIDE(toaplan2_state,toaplan2)
 
 	/* video hardware */
@@ -3100,11 +3457,13 @@ static MACHINE_CONFIG_START( tekipaki, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3112,9 +3471,7 @@ static MACHINE_CONFIG_START( tekipaki, toaplan2_state )
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
 	MCFG_SOUND_ADD("ymsnd", YM3812, XTAL_27MHz/8)
-#ifdef USE_HD64x180
 	MCFG_YM3812_IRQ_HANDLER(INPUTLINE("audiocpu", 0))
-#endif
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -3122,16 +3479,17 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( ghox, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_10MHz)         /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_10MHz)         /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(ghox_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-#ifdef USE_HD64x180
 	MCFG_CPU_ADD("audiocpu", Z180, XTAL_10MHz)          /* HD647180 CPU actually */
-	MCFG_CPU_PROGRAM_MAP(hd647180_mem)
-#endif
+	MCFG_CPU_PROGRAM_MAP(ghox_hd647180_mem_map)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	//MCFG_QUANTUM_TIME(attotime::from_hz(600))
+
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,ghox)
 	MCFG_MACHINE_RESET_OVERRIDE(toaplan2_state,ghox)
 
 	/* video hardware */
@@ -3145,19 +3503,23 @@ static MACHINE_CONFIG_START( ghox, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8) /* verified on pcb */
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
+	MCFG_YM2151_STATUS_CHANGED_CALLBACK(WRITE8(toaplan2_state, sound_status_changed))
+
 MACHINE_CONFIG_END
 
 /* probably dogyuun, vfive and kbash use the same decryption table;
@@ -3213,16 +3575,17 @@ a4849 cd
 static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_25MHz/2)           /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_25MHz/2)           /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(dogyuun_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("audiocpu", V25, XTAL_25MHz/2)         /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_25MHz/2)         /*V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
 	MCFG_CPU_IO_MAP(dogyuun_v25_port)
 	MCFG_V25_CONFIG(nitro_decryption_table)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,dogyuun)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -3232,11 +3595,13 @@ static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_DEVICE_ADD("gp9001_1", GP9001_VDP, 0)
 	MCFG_GFX_PALETTE("palette")
@@ -3246,7 +3611,7 @@ static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8) /* verified on pcb */
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.5)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_25MHz/24, OKIM6295_PIN7_HIGH) /* verified on pcb */
@@ -3257,17 +3622,18 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( kbash, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)         /* 16MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)         /* 16MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(kbash_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	/* ROM based v25 */
-	MCFG_CPU_ADD("audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(kbash_v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
 	MCFG_V25_CONFIG(nitro_decryption_table)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,kbash)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -3280,18 +3646,20 @@ static MACHINE_CONFIG_START( kbash, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.5)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_32MHz/32, OKIM6295_PIN7_HIGH)
@@ -3302,9 +3670,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( kbash2, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)         /* 16MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)         /* 16MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(kbash2_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3319,11 +3688,13 @@ static MACHINE_CONFIG_START( kbash2, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3341,11 +3712,12 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( truxton2, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)         /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)         /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(truxton2_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq2)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,truxton2)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -3356,19 +3728,19 @@ static MACHINE_CONFIG_START( truxton2, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", truxton2)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,truxton2)
 
 	/* sound hardware */
-#ifdef TRUXTON2_STEREO  // music data is stereo...
+#if 1  // music data is stereo...
 	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8)
 	MCFG_SOUND_ROUTE(0, "lspeaker", 1.0)
 	MCFG_SOUND_ROUTE(1, "rspeaker", 1.0)
 
@@ -3378,7 +3750,7 @@ static MACHINE_CONFIG_START( truxton2, toaplan2_state )
 #else   // ...but the hardware is mono
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8) /* verified on pcb */
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_16MHz/4, OKIM6295_PIN7_LOW) /* verified on pcb */
@@ -3390,9 +3762,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( pipibibs, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_10MHz)         /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_10MHz)         /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(pipibibs_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_27MHz/8)         /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(pipibibs_sound_z80_mem)
@@ -3413,11 +3786,13 @@ static MACHINE_CONFIG_START( pipibibs, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3433,9 +3808,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( pipibibsbl, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_10MHz)         /* 10MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_10MHz)         /* 10MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(pipibibi_bootleg_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_27MHz/8)         /* ??? 3.37MHz */
 	MCFG_CPU_PROGRAM_MAP(pipibibs_sound_z80_mem)
@@ -3456,11 +3832,13 @@ static MACHINE_CONFIG_START( pipibibsbl, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3510,19 +3888,21 @@ static const UINT8 ts001turbo_decryption_table[256] = {
 };
 
 
-static MACHINE_CONFIG_START( fixeight, toaplan2_state )
+static MACHINE_CONFIG_START(fixeight, toaplan2_state)
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)         /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)         /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(fixeight_68k_mem)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state, toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(fixeight_v25_mem)
 	MCFG_CPU_IO_MAP(fixeight_v25_port)
 	MCFG_V25_CONFIG(ts001turbo_decryption_table)
+	MCFG_DEVICE_IRQ_ACKNOWLEDGE_DRIVER(toaplan2_state, irqack)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,fixeight)
 
 	MCFG_EEPROM_SERIAL_93C46_ADD("eeprom")
 
@@ -3535,19 +3915,20 @@ static MACHINE_CONFIG_START( fixeight, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", truxton2)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,truxton2)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8) /* verified on pcb */
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.5)
+	MCFG_YM2151_STATUS_CHANGED_CALLBACK(WRITE8(toaplan2_state, sound_status_changed))
 
 	MCFG_OKIM6295_ADD("oki", XTAL_16MHz/16, OKIM6295_PIN7_HIGH) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.5)
@@ -3557,9 +3938,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( fixeightbl, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_10MHz)         /* 10MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)         /* 10MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(fixeightbl_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq2)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3575,11 +3957,11 @@ static MACHINE_CONFIG_START( fixeightbl, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", fixeightbl)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,fixeightbl)
 
@@ -3592,19 +3974,29 @@ static MACHINE_CONFIG_START( fixeightbl, toaplan2_state )
 MACHINE_CONFIG_END
 
 
+
+IRQ_CALLBACK_MEMBER( toaplan2_state::irqack )
+{
+//	printf("trigger\n");
+	machine().scheduler().trigger(666);
+	return 0;
+}
+
 static MACHINE_CONFIG_START( vfive, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_20MHz/2)   /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_20MHz/2)   /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(vfive_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("audiocpu", V25, XTAL_20MHz/2) /* Verified on pcb, NEC V25 type Toaplan mark scratched out */
+	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_20MHz/2) /* Verified on pcb, NEC V25 type Toaplan mark scratched out */
 	MCFG_CPU_PROGRAM_MAP(vfive_v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
 	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_DEVICE_IRQ_ACKNOWLEDGE_DRIVER(toaplan2_state, irqack)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,vfive)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -3614,18 +4006,20 @@ static MACHINE_CONFIG_START( vfive, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8) /* verified on pcb */
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8) /* verified on pcb */
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -3633,15 +4027,16 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_32MHz/2)           /* 16MHz , 32MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_32MHz/2)           /* 16MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(batsugun_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("audiocpu", V25, XTAL_32MHz/2)         /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_32MHz/2)         /* NEC V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,batsugun)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -3654,11 +4049,13 @@ static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_DEVICE_ADD("gp9001_1", GP9001_VDP, 0)
 	MCFG_GFX_PALETTE("palette")
@@ -3668,7 +4065,7 @@ static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.5)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_32MHz/8, OKIM6295_PIN7_LOW)
@@ -3678,9 +4075,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( pwrkick, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)
 	MCFG_CPU_PROGRAM_MAP(pwrkick_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 	MCFG_UPD4992_ADD("rtc")
@@ -3693,11 +4091,13 @@ static MACHINE_CONFIG_START( pwrkick, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3710,9 +4110,10 @@ MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_START( othldrby, toaplan2_state )
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)
 	MCFG_CPU_PROGRAM_MAP(othldrby_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 	MCFG_UPD4992_ADD("rtc")
@@ -3725,11 +4126,13 @@ static MACHINE_CONFIG_START( othldrby, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3743,9 +4146,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( snowbro2, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz)
 	MCFG_CPU_PROGRAM_MAP(snowbro2_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -3760,18 +4164,20 @@ static MACHINE_CONFIG_START( snowbro2, toaplan2_state )
 	MCFG_SCREEN_VBLANK_DRIVER(toaplan2_state, screen_eof_toaplan2)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_27MHz/10, OKIM6295_PIN7_HIGH)
@@ -3782,9 +4188,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( mahoudai, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(mahoudai_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_32MHz/8)     /* 4MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(raizing_sound_z80_mem)
@@ -3806,18 +4213,18 @@ static MACHINE_CONFIG_START( mahoudai, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", raizing)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,bgaregga)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_32MHz/32, OKIM6295_PIN7_HIGH)
@@ -3828,9 +4235,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( shippumd, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(shippumd_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_32MHz/8)     /* 4MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(raizing_sound_z80_mem)
@@ -3852,18 +4260,18 @@ static MACHINE_CONFIG_START( shippumd, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", raizing)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,bgaregga)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_27MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_27MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_32MHz/32, OKIM6295_PIN7_HIGH)
@@ -3873,9 +4281,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( bgaregga, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(bgaregga_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_32MHz/8)     /* 4MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(bgaregga_sound_z80_mem)
@@ -3897,18 +4306,18 @@ static MACHINE_CONFIG_START( bgaregga, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", raizing)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,bgaregga)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_32MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_32MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
 	MCFG_OKIM6295_ADD("oki", XTAL_32MHz/16, OKIM6295_PIN7_HIGH)
@@ -3929,9 +4338,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( batrider, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(batrider_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq2)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_32MHz/8)     /* 4MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(batrider_sound_z80_mem)
@@ -3939,7 +4349,7 @@ static MACHINE_CONFIG_START( batrider, toaplan2_state )
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))
 
-	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,toaplan2)
+	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,batrider)
 	MCFG_MACHINE_RESET_OVERRIDE(toaplan2_state,toaplan2)
 
 	/* video hardware */
@@ -3953,18 +4363,18 @@ static MACHINE_CONFIG_START( batrider, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", batrider)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,batrider)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_YM2151_ADD("ymsnd", XTAL_32MHz/8)
+	MCFG_YM2151_ADD("ym2151snd", XTAL_32MHz/8)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 
 	MCFG_OKIM6295_ADD("oki1", XTAL_32MHz/10, OKIM6295_PIN7_HIGH)
@@ -3982,9 +4392,10 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( bbakraid, toaplan2_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_32MHz/2)       /* 16MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(bbakraid_68k_mem)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq1)
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_32MHz/6)     /* 5.3333MHz , 32MHz Oscillator */
 	MCFG_CPU_PROGRAM_MAP(bbakraid_sound_z80_mem)
@@ -4009,11 +4420,11 @@ static MACHINE_CONFIG_START( bbakraid, toaplan2_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", batrider)
-	MCFG_PALETTE_ADD("palette", T2PALETTE_LENGTH)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,batrider)
 
@@ -4038,9 +4449,9 @@ ROM_START( tekipaki )
 	ROM_LOAD16_BYTE( "tp020-1.bin", 0x000000, 0x010000, CRC(d8420bd5) SHA1(30c1ad9e053cd7e79adb42aa428ebee28e144755) )
 	ROM_LOAD16_BYTE( "tp020-2.bin", 0x000001, 0x010000, CRC(7222de8e) SHA1(8352ae23efc24a2e20cc24b6d37cb8fc6b1a730c) )
 
-	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
-	/* sound CPU is a HD647180 (Z180) with internal ROM - not yet supported */
-	ROM_LOAD( "hd647180.020", 0x00000, 0x08000, NO_DUMP )
+	ROM_REGION( 0x8000, "audiocpu", 0 )    /* Sound HD647180 code */
+	ROM_LOAD( "hd647180.020", 0x00000, 0x08000, CRC(d5157c12) SHA1(b2c6c087bb539456a9e562d0b40f05dde26cacd3) )
+
 
 	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp020-4.bin", 0x000000, 0x080000, CRC(3ebbe41e) SHA1(cea196c5f83e1a23d5b538a0db9bbbffa7af5118) )
@@ -4054,8 +4465,7 @@ ROM_START( ghox ) /* Spinner with single axis (up/down) controls */
 	ROM_LOAD16_BYTE( "tp021-02.u11", 0x000001, 0x020000, CRC(15cac60f) SHA1(6efa3a50a5dfe6ef4072738d6a7d0d95dca8a675) )
 
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
-	/* sound CPU is a HD647180 (Z180) with internal ROM - not yet supported */
-	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, NO_DUMP )
+	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, CRC(6ab59e5b) SHA1(d814dd3a8f1ee638794e2bd422eed4247ba4a15e) )
 
 	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp021-03.u36", 0x000000, 0x080000, CRC(a15d8e9d) SHA1(640a33997bdce8e84bea6a944139716379839037) )
@@ -4069,8 +4479,7 @@ ROM_START( ghoxj ) /* 8-way joystick for controls */
 	ROM_LOAD16_BYTE( "tp021-02a.u11", 0x000001, 0x020000, CRC(8d426767) SHA1(1ed4a8bcbf4352257e7d58cb5c2c91eb48c2f047) )
 
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
-	/* sound CPU is a HD647180 (Z180) with internal ROM - not yet supported */
-	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, NO_DUMP )
+	ROM_LOAD( "hd647180.021", 0x00000, 0x08000, CRC(6ab59e5b) SHA1(d814dd3a8f1ee638794e2bd422eed4247ba4a15e) )
 
 	ROM_REGION( 0x100000, "gp9001", 0 )
 	ROM_LOAD( "tp021-03.u36", 0x000000, 0x080000, CRC(a15d8e9d) SHA1(640a33997bdce8e84bea6a944139716379839037) )
@@ -4284,8 +4693,7 @@ ROM_START( whoopee )
 	ROM_LOAD16_BYTE( "whoopee.2", 0x000001, 0x020000, CRC(6796f133) SHA1(d4e657be260ba3fd3f0556ade617882513b52685) )
 
 	ROM_REGION( 0x10000, "audiocpu", 0 )            /* Sound HD647180 code */
-	/* sound CPU is a HD647180 (Z180) with internal ROM - not yet supported */
-	ROM_LOAD( "hd647180.025", 0x00000, 0x08000, NO_DUMP )
+	ROM_LOAD( "hd647180.025", 0x00000, 0x08000, CRC(c02436f6) SHA1(385343f88991646ec23b385eaea82718f1251ea6) )
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp025-4.bin", 0x000000, 0x100000, CRC(ab97f744) SHA1(c1620e614345dbd5c6567e4cb6f55c61b900d0ee) )
@@ -5400,10 +5808,10 @@ ROM_END
 // See list at top of file
 
 //  ( YEAR  NAME        PARENT    MACHINE   INPUT     INIT      MONITOR COMPANY    FULLNAME     FLAGS )
-GAME( 1991, tekipaki,   0,        tekipaki, tekipaki, driver_device, 0,        ROT0,   "Toaplan", "Teki Paki", MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )
+GAME( 1991, tekipaki,   0,        tekipaki, tekipaki, toaplan2_state, tekipaki,        ROT0,   "Toaplan", "Teki Paki", MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )
 
 GAME( 1991, ghox,       0,        ghox,     ghox, driver_device,     0,        ROT270, "Toaplan", "Ghox (spinner)", MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )
-GAME( 1991, ghoxj,      ghox,     ghox,     ghox, driver_device,     0,        ROT270, "Toaplan", "Ghox (joystick)", MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )
+GAME( 1991, ghoxj,      ghox,     ghox,     ghoxj, driver_device,     0,        ROT270, "Toaplan", "Ghox (joystick)", MACHINE_NO_SOUND | MACHINE_SUPPORTS_SAVE )
 
 GAME( 1992, dogyuun,    0,        dogyuun,  dogyuun, toaplan2_state,  dogyuun,  ROT270, "Toaplan", "Dogyuun", MACHINE_SUPPORTS_SAVE )
 GAME( 1992, dogyuuna,   dogyuun,  dogyuun,  dogyuuna, toaplan2_state, dogyuun,  ROT270, "Toaplan", "Dogyuun (older set)", MACHINE_SUPPORTS_SAVE )
@@ -5414,7 +5822,7 @@ GAME( 1993, kbashk,     kbash,    kbash,    kbashk,driver_device,    0,        R
 
 GAME( 1999, kbash2,     0,        kbash2,   kbash2, driver_device,   0,        ROT0,   "bootleg", "Knuckle Bash 2 (bootleg)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1992, truxton2,   0,        truxton2, truxton2, driver_device, 0,        ROT270, "Toaplan", "Truxton II / Tatsujin Oh", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, truxton2,   0,        truxton2, truxton2, toaplan2_state, truxton2,   ROT270, "Toaplan", "Truxton II / Tatsujin Oh", MACHINE_SUPPORTS_SAVE )
 
 GAME( 1991, pipibibs,   0,        pipibibs, pipibibs, driver_device, 0,        ROT0,   "Toaplan", "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 1)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, pipibibsa,  pipibibs, pipibibs, pipibibs, driver_device, 0,        ROT0,   "Toaplan", "Pipi & Bibis / Whoopee!! (Z80 sound cpu, set 2)", MACHINE_SUPPORTS_SAVE )

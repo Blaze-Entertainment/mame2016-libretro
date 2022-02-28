@@ -33,6 +33,7 @@ CPUS["HD6309"] = true
 CPUS["M6809"] = true
 CPUS["KONAMI"] = true
 CPUS["M680X0"] = true
+CPUS["SIMPLETOAPLAN_M680X0"] = true
 CPUS["T11"] = true
 CPUS["S2650"] = true
 CPUS["TMS340X0"] = true

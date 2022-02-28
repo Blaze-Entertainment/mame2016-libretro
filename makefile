@@ -1462,6 +1462,7 @@ clean: genieclean
 	@echo Cleaning...
 	-@rm -rf $(BUILDDIR)
 	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/m68000 clean
+	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/simpletoaplan_m68000 clean
 	-@rm -rf 3rdparty/bgfx/.build
 
 GEN_FOLDERS := $(GENDIR)/$(TARGET)/layout/ $(GENDIR)/$(TARGET)/$(SUBTARGET_FULL)/ $(GENDIR)/mame/drivers/
@@ -1489,6 +1490,7 @@ generate: \
 		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS)) \
 		$(GENDIR)/mame/drivers/ymmu100.hxx \
 		$(SRC)/devices/cpu/m68000/m68kops.cpp \
+		$(SRC)/devices/cpu/simpletoaplan_m68000/m68kops.cpp \
 		$(GENDIR)/includes/SDL2
 
 $(GENDIR)/includes/SDL2:
@@ -1508,6 +1510,13 @@ ifeq ($(TARGETOS),asmjs)
 	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/m68000
 else
 	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/m68000 CC="$(CC)" CXX="$(CXX)"
+endif
+
+$(SRC)/devices/cpu/simpletoaplan_m68000/m68kops.cpp: $(SRC)/devices/cpu/simpletoaplan_m68000/m68k_in.cpp $(SRC)/devices/cpu/simpletoaplan_m68000/m68kmake.cpp
+ifeq ($(TARGETOS),asmjs)
+	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/simpletoaplan_m68000
+else
+	$(SILENT) $(MAKE) -C $(SRC)/devices/cpu/simpletoaplan_m68000 CC="$(CC)" CXX="$(CXX)"
 endif
 
 %.mo: %.po
@@ -1577,6 +1586,7 @@ CPPCHECK_PARAMS += -Isrc/mame
 CPPCHECK_PARAMS += -Isrc/osd/modules/render
 CPPCHECK_PARAMS += -Isrc/osd/windows
 CPPCHECK_PARAMS += -Isrc/emu/cpu/m68000
+CPPCHECK_PARAMS += -Isrc/emu/cpu/simpletoaplan_m68000
 CPPCHECK_PARAMS += -I3rdparty
 ifndef USE_SYSTEM_LIB_LUA
 CPPCHECK_PARAMS += -I3rdparty/lua/src

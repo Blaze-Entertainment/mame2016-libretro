@@ -144,13 +144,18 @@ TILE_GET_INFO_MEMBER(toaplan1_state::get_pf1_tile_info)
 	tile_number = m_pf1_tilevram16[2*tile_index+1] & 0x7fff;
 	attrib = m_pf1_tilevram16[2*tile_index];
 	color = attrib & 0x3f;
+
+	// "disabled" tiles are behind everything else
+	int cat;
+	if (m_pf1_tilevram16[2*tile_index+1] & 0x8000) cat = 0;
+		else cat = (attrib & 0xf000) >> 12;
+
+	color |= cat << 7;
+
 	SET_TILE_INFO_MEMBER(0,
 			tile_number,
 			color,
 			0);
-	// "disabled" tiles are behind everything else
-	if (m_pf1_tilevram16[2*tile_index+1] & 0x8000) tileinfo.category = 16;
-		else tileinfo.category = (attrib & 0xf000) >> 12;
 }
 
 TILE_GET_INFO_MEMBER(toaplan1_state::get_pf2_tile_info)
@@ -160,13 +165,18 @@ TILE_GET_INFO_MEMBER(toaplan1_state::get_pf2_tile_info)
 	tile_number = m_pf2_tilevram16[2*tile_index+1] & 0x7fff;
 	attrib = m_pf2_tilevram16[2*tile_index];
 	color = attrib & 0x3f;
+
+	// "disabled" tiles are behind everything else
+	int cat;
+	if (m_pf2_tilevram16[2*tile_index+1] & 0x8000) cat = 0;
+		else cat = (attrib & 0xf000) >> 12;
+
+	color |= cat << 7;
+
 	SET_TILE_INFO_MEMBER(0,
 			tile_number,
 			color,
 			0);
-	// "disabled" tiles are behind everything else
-	if (m_pf2_tilevram16[2*tile_index+1] & 0x8000) tileinfo.category = 16;
-		else tileinfo.category = (attrib & 0xf000) >> 12;
 }
 
 TILE_GET_INFO_MEMBER(toaplan1_state::get_pf3_tile_info)
@@ -176,13 +186,18 @@ TILE_GET_INFO_MEMBER(toaplan1_state::get_pf3_tile_info)
 	tile_number = m_pf3_tilevram16[2*tile_index+1] & 0x7fff;
 	attrib = m_pf3_tilevram16[2*tile_index];
 	color = attrib & 0x3f;
+
+	// "disabled" tiles are behind everything else
+	int cat;
+	if (m_pf3_tilevram16[2*tile_index+1] & 0x8000) cat = 0;
+		else cat = (attrib & 0xf000) >> 12;
+
+	color |= cat << 7;
+
 	SET_TILE_INFO_MEMBER(0,
 			tile_number,
 			color,
 			0);
-	// "disabled" tiles are behind everything else
-	if (m_pf3_tilevram16[2*tile_index+1] & 0x8000) tileinfo.category = 16;
-		else tileinfo.category = (attrib & 0xf000) >> 12;
 }
 
 TILE_GET_INFO_MEMBER(toaplan1_state::get_pf4_tile_info)
@@ -192,13 +207,18 @@ TILE_GET_INFO_MEMBER(toaplan1_state::get_pf4_tile_info)
 	tile_number = m_pf4_tilevram16[2*tile_index+1] & 0x7fff;
 	attrib = m_pf4_tilevram16[2*tile_index];
 	color = attrib & 0x3f;
+
+	// "disabled" tiles are behind everything else
+	int cat;
+	if (m_pf4_tilevram16[2*tile_index+1] & 0x8000) cat = 0;
+		else cat = (attrib & 0xf000) >> 12;
+	
+	color |= cat << 7;
+
 	SET_TILE_INFO_MEMBER(0,
 			tile_number,
 			color,
 			0);
-	// "disabled" tiles are behind everything else
-	if (m_pf4_tilevram16[2*tile_index+1] & 0x8000) tileinfo.category = 16;
-		else tileinfo.category = (attrib & 0xf000) >> 12;
 }
 
 /***************************************************************************
@@ -222,6 +242,13 @@ void toaplan1_state::toaplan1_create_tilemaps()
 
 void toaplan1_state::toaplan1_vram_alloc()
 {
+
+	for (int i = 0; i < 0x400; i++)
+	{
+		m_bgpaldirty[i] = 1;
+		m_fgpaldirty[i] = 1;
+	}
+
 	m_pf1_tilevram16 = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
 	m_pf2_tilevram16 = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
 	m_pf3_tilevram16 = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
@@ -270,6 +297,10 @@ void toaplan1_state::register_common()
 	save_item(NAME(m_bcu_flipscreen));
 	save_item(NAME(m_fcu_flipscreen));
 
+	save_item(NAME(m_bgpaldirty));
+	save_item(NAME(m_fgpaldirty));
+
+
 	save_item(NAME(m_pf1_scrollx));
 	save_item(NAME(m_pf1_scrolly));
 	save_item(NAME(m_pf2_scrollx));
@@ -283,6 +314,8 @@ void toaplan1_state::register_common()
 	save_item(NAME(m_tiles_offsety));
 	save_item(NAME(m_pf_voffs));
 	save_item(NAME(m_spriteram_offs));
+
+	save_item(NAME(m_vblank));
 }
 
 
@@ -305,7 +338,7 @@ VIDEO_START_MEMBER(toaplan1_rallybik_state,rallybik)
 	m_pf2_tilemap->set_scrolldy(-0x111, 0x8);
 	m_pf3_tilemap->set_scrolldy(-0x111, 0x8);
 	m_pf4_tilemap->set_scrolldy(-0x111, 0x8);
-
+	
 	m_bcu_flipscreen = -1;
 	m_fcu_flipscreen = 0;
 
@@ -342,7 +375,22 @@ VIDEO_START_MEMBER(toaplan1_state,toaplan1)
 
 READ16_MEMBER(toaplan1_state::toaplan1_frame_done_r)
 {
-	return m_screen->vblank();
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+	int pc = mcpu->pc();
+
+
+
+	if ((pc == 0xc29e) || (pc == 0xc24e))
+	{
+		if (m_vblank == 0xffff)
+			space.device().execute().spin_until_trigger(668);
+	}
+	else
+	{
+		//printf("vblank %04x %02x\n", pc, m_vblank);
+	}
+
+	return m_vblank;// m_screen->vblank();
 }
 
 WRITE16_MEMBER(toaplan1_state::toaplan1_tile_offsets_w)
@@ -394,16 +442,35 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_spriteram_offs_w)
 
 WRITE16_MEMBER(toaplan1_state::toaplan1_bgpalette_w)
 {
+	const uint16_t old = m_bgpaletteram[offset];
 	COMBINE_DATA(&m_bgpaletteram[offset]);
-	data = m_bgpaletteram[offset];
-	m_palette->set_pen_color(offset, pal5bit(data>>0), pal5bit(data>>5), pal5bit(data>>10));
+	const uint16_t color = m_bgpaletteram[offset];
+
+	if (old != color)
+	{
+		m_bgpaldirty[offset] = 1;
+
+	//	const rgb_t col = rgb_t(pal5bit(color >> 0), pal5bit(color >> 5), pal5bit(color >> 10));
+	//	for (int i = 0; i < 32; i++)
+	//		m_palette->set_pen_color(0x800 * i + offset, col);
+	}
 }
+
 
 WRITE16_MEMBER(toaplan1_state::toaplan1_fgpalette_w)
 {
+	const uint16_t old = m_fgpaletteram[offset];
 	COMBINE_DATA(&m_fgpaletteram[offset]);
-	data = m_fgpaletteram[offset];
-	m_palette->set_pen_color(offset + 64*16, pal5bit(data>>0), pal5bit(data>>5), pal5bit(data>>10));
+	const uint16_t color = m_fgpaletteram[offset];
+
+	if (old != color)
+	{
+		m_fgpaldirty[offset] = 1;
+
+	//	const rgb_t col = rgb_t(pal5bit(color >> 0), pal5bit(color >> 5), pal5bit(color >> 10));
+	//	for (int i = 0; i < 32; i++)
+	//		m_palette->set_pen_color(0x800 * i + offset + 64*16, col);
+	}
 }
 
 
@@ -517,25 +584,51 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_tileram16_w)
 	switch (m_pf_voffs & 0xf000)    /* Locate Layer (PlayField) */
 	{
 		case 0x0000:
-				vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE/2)-1);
-				COMBINE_DATA(&m_pf1_tilevram16[vram_offset]);
-				m_pf1_tilemap->mark_tile_dirty(vram_offset/2);
-				break;
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf1_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf1_tilevram16[vram_offset]);
+
+			if (m_pf1_tilevram16[vram_offset] != old)
+				m_pf1_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
 		case 0x1000:
-				vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE/2)-1);
-				COMBINE_DATA(&m_pf2_tilevram16[vram_offset]);
-				m_pf2_tilemap->mark_tile_dirty(vram_offset/2);
-				break;
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf2_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf2_tilevram16[vram_offset]);
+
+			if (m_pf2_tilevram16[vram_offset] != old)
+				m_pf2_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
 		case 0x2000:
-				vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE/2)-1);
-				COMBINE_DATA(&m_pf3_tilevram16[vram_offset]);
-				m_pf3_tilemap->mark_tile_dirty(vram_offset/2);
-				break;
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf3_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf3_tilevram16[vram_offset]);
+
+			if (m_pf3_tilevram16[vram_offset] != old)
+				m_pf3_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
 		case 0x3000:
-				vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE/2)-1);
-				COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
-				m_pf4_tilemap->mark_tile_dirty(vram_offset/2);
-				break;
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf4_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+
+			if (m_pf4_tilevram16[vram_offset] != old)
+				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
 		default:
 				logerror("Hmmm, writing %04x to unknown playfield layer address %06x  Offset:%01x\n", data, m_pf_voffs, offset);
 				break;
@@ -763,95 +856,92 @@ static void toaplan1_draw_sprite_custom(screen_device &screen, bitmap_ind16 &des
 		UINT32 code,UINT32 color,int flipx,int flipy,int sx,int sy,
 		int priority)
 {
-	int pal_base = gfx->colorbase() + gfx->granularity() * (color % gfx->colors());
+	int pal_base =  64*16 + gfx->colorbase() + gfx->granularity() * (color % gfx->colors());
 	const UINT8 *source_base = gfx->get_data(code % gfx->elements());
 	bitmap_ind8 &priority_bitmap = screen.priority();
-	int sprite_screen_height = ((1<<16)*gfx->height()+0x8000)>>16;
-	int sprite_screen_width = ((1<<16)*gfx->width()+0x8000)>>16;
+		
+	/* compute sprite increment per screen pixel */
+	int dx, dy;
+			
+	int ex = sx+8;
+	int ey = sy+8;
 
-	if (sprite_screen_width && sprite_screen_height)
+	int x_index_base;
+	int y_index;
+
+	if( flipx )
 	{
-		/* compute sprite increment per screen pixel */
-		int dx = (gfx->width()<<16)/sprite_screen_width;
-		int dy = (gfx->height()<<16)/sprite_screen_height;
+		x_index_base = (8-1);
+		dx = -1;
+	}
+	else
+	{
+		x_index_base = 0;
+		dx = 1;
+	}
 
-		int ex = sx+sprite_screen_width;
-		int ey = sy+sprite_screen_height;
+	if( flipy )
+	{
+		y_index = (8-1);
+		dy = -1;
+	}
+	else
+	{
+		y_index = 0;
+		dy = 1;
+	}
 
-		int x_index_base;
-		int y_index;
+	if( sx < clip.min_x)
+	{ /* clip left */
+		int pixels = clip.min_x-sx;
+		sx += pixels;
+		x_index_base += pixels*dx;
+	}
+	if( sy < clip.min_y )
+	{ /* clip top */
+		int pixels = clip.min_y-sy;
+		sy += pixels;
+		y_index += pixels*dy;
+	}
+	/* NS 980211 - fixed incorrect clipping */
+	if( ex > clip.max_x+1 )
+	{ /* clip right */
+		int pixels = ex-clip.max_x-1;
+		ex -= pixels;
+	}
+	if( ey > clip.max_y+1 )
+	{ /* clip bottom */
+		int pixels = ey-clip.max_y-1;
+		ey -= pixels;
+	}
 
-		if( flipx )
+	if( ex>sx )
+	{ /* skip if inner loop doesn't draw anything */
+		int y;
+
+		for( y=sy; y<ey; y++ )
 		{
-			x_index_base = (sprite_screen_width-1)*dx;
-			dx = -dx;
-		}
-		else
-		{
-			x_index_base = 0;
-		}
+			const UINT8 *source = source_base + (y_index) * 8;
+			UINT16 *dest = &dest_bmp.pix16(y);
+			UINT8 *pri = &priority_bitmap.pix8(y);
 
-		if( flipy )
-		{
-			y_index = (sprite_screen_height-1)*dy;
-			dy = -dy;
-		}
-		else
-		{
-			y_index = 0;
-		}
-
-		if( sx < clip.min_x)
-		{ /* clip left */
-			int pixels = clip.min_x-sx;
-			sx += pixels;
-			x_index_base += pixels*dx;
-		}
-		if( sy < clip.min_y )
-		{ /* clip top */
-			int pixels = clip.min_y-sy;
-			sy += pixels;
-			y_index += pixels*dy;
-		}
-		/* NS 980211 - fixed incorrect clipping */
-		if( ex > clip.max_x+1 )
-		{ /* clip right */
-			int pixels = ex-clip.max_x-1;
-			ex -= pixels;
-		}
-		if( ey > clip.max_y+1 )
-		{ /* clip bottom */
-			int pixels = ey-clip.max_y-1;
-			ey -= pixels;
-		}
-
-		if( ex>sx )
-		{ /* skip if inner loop doesn't draw anything */
-			int y;
-
-			for( y=sy; y<ey; y++ )
+			int x, x_index = x_index_base;
+			for( x=sx; x<ex; x++ )
 			{
-				const UINT8 *source = source_base + (y_index>>16) * gfx->rowbytes();
-				UINT16 *dest = &dest_bmp.pix16(y);
-				UINT8 *pri = &priority_bitmap.pix8(y);
-
-				int x, x_index = x_index_base;
-				for( x=sx; x<ex; x++ )
+				int c = source[x_index];
+				if( c != 0 )
 				{
-					int c = source[x_index>>16];
-					if( c != 0 )
-					{
-						if (pri[x] < priority)
-							dest[x] = pal_base+c;
-						pri[x] = 0xff; // mark it "already drawn"
-					}
-					x_index += dx;
+					if (pri[x] < priority)
+						dest[x] = pal_base+c;
+					pri[x] = 0xff; // mark it "already drawn"
 				}
-
-				y_index += dy;
+				x_index += dx;
 			}
+
+			y_index += dy;
 		}
 	}
+	
 }
 
 
@@ -930,9 +1020,39 @@ void toaplan1_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 
 UINT32 toaplan1_rallybik_state::screen_update_rallybik(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	int priority;
+	//int priority;
 
-	toaplan1_log_vram();
+	for (int z = 0; z < 0x400; z++)
+	{
+		if (m_bgpaldirty[z])
+		{
+			int color = m_bgpaletteram[z];
+			const rgb_t col = rgb_t(pal5bit(color >> 0), pal5bit(color >> 5), pal5bit(color >> 10));
+			//for (int i = 0; i < 32; i++)
+			int i = 0;
+			m_palette->set_pen_color(0x800 * i + z, col);
+
+			m_bgpaldirty[z] = 0;
+		}
+		if (m_fgpaldirty[z])
+		{
+			int color = m_fgpaletteram[z];
+			const rgb_t col = rgb_t(pal5bit(color >> 0), pal5bit(color >> 5), pal5bit(color >> 10));
+			//for (int i = 0; i < 32; i++)
+			int i = 0;
+			m_palette->set_pen_color(0x800 * i + z + 64*16, col);
+
+			m_fgpaldirty[z] = 0;
+		}
+	}
+
+	screen.priority().fill(0, cliprect);
+
+	draw_mixed_tilemap(bitmap, cliprect, screen.priority());
+	
+	//m_spritegen->draw_sprites(bitmap, screen.priority(), cliprect, m_buffered_spriteram.get(), m_spriteram.bytes());
+
+#if 0
 
 	m_spritegen->draw_sprites_to_tempbitmap(cliprect, m_buffered_spriteram.get(),  m_spriteram.bytes());
 
@@ -954,28 +1074,240 @@ UINT32 toaplan1_rallybik_state::screen_update_rallybik(screen_device &screen, bi
 
 	}
 
+#endif
+
 	return 0;
 }
 
-UINT32 toaplan1_state::screen_update_toaplan1(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
-{
-	int priority;
+/*
+	HIGHEST
+ 
+	priority 15 pf1
+	         15 pf2
+			 15 pf3
+			 15 pf4
+			 
+			 14 pf4
+			 14 pf3
+			 14 pf2
+			 14 pf1
+			 
+			 13 pf4
+			 13 pf3
+			 13 pf2
+			 13 pf1
 
-	toaplan1_log_vram();
+			 12 pf4
+			 12 pf3
+			 12 pf2
+			 12 pf1
+
+			 11 pf4
+			 11 pf3
+			 11 pf2
+			 11 pf1
+
+			 10 pf4
+			 10 pf3
+			 10 pf2
+			 10 pf1
+
+			 9 pf4
+			 9 pf3
+			 9 pf2
+			 9 pf1
+
+			 8 pf4
+			 8 pf3
+			 8 pf2
+			 8 pf1
+
+			 7 pf4
+			 7 pf3
+			 7 pf2
+			 7 pf1
+
+			 6 pf4
+			 6 pf3
+			 6 pf2
+			 6 pf1
+
+			 5 pf4
+			 5 pf3
+			 5 pf2
+			 5 pf1
+
+			 4 pf4
+			 4 pf3
+			 4 pf2
+			 4 pf1
+
+			 3 pf4
+			 3 pf3
+			 3 pf2
+			 3 pf1
+
+			 2 pf4
+			 2 pf3
+			 2 pf2
+			 2 pf1
+
+			 1 pf4
+			 1 pf3
+			 1 pf2
+			 1 pf1
+
+			 pf1 regardless of priority
+
+	LOWEST
+
+*/
+
+void toaplan1_state::draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, bitmap_ind8& priority)
+{
+	bitmap_ind16& tmbpf1 = m_pf1_tilemap->pixmap();
+	bitmap_ind16& tmbpf2 = m_pf2_tilemap->pixmap();
+	bitmap_ind16& tmbpf3 = m_pf3_tilemap->pixmap();
+	bitmap_ind16& tmbpf4 = m_pf4_tilemap->pixmap();
+	
+	UINT16* srcptrpf1;
+	UINT16* srcptrpf2;
+	UINT16* srcptrpf3;
+	UINT16* srcptrpf4;
+
+	UINT16* dstptr;
+	UINT8* dstpriptr;
+
+	int scrollxpf1 = m_pf1_tilemap->scrollx(0) - m_pf1_tilemap->scrolldx();
+	int scrollypf1 = m_pf1_tilemap->scrolly(0) - m_pf1_tilemap->scrolldy();
+	int scrollxpf2 = m_pf2_tilemap->scrollx(0) - m_pf2_tilemap->scrolldx();
+	int scrollypf2 = m_pf2_tilemap->scrolly(0) - m_pf2_tilemap->scrolldy();
+	int scrollxpf3 = m_pf3_tilemap->scrollx(0) - m_pf3_tilemap->scrolldx();
+	int scrollypf3 = m_pf3_tilemap->scrolly(0) - m_pf3_tilemap->scrolldy();
+	int scrollxpf4 = m_pf4_tilemap->scrollx(0) - m_pf4_tilemap->scrolldx();
+	int scrollypf4 = m_pf4_tilemap->scrolly(0) - m_pf4_tilemap->scrolldy();
+
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
+	{
+		int realypf1 = (y + scrollypf1) & 0x1ff;
+		int realypf2 = (y + scrollypf2) & 0x1ff;
+		int realypf3 = (y + scrollypf3) & 0x1ff;
+		int realypf4 = (y + scrollypf4) & 0x1ff;
+
+		srcptrpf1 = &tmbpf1.pix16(realypf1);
+		srcptrpf2 = &tmbpf2.pix16(realypf2);
+		srcptrpf3 = &tmbpf3.pix16(realypf3);
+		srcptrpf4 = &tmbpf4.pix16(realypf4);
+
+		dstptr = &bitmap.pix16(y);
+		dstpriptr = &priority.pix8(y);
+
+		for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
+		{
+			int realxpf1 = (x + scrollxpf1) & 0x1ff;
+			int realxpf2 = (x + scrollxpf2) & 0x1ff;
+			int realxpf3 = (x + scrollxpf3) & 0x1ff;
+			int realxpf4 = (x + scrollxpf4) & 0x1ff;
+
+			UINT16 pixdatpf1 = srcptrpf1[realxpf1];
+			UINT16 pixdatpf2 = srcptrpf2[realxpf2];
+			UINT16 pixdatpf3 = srcptrpf3[realxpf3];
+			UINT16 pixdatpf4 = srcptrpf4[realxpf4];
+		
+
+			UINT8 existingpri;
+			
+			existingpri = *dstpriptr;
+
+			*dstptr = pixdatpf1 & 0x3ff;
+
+			UINT8 pixdatpf4flags = (pixdatpf4 >> 11) & 0xf;
+			if (pixdatpf4flags > existingpri)
+			{
+				if (pixdatpf4 & 0xf)
+				{
+					{
+						*dstptr = pixdatpf4 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf4flags;
+					}
+				}
+			}
+
+			UINT8 pixdatpf3flags = (pixdatpf3 >> 11) & 0xf;
+			if (pixdatpf3flags > existingpri)
+			{
+				if (pixdatpf3 & 0xf)
+				{
+					{
+						*dstptr = pixdatpf3 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf3flags;
+					}
+				}
+			}
+
+			UINT8 pixdatpf2flags = (pixdatpf2 >> 11) & 0xf;
+			if (pixdatpf2flags > existingpri)
+			{
+
+				if (pixdatpf2 & 0xf)
+				{
+					{
+						*dstptr = pixdatpf2 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf2flags;
+					}
+				}
+			}
+
+			UINT8 pixdatpf1flags = (pixdatpf1 >> 11) & 0xf;
+			if (pixdatpf1flags > existingpri)
+			{
+
+				if (pixdatpf1 & 0xf)
+				{
+					{
+						*dstptr = pixdatpf1 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf1flags;
+					}
+				}
+			}
+
+			dstptr++;
+			dstpriptr++;
+		}
+	}
+
+}
+
+UINT32 toaplan1_state::screen_update_toaplan1(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+{
+	for (int z = 0; z < 0x400; z++)
+	{
+		if (m_bgpaldirty[z])
+		{
+			int color = m_bgpaletteram[z];
+			const rgb_t col = rgb_t(pal5bit(color >> 0), pal5bit(color >> 5), pal5bit(color >> 10));
+			//for (int i = 0; i < 32; i++)
+			int i = 0;
+			m_palette->set_pen_color(0x800 * i + z, col);
+
+			m_bgpaldirty[z] = 0;
+		}
+		if (m_fgpaldirty[z])
+		{
+			int color = m_fgpaletteram[z];
+			const rgb_t col = rgb_t(pal5bit(color >> 0), pal5bit(color >> 5), pal5bit(color >> 10));
+			//for (int i = 0; i < 32; i++)
+			int i = 0;
+			m_palette->set_pen_color(0x800 * i + z + 64*16, col);
+
+			m_fgpaldirty[z] = 0;
+		}
+	}
+
 
 	screen.priority().fill(0, cliprect);
 
-	// first draw everything, including "disabled" tiles and priority 0
-	m_pf1_tilemap->draw(screen, bitmap, cliprect, TILEMAP_DRAW_OPAQUE | TILEMAP_DRAW_ALL_CATEGORIES, 0);
-
-	// then draw the higher priority layers in order
-	for (priority = 1; priority < 16; priority++)
-	{
-		m_pf4_tilemap->draw(screen, bitmap, cliprect, priority, priority, 0);
-		m_pf3_tilemap->draw(screen, bitmap, cliprect, priority, priority, 0);
-		m_pf2_tilemap->draw(screen, bitmap, cliprect, priority, priority, 0);
-		m_pf1_tilemap->draw(screen, bitmap, cliprect, priority, priority, 0);
-	}
+	draw_mixed_tilemap(bitmap, cliprect, screen.priority());
 
 	draw_sprites(screen, bitmap, cliprect);
 	return 0;
@@ -992,7 +1324,14 @@ void toaplan1_rallybik_state::screen_eof_rallybik(screen_device &screen, bool st
 	// rising edge
 	if (state)
 	{
+		m_vblank = 0xffff;
+		machine().scheduler().trigger(667);
 		memcpy(m_buffered_spriteram.get(), m_spriteram, m_spriteram.bytes());
+	}
+	else
+	{
+		m_vblank = 0;
+		machine().scheduler().trigger(668);
 	}
 }
 
@@ -1001,8 +1340,16 @@ void toaplan1_state::screen_eof_toaplan1(screen_device &screen, bool state)
 	// rising edge
 	if (state)
 	{
+		m_vblank = 0xffff;
+		machine().scheduler().trigger(667);
+
 		memcpy(m_buffered_spriteram.get(), m_spriteram, m_spriteram.bytes());
 		memcpy(m_buffered_spritesizeram16.get(), m_spritesizeram16.get(), TOAPLAN1_SPRITESIZERAM_SIZE);
+	}
+	else
+	{
+		m_vblank = 0;
+		machine().scheduler().trigger(668);
 	}
 }
 
@@ -1011,8 +1358,16 @@ void toaplan1_state::screen_eof_samesame(screen_device &screen, bool state)
 	// rising edge
 	if (state)
 	{
+		m_vblank = 0xffff;
+		machine().scheduler().trigger(667);
+
 		memcpy(m_buffered_spriteram.get(), m_spriteram, m_spriteram.bytes());
 		memcpy(m_buffered_spritesizeram16.get(), m_spritesizeram16.get(), TOAPLAN1_SPRITESIZERAM_SIZE);
-		m_maincpu->set_input_line(M68K_IRQ_2, HOLD_LINE);   /* Frame done */
+		m_maincpu->set_input_line(SIMPLETOAPLAN_M68K_IRQ_2, HOLD_LINE);   /* Frame done */
+	}
+	else
+	{
+		m_vblank = 0;
+		machine().scheduler().trigger(668);
 	}
 }

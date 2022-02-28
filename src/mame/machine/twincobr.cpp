@@ -6,7 +6,7 @@
  ****************************************************************************/
 
 #include "emu.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "cpu/tms32010/tms32010.h"
 #include "includes/twincobr.h"
 
@@ -20,7 +20,7 @@ INTERRUPT_GEN_MEMBER(twincobr_state::twincobr_interrupt)
 {
 	if (m_intenable) {
 		m_intenable = 0;
-		device.execute().set_input_line(M68K_IRQ_4, HOLD_LINE);
+		device.execute().set_input_line(SIMPLETOAPLAN_M68K_IRQ_4, HOLD_LINE);
 	}
 }
 

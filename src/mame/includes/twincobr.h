@@ -14,6 +14,7 @@ class twincobr_state : public driver_device
 public:
 	twincobr_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
+		m_mainram(*this, "mainram"),
 		m_sharedram(*this, "sharedram"),
 		m_spriteram8(*this, "spriteram8"),
 		m_spriteram16(*this, "spriteram16"),
@@ -25,6 +26,7 @@ public:
 		m_palette(*this, "palette")
 	{ }
 
+	optional_shared_ptr<UINT16> m_mainram;
 	optional_shared_ptr<UINT8> m_sharedram;
 	optional_device<buffered_spriteram8_device> m_spriteram8;
 	optional_device<buffered_spriteram16_device> m_spriteram16;
@@ -101,6 +103,7 @@ public:
 	DECLARE_READ8_MEMBER(wardner_sprite_r);
 	DECLARE_WRITE8_MEMBER(wardner_sprite_w);
 	DECLARE_DRIVER_INIT(twincobr);
+	DECLARE_DRIVER_INIT(fshark);
 	TILE_GET_INFO_MEMBER(get_bg_tile_info);
 	TILE_GET_INFO_MEMBER(get_fg_tile_info);
 	TILE_GET_INFO_MEMBER(get_tx_tile_info);
@@ -124,4 +127,8 @@ public:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
+
+	DECLARE_READ16_MEMBER(fshark_boot_speed1_r);
+	DECLARE_READ16_MEMBER(fshark_boot_speed2_r);
+
 };

@@ -379,7 +379,7 @@ Shark   Zame
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "cpu/tms32010/tms32010.h"
 #include "cpu/mcs48/mcs48.h"
 #include "includes/toaplipt.h"
@@ -393,7 +393,7 @@ Shark   Zame
 
 static ADDRESS_MAP_START( main_program_map, AS_PROGRAM, 16, twincobr_state )
 	AM_RANGE(0x000000, 0x02ffff) AM_ROM
-	AM_RANGE(0x030000, 0x033fff) AM_RAM     /* 68K and DSP shared RAM */
+	AM_RANGE(0x030000, 0x033fff) AM_RAM AM_SHARE("mainram")    /* 68K and DSP shared RAM */
 	AM_RANGE(0x040000, 0x040fff) AM_RAM AM_SHARE("spriteram16")
 	AM_RANGE(0x050000, 0x050dff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 	AM_RANGE(0x060000, 0x060001) AM_DEVWRITE8("crtc", mc6845_device, address_w, 0x00ff)
@@ -657,7 +657,7 @@ GFXDECODE_END
 static MACHINE_CONFIG_START( twincobr, twincobr_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_28MHz/4)       /* 7MHz - Main board Crystal is 28MHz */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_28MHz/4)       /* 7MHz - Main board Crystal is 28MHz */
 	MCFG_CPU_PROGRAM_MAP(main_program_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", twincobr_state,  twincobr_interrupt)
 
@@ -1283,8 +1283,51 @@ DRIVER_INIT_MEMBER(twincobr_state,twincobr)
 	twincobr_driver_savestate();
 }
 
+	
+READ16_MEMBER(twincobr_state::fshark_boot_speed1_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0xa036)
+		{
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_PC, 0xA0a4);
+			for (int i = 0; i < 0x4000 / 2; i++)
+				m_mainram[i] = 0x00;
+		}
 
-GAME( 1987, fshark,    0,        fshark,   fshark,    twincobr_state,  twincobr, ROT270, "Toaplan / Taito Corporation", "Flying Shark (World)", 0 )
+	}
+
+	return 0x323c;
+}
+
+READ16_MEMBER(twincobr_state::fshark_boot_speed2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0xA0BA)
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_PC, 0xA0F2);
+
+	}
+
+	return 0x43f9;
+}
+
+
+DRIVER_INIT_MEMBER(twincobr_state,fshark)
+{
+	twincobr_driver_savestate();
+	
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00A036, 0x00A037, read16_delegate(FUNC(twincobr_state::fshark_boot_speed1_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x00A0BA, 0x00A0BB, read16_delegate(FUNC(twincobr_state::fshark_boot_speed2_r),this));
+
+	
+}
+
+	
+
+GAME( 1987, fshark,    0,        fshark,   fshark,    twincobr_state,  fshark, ROT270, "Toaplan / Taito Corporation", "Flying Shark (World)", 0 )
 GAME( 1987, skyshark,  fshark,   fshark,   skyshark,  twincobr_state,  twincobr, ROT270, "Toaplan / Taito America Corporation (Romstar license)", "Sky Shark (US, set 1)", 0 )
 GAME( 1987, skysharka, fshark,   fshark,   skyshark,  twincobr_state,  twincobr, ROT270, "Toaplan / Taito America Corporation (Romstar license)", "Sky Shark (US, set 2)", 0 )
 GAME( 1987, hishouza,  fshark,   fshark,   hishouza,  twincobr_state,  twincobr, ROT270, "Toaplan / Taito Corporation", "Hishou Zame (Japan)", 0 )

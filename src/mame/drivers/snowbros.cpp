@@ -76,7 +76,7 @@ a joystick.  This is not an emulation bug.
 
 #include "emu.h"
 #include "includes/snowbros.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "cpu/z80/z80.h"
 #include "sound/2151intf.h"
 #include "sound/3812intf.h"
@@ -1655,7 +1655,7 @@ MACHINE_RESET_MEMBER(snowbros_state,finalttr)
 static MACHINE_CONFIG_START( snowbros, snowbros_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz/2) /* 8 Mhz - confirmed */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz/2) /* 8 Mhz - confirmed */
 	MCFG_CPU_PROGRAM_MAP(snowbros_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", snowbros_state, snowbros_irq, "screen", 0, 1)
 	MCFG_WATCHDOG_ADD("watchdog")
@@ -1750,7 +1750,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( honeydol, snowbros_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_12MHz) /* MC68000P12 @ 12MHz */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_12MHz) /* MC68000P12 @ 12MHz */
 	MCFG_CPU_PROGRAM_MAP(honeydol_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", snowbros_state, snowbros_irq, "screen", 0, 1)
 
@@ -1788,7 +1788,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( twinadv, snowbros_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_12MHz) /* 12MHz like Honey Dolls ? */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_12MHz) /* 12MHz like Honey Dolls ? */
 	MCFG_CPU_PROGRAM_MAP(twinadv_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", snowbros_state, snowbros_irq, "screen", 0, 1)
 	MCFG_WATCHDOG_ADD("watchdog")
@@ -1868,7 +1868,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( snowbro3, snowbros_state ) /* PCB has 16MHz & 12MHz OSCs */
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_12MHz) /* MC68000P10 CPU @ 12mhz or 8MHz (16MHz/2) ? */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_12MHz) /* MC68000P10 CPU @ 12mhz or 8MHz (16MHz/2) ? */
 	MCFG_CPU_PROGRAM_MAP(snowbros3_map)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", snowbros_state, snowbros3_irq, "screen", 0, 1)
 	MCFG_WATCHDOG_ADD("watchdog")

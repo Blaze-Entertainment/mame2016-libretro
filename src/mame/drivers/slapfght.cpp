@@ -1033,7 +1033,7 @@ static MACHINE_CONFIG_START( tigerh, slapfght_state )
 	MCFG_CPU_ADD("mcu", M68705, XTAL_36MHz/12) // 3MHz
 	MCFG_CPU_PROGRAM_MAP(tigerh_m68705_map)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(600))
 
 	/* video hardware */
 	MCFG_BUFFERED_SPRITERAM8_ADD("spriteram")
@@ -1098,7 +1098,7 @@ static MACHINE_CONFIG_START( slapfigh, slapfght_state )
 	MCFG_CPU_ADD("mcu", M68705, XTAL_36MHz/12) // 3MHz
 	MCFG_CPU_PROGRAM_MAP(slapfight_m68705_map)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(600))
 
 	/* video hardware */
 	MCFG_BUFFERED_SPRITERAM8_ADD("spriteram")
@@ -1960,6 +1960,43 @@ ROM_START( grdian )
 	ROM_LOAD( "rom19.12p",        0x0200,  0x0100, CRC(513224f0) SHA1(15b34612206138f6fc5f7478925b1fff2ed56aa8) )
 ROM_END
 
+
+ROM_START( grdiana )
+	ROM_REGION( 0x18000, "maincpu", 0 )     /* Region 0 - main cpu code */
+	ROM_LOAD( "a68_00a.8p", 0x00000, 0x4000, CRC(5f6aaa78) SHA1(aa0e39f068bb2b4e5c52ce1a779916f2e3d8873d) )
+	ROM_LOAD( "a68_01a.8n", 0x04000, 0x4000, CRC(a7b63eba) SHA1(257844a25705747903b36fb9d31f9cb23727b082) )
+	ROM_LOAD( "a68_02.8k", 0x10000, 0x8000, CRC(3567da17) SHA1(29d698606d0bd30abfc3171d79bfad95b0de89fc) )
+
+	ROM_REGION( 0x10000, "audiocpu", 0 )        /* Region 3 - sound cpu code */
+	ROM_LOAD( "a68-03.12d", 0x0000, 0x2000, CRC(18daa44c) SHA1(1a3d22a186c591321d1b836ee30d89fba4771122) )
+
+	ROM_REGION( 0x0800, "mcu", 0 )  /* 2k for the microcontroller */
+	ROM_LOAD( "a68_14.6a", 0x0000, 0x0800, CRC(87c4ca48) SHA1(ae15dab7adde7ad2381ca3d70331891c8f3bcc42) )
+
+	ROM_REGION( 0x04000, "gfx1", 0 )    /* Region 1 - temporary for gfx */
+	ROM_LOAD( "a68_05-1.6f", 0x00000, 0x2000, CRC(06f60107) SHA1(c5dcf0c7a5863ea960ee747d2d7ec7ac8bb7d3af) ) /* Chars */
+	ROM_LOAD( "a68_04-1.6g", 0x02000, 0x2000, CRC(1fc8f277) SHA1(59dc1a0fad23b1e98abca3d0b1685b9d2939b059) )
+
+	ROM_REGION( 0x20000, "gfx2", 0 )    /* Region 1 - temporary for gfx */
+	ROM_LOAD( "a68_09.4m", 0x00000, 0x8000, CRC(a293cc2e) SHA1(a2c2598e92982d13b51cbb6efb4b963142233433) ) /* Tiles */
+	ROM_LOAD( "a68_08.6m", 0x08000, 0x8000, CRC(37662375) SHA1(46ba8a3f0b553d476ecf431d0d20556896b4ca43) )
+	ROM_LOAD( "a68_07.6n", 0x10000, 0x8000, CRC(cf1a964c) SHA1(e9223c8d4f3bdafed193a1ded63e377f16f45e17) )
+	ROM_LOAD( "a68_06.6p", 0x18000, 0x8000, CRC(05f9eb9a) SHA1(a71640a63b259799086d361ef293aa26cec46a0c) )
+
+	ROM_REGION( 0x20000, "gfx3", 0 )    /* Region 1 - temporary for gfx */
+	ROM_LOAD( "a68-13.8j", 0x00000, 0x8000, CRC(643fb282) SHA1(d904d3c27c2b56341929c5eed4ea97e948c53c34) ) /* Sprites */
+	ROM_LOAD( "a68-12.6j", 0x08000, 0x8000, CRC(11f74e32) SHA1(02d8b4cc679f45a02c4989f2b62cde91b7418235) )
+	ROM_LOAD( "a68-11.8h", 0x10000, 0x8000, CRC(f24158cf) SHA1(db4c6b68a488b0798ea5f793ac8ced283a8ecab2) )
+	ROM_LOAD( "a68-10.6h", 0x18000, 0x8000, CRC(83161ed0) SHA1(a6aa28f22f487dc3a2ec07935e6d42bcdd1eff81) )
+
+	ROM_REGION( 0x0300, "proms", 0 )
+	ROM_LOAD( "rom21.12q", 0x0000, 0x0100, CRC(d6360b4d) SHA1(3e64548c82a3378fc091e104cdc2b0c7e592fc44) )
+	ROM_LOAD( "rom20.12m", 0x0100, 0x0100, CRC(4ca01887) SHA1(2892c89d5e60f1d10593adffff55c1a9654e8209) )
+	ROM_LOAD( "rom19.12p", 0x0200, 0x0100, CRC(513224f0) SHA1(15b34612206138f6fc5f7478925b1fff2ed56aa8) )
+ROM_END
+
+
+
 ROM_START( getstarj )
 	ROM_REGION( 0x18000, "maincpu", 0 )     /* Region 0 - main cpu code */
 	ROM_LOAD( "a68_00.8p",   0x00000, 0x4000, CRC(ad1a0143) SHA1(0d9adeb12bd4d5ad11e5bada0cd7498bc565c1db) )
@@ -2080,6 +2117,7 @@ GAME( 1986, slapfighb2, alcon,    slapfighb2, slapfigh,  slapfght_state, slapfig
 GAME( 1986, slapfighb3, alcon,    slapfighb2, slapfigh,  slapfght_state, slapfigh,  ROT270, "bootleg", "Slap Fight (bootleg set 3)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL ) // PCB labeled 'slap fighter'
 
 GAME( 1986, grdian,     0,        getstar,    getstar,   slapfght_state, getstar,   ROT0,   "Toaplan / Taito America Corporation (Kitkorp license)", "Guardian (US)", MACHINE_SUPPORTS_SAVE )
+GAME( 1986, grdiana,    grdian,   slapfigh,   getstarj,  slapfght_state, slapfigh,  ROT0,   "Toaplan / Taito", "Guardian (US, set 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1986, getstarj,   grdian,   getstar,    getstarj,  slapfght_state, getstarj,  ROT0,   "Toaplan / Taito", "Get Star (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1986, getstarb1,  grdian,   getstarb1,  getstarj,  slapfght_state, getstarb1, ROT0,   "bootleg", "Get Star (bootleg set 1)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
 GAME( 1986, getstarb2,  grdian,   getstarb2,  getstarb2, slapfght_state, getstarb2, ROT0,   "bootleg", "Get Star (bootleg set 2)", MACHINE_SUPPORTS_SAVE )

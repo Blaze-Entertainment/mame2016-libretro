@@ -201,6 +201,6 @@ public:
 	DECLARE_WRITE8_MEMBER(sound_status_changed);
 	int m_soundstatustrigger;
 	int m_soundstatustrigger2;
-	void device_post_load();
+	void device_post_load() override;
 
 };

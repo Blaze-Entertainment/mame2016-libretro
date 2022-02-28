@@ -153,33 +153,6 @@ Pipi & Bibis     | Fix Eight        | V-Five           | Snow Bros. 2     |
 #define GP9001_PRIMASK (0x000f)
 #define GP9001_PRIMASK_TMAPS (0x000e)
 
-WRITE16_MEMBER( gp9001vdp_device::gp9001_bg_tmap_w )
-{
-	COMBINE_DATA(&m_vram_bg[offset]);
-	bg.tmap->mark_tile_dirty(offset/2);
-}
-
-WRITE16_MEMBER( gp9001vdp_device::gp9001_fg_tmap_w )
-{
-	COMBINE_DATA(&m_vram_fg[offset]);
-	fg.tmap->mark_tile_dirty(offset/2);
-}
-
-WRITE16_MEMBER( gp9001vdp_device::gp9001_top_tmap_w )
-{
-	COMBINE_DATA(&m_vram_top[offset]);
-	top.tmap->mark_tile_dirty(offset/2);
-}
-
-
-DEVICE_ADDRESS_MAP_START( map, 16, gp9001vdp_device )
-	AM_RANGE(0x0000, 0x0fff) AM_RAM_WRITE(gp9001_bg_tmap_w) AM_SHARE("vram_bg")
-	AM_RANGE(0x1000, 0x1fff) AM_RAM_WRITE(gp9001_fg_tmap_w) AM_SHARE("vram_fg")
-	AM_RANGE(0x2000, 0x2fff) AM_RAM_WRITE(gp9001_top_tmap_w) AM_SHARE("vram_top")
-	AM_RANGE(0x3000, 0x37ff) AM_RAM AM_SHARE("spriteram") AM_MIRROR(0x0800)
-//  AM_RANGE(0x3800, 0x3fff) AM_RAM // sprite mirror?
-ADDRESS_MAP_END
-
 
 const gfx_layout gp9001vdp_device::tilelayout =
 {
@@ -216,20 +189,10 @@ const device_type GP9001_VDP = &device_creator<gp9001vdp_device>;
 gp9001vdp_device::gp9001vdp_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
 	: device_t(mconfig, GP9001_VDP, "GP9001 VDP", tag, owner, clock, "gp9001vdp", __FILE__),
 		device_gfx_interface(mconfig, *this, gfxinfo),
-		device_video_interface(mconfig, *this),
-		device_memory_interface(mconfig, *this),
-		m_space_config("gp9001vdp", ENDIANNESS_BIG, 16,14, 0, address_map_delegate(FUNC(gp9001vdp_device::map), this)),
-		m_vram_bg(*this, "vram_bg"),
-		m_vram_fg(*this, "vram_fg"),
-		m_vram_top(*this, "vram_top"),
-		m_spriteram(*this, "spriteram")
+		device_video_interface(mconfig, *this)
 {
 }
 
-const address_space_config *gp9001vdp_device::memory_space_config(address_spacenum spacenum) const
-{
-	return (spacenum == 0) ? &m_space_config : nullptr;
-}
 
 TILE_GET_INFO_MEMBER(gp9001vdp_device::get_top0_tile_info)
 {
@@ -312,6 +275,12 @@ void gp9001vdp_device::device_start()
 
 	create_tilemaps();
 
+	save_item(NAME(m_vram_bg));
+	save_item(NAME(m_vram_fg));
+	save_item(NAME(m_vram_top));
+	save_item(NAME(m_spriteram));
+	save_item(NAME(m_unkram));
+
 	save_pointer(NAME(sp.vram16_buffer.get()), GP9001_SPRITERAM_SIZE/2);
 
 	save_item(NAME(gp9001_scroll_reg));
@@ -371,6 +340,8 @@ void gp9001vdp_device::device_reset()
 	top.flip = 0;
 	sp.flip = 0;
 
+	m_status = 0;
+
 	init_scroll_regs();
 }
 
@@ -384,7 +355,30 @@ int gp9001vdp_device::gp9001_videoram16_r()
 {
 	int offs = gp9001_voffs;
 	gp9001_voffs++;
-	return space().read_word(offs*2);
+//	return space().read_word(offs*2);
+	offs &= 0x1fff;
+
+	if (offs < 0x1000 / 2)
+	{
+		return m_vram_bg[offs];
+	}
+	else if (offs < 0x2000 / 2)
+	{
+		offs -= 0x1000 / 2;
+		return m_vram_fg[offs];
+	}
+	else if (offs < 0x3000 / 2)
+	{
+		offs -= 0x2000 / 2;
+		return m_vram_top[offs];
+	}
+	else if (offs < 0x4000/2)
+	{
+		offs -= 0x3000 / 2;
+		return m_spriteram[offs&0x3ff];
+	}
+
+	return 0;
 }
 
 
@@ -392,13 +386,59 @@ void gp9001vdp_device::gp9001_videoram16_w(UINT16 data, UINT16 mem_mask)
 {
 	int offs = gp9001_voffs;
 	gp9001_voffs++;
-	space().write_word(offs*2, data, mem_mask);
+
+	offs &= 0x1fff;
+
+	switch (offs & 0x1800)
+	{
+	case 0x1800:
+	{
+		offs &= 0x3ff;
+		COMBINE_DATA(&m_spriteram[offs & 0x3ff]);
+		break;
+	}
+	case 0x1000:
+	{
+		offs &= 0x7ff;
+		uint16_t old = m_vram_top[offs];
+
+		COMBINE_DATA(&m_vram_top[offs]);
+
+		if (m_vram_top[offs] != old)
+			top.tmap->mark_tile_dirty(offs / 2);
+
+		break;
+	}
+
+	case 0x800:
+	{
+		offs &= 0x7ff;
+		uint16_t old = m_vram_fg[offs];
+		COMBINE_DATA(&m_vram_fg[offs]);
+
+		if (m_vram_fg[offs] != old)
+			fg.tmap->mark_tile_dirty(offs / 2);
+
+		break;
+	}
+	case 0x000:
+	{
+		uint16_t old = m_vram_bg[offs];
+		COMBINE_DATA(&m_vram_bg[offs]);
+
+		if (m_vram_bg[offs] != old)
+			bg.tmap->mark_tile_dirty(offs / 2);
+		break;
+	}
+	}
+
 }
 
 
 UINT16 gp9001vdp_device::gp9001_vdpstatus_r()
 {
-	return ((m_screen->vpos() + 15) % 262) >= 245;
+	return m_status;
+	//return ((m_screen->vpos() + 15) % 262) >= 245;
 }
 
 void gp9001vdp_device::gp9001_scroll_reg_select_w(UINT16 data, UINT16 mem_mask)
@@ -577,6 +617,7 @@ WRITE16_MEMBER( gp9001vdp_device::gp9001_vdp_w )
 			gp9001_scroll_reg_data_w(data, mem_mask);
 			break;
 	}
+
 }
 
 /* batrider and bbakraid invert the register select lines */
@@ -674,7 +715,389 @@ WRITE16_MEMBER( gp9001vdp_device::pipibibi_bootleg_spriteram16_w )
     Sprite Handlers
 ***************************************************************************/
 
-void gp9001vdp_device::draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect, const UINT8* primap )
+
+
+#define DO_PIX \
+	if (priority >= *dstpri) \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		if (pix & 0xf) \
+		{ \
+			*dstptr++ = pix | color; \
+			*dstpri++ = priority; \
+		} \
+		else \
+		{ \
+			dstptr++; \
+			dstpri++; \
+		} \
+	} \
+	else \
+	{ \
+		dstptr++; \
+		dstpri++; \
+		srcdata++; \
+	}
+
+
+#define DO_PIX_REV \
+	if (priority >= *dstpri) \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		if (pix & 0xf) \
+		{ \
+			*dstptr-- = pix | color; \
+			*dstpri-- = priority; \
+		} \
+		else \
+		{ \
+			dstptr--; \
+			dstpri--; \
+		} \
+	} \
+	else \
+	{ \
+		dstptr--; \
+		dstpri--; \
+		srcdata++; \
+	}
+
+#define DO_PIX_NOINC \
+	if (priority >= *dstpri) \
+	{ \
+		UINT8 pix = *srcdata; \
+		if (pix & 0xf) \
+		{ \
+			*dstptr = pix | color; \
+			*dstpri = priority;	\
+		} \
+	}
+
+
+#define HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+	}
+
+
+#define HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_FLIPX_FLIPY_CLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+	}
+
+#define HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+	}
+
+#define HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				INT16* dstpri = (INT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+void gp9001vdp_device::draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect )
 {
 	const UINT16 primask = (GP9001_PRIMASK << 8);
 
@@ -683,39 +1106,38 @@ void gp9001vdp_device::draw_sprites( bitmap_ind16 &bitmap, const rectangle &clip
 	if (sp.use_sprite_buffer) source = sp.vram16_buffer.get();
 	else source = &m_spriteram[0];
 	int total_elements = gfx(1)->elements();
-	int total_colors = gfx(1)->colors();
 
 	int old_x = (-(sp.scrollx)) & 0x1ff;
 	int old_y = (-(sp.scrolly)) & 0x1ff;
 
 	for (int offs = 0; offs < (GP9001_SPRITERAM_SIZE/2); offs += 4)
 	{
-		int attrib, sprite, color, priority, flipx, flipy, sx, sy;
-		int sprite_sizex, sprite_sizey, dim_x, dim_y, sx_base, sy_base;
-		int bank, sprite_num;
-
-		attrib = source[offs];
-		priority = primap[((attrib & primask)>>8)]+1;
+		const int attrib = source[offs];
+		const int priority = ((attrib & primask) >> 8) << 12;// << 3;
+			
+	//	priority+=1;
 
 		if ((attrib & 0x8000))
 		{
+			int sprite;
 			if (!gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
 			{
 				sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
 			}
 			else        /* Batrider Sprite select bank switching required */
 			{
-				sprite_num = source[offs + 1] & 0x7fff;
-				bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+				const int sprite_num = source[offs + 1] & 0x7fff;
+				const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
 				sprite = (gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
 			}
-			color = (attrib >> 2) & 0x3f;
+			const int color = ((attrib >> 2) & 0x3f) << 4;
 
 			/***** find out sprite size *****/
-			sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
-			sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
+			const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
+			const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
 
 			/***** find position to display sprite *****/
+			int sx_base, sy_base;
 			if (!(attrib & 0x4000))
 			{
 				sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
@@ -729,8 +1151,8 @@ void gp9001vdp_device::draw_sprites( bitmap_ind16 &bitmap, const rectangle &clip
 			old_x = sx_base;
 			old_y = sy_base;
 
-			flipx = attrib & GP9001_SPRITE_FLIPX;
-			flipy = attrib & GP9001_SPRITE_FLIPY;
+			int flipx = attrib & GP9001_SPRITE_FLIPX;
+			int flipy = attrib & GP9001_SPRITE_FLIPY;
 
 			if (flipx)
 			{
@@ -767,92 +1189,172 @@ void gp9001vdp_device::draw_sprites( bitmap_ind16 &bitmap, const rectangle &clip
 			flipy = (flipy ^ (sp.flip & GP9001_SPRITE_FLIPY));
 
 			/***** Draw the complete sprites using the dimension info *****/
-			for (dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
+			for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
 			{
+				int sy;
 				if (flipy) sy = sy_base - dim_y;
 				else       sy = sy_base + dim_y;
-				for (dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+
+				if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
 				{
+					sprite+=sprite_sizex >> 3;
+					continue;
+				}
+
+				for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+				{
+					int sx;
 					if (flipx) sx = sx_base - dim_x;
 					else       sx = sx_base + dim_x;
 
-					/*
-					gfx->transpen(bitmap,cliprect,sprite,
-					    color,
-					    flipx,flipy,
-					    sx,sy,0);
-					*/
-					sprite %= total_elements;
-					color %= total_colors;
-					const pen_t *paldata = &palette().pen(color * 16);
+					if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
 					{
-						int yy, xx;
+						sprite++;
+						continue;
+					}
+
+					sprite &= total_elements-1;
+					//color %= total_colors;
+					//const pen_t *paldata = &palette().pen(color * 16);
+					{
 						const UINT8* srcdata = gfx(1)->get_data(sprite);
-						int count = 0;
-						int ystart, yend, yinc;
-						int xstart, xend, xinc;
 
-						if (flipy)
+						if (flipy) // FLIPY 
 						{
-							ystart = 7;
-							yend = -1;
-							yinc = -1;
-						}
-						else
-						{
-							ystart = 0;
-							yend = 8;
-							yinc = 1;
-						}
-
-						if (flipx)
-						{
-							xstart = 7;
-							xend = -1;
-							xinc = -1;
-						}
-						else
-						{
-							xstart = 0;
-							xend = 8;
-							xinc = 1;
-						}
-
-						for (yy=ystart;yy!=yend;yy+=yinc)
-						{
-							int drawyy = yy+sy;
-
-
-							for (xx=xstart;xx!=xend;xx+=xinc)
+							if (flipx) // FLIPY AND FLIP X
 							{
-								int drawxx = xx+sx;
-
-								if (cliprect.contains(drawxx, drawyy))
-								{
-									UINT8 pix = srcdata[count];
-									UINT16* dstptr = &bitmap.pix16(drawyy, drawxx);
-									UINT8* dstpri = &this->custom_priority_bitmap->pix8(drawyy, drawxx);
-
-									if (priority >= dstpri[0])
+								// --------------------------
+								if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+								{ // x unclipped
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{  // fully unclipped
+										HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY;
+									}
+									else
+									{ // x unclipped, y clipped
+										HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY;
+									}
+								}
+								else
+								{  // FLIPY AND FLIP X fully clipped
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
 									{
-										if (pix&0xf)
-										{
-											dstptr[0] = paldata[pix];
-											dstpri[0] = priority;
-
-										}
+										HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY;
+									}
+									else
+									{
+										HANDLE_FLIPX_FLIPY_CLIPX_CLIPY;
 									}
 								}
 
+								// --------------------------
+							}
+							else // FLIPY AND NO FLIPX
+							{
+								// --------------------------
 
-								count++;
+								if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+								{ // x doesn't need clipping
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{  // fully unclipped
+#if 1
+										HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+#endif
+									}
+									else
+									{  // y needs clipping
+#if 1
+										HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY;
+#endif
+									}
+
+								}
+								else // with clipping
+								{
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{
+										HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY;
+									}
+									else
+									{
+										HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY;
+									}
+								}
+
+								// --------------------------
 							}
 						}
+						else  // NO FLIP Y
+						{
+							if (flipx)  // NO FLIP Y, FLIP X
+							{
+								// -------------------------
+								if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+								{ // x doesn't need clipping
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{  // fully unclipped
+#if 1
+										HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+#endif
+									}
+									else // x not clipped, y is
+									{
+#if 1
+										HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY;
+#endif
+									}
+								}
+								else // clipping required
+								{
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{
+										HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY;
+									}
+									else
+									{
+										HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY;
+									}
+								}
+								// -------------------
+							}
+							else  // NO FLIP Y, NO FLIP X
+							{
+								// -------------------------
+			
+								if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+								{ // x doesn't need clipping
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{  // fully unclipped
+#if 1
+										HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+#endif
+									}
+									else
+									{ // y needs clipping
+#if 1
+										HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+#endif
+									}
 
+								}
+								else // with clipping
+								{
+									if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+									{
+										HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+									}
+									else
+									{
+										HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
+									}
+								}
 
+								// -------------------
+							}
+						}
 					}
 
-					sprite++ ;
+					sprite++;
 				}
 			}
 		}
@@ -864,58 +1366,304 @@ void gp9001vdp_device::draw_sprites( bitmap_ind16 &bitmap, const rectangle &clip
     Draw the game screen in the given bitmap_ind16.
 ***************************************************************************/
 
-void gp9001vdp_device::gp9001_draw_custom_tilemap( bitmap_ind16 &bitmap, tilemap_t* tilemap, const UINT8* priremap, const UINT8* pri_enable )
+
+void gp9001vdp_device::gp9001_draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle &cliprect)
 {
-	int width = m_screen->width();
-	int height = m_screen->height();
-	int y,x;
-	bitmap_ind16 &tmb = tilemap->pixmap();
-	UINT16* srcptr;
+	bitmap_ind16& tmbbg = bg.tmap->pixmap();
+	bitmap_ind16& tmbfg = fg.tmap->pixmap();
+	bitmap_ind16& tmbtop = top.tmap->pixmap();
+
+	UINT16* srcptrbg;
+	UINT16* srcptrfg;
+	UINT16* srcptrtop;
+
+
 	UINT16* dstptr;
-	UINT8* dstpriptr;
+	INT16* dstpriptr;
 
-	int scrollx = tilemap->scrollx(0);
-	int scrolly = tilemap->scrolly(0);
+	int scrollxbg = bg.tmap->scrollx(0);
+	int scrollybg = bg.tmap->scrolly(0);
+	int scrollxfg = fg.tmap->scrollx(0);
+	int scrollyfg = fg.tmap->scrolly(0);
+	int scrollxtop = top.tmap->scrollx(0);
+	int scrollytop = top.tmap->scrolly(0);
 
-	for (y=0;y<height;y++)
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
 	{
-		int realy = (y+scrolly)&0x1ff;
+		int realybg = (y + scrollybg) & 0x1ff;
+		int realyfg = (y + scrollyfg) & 0x1ff;
+		int realytop = (y + scrollytop) & 0x1ff;
 
-		srcptr = &tmb.pix16(realy);
+		srcptrbg = &tmbbg.pix16(realybg);
+		srcptrfg = &tmbfg.pix16(realyfg);
+		srcptrtop = &tmbtop.pix16(realytop);
+
 		dstptr = &bitmap.pix16(y);
-		dstpriptr = &this->custom_priority_bitmap->pix8(y);
+		dstpriptr = (INT16*)&this->custom_priority_bitmap->pix16(y);
 
-		for (x=0;x<width;x++)
+		for (int x = cliprect.min_x; x <= cliprect.max_x; x++)
 		{
-			int realx = (x+scrollx)&0x1ff;
+			int realxbg = (x + scrollxbg) & 0x1ff;
+			int realxfg = (x + scrollxfg) & 0x1ff;
+			int realxtop = (x + scrollxtop) & 0x1ff;
 
-			UINT16 pixdat = srcptr[realx];
-			UINT8 pixpri = ((pixdat & (GP9001_PRIMASK_TMAPS<<12))>>12);
+			UINT16 pixdatbg = srcptrbg[realxbg];
+			UINT16 pixdatfg = srcptrfg[realxfg];
+			UINT16 pixdattop = srcptrtop[realxtop];
 
-			if (pri_enable[pixpri])
+			if (pixdattop & 0xf) // if top pixel is visible (and mid + bottom potentially are)
 			{
-				pixpri = priremap[pixpri]+1; // priority of 0 isn't desireable
-				pixdat &=0x07ff;
-
-				if (pixdat&0xf)
+				if (pixdatfg & 0xf) // if top pixel is visible, mid pixel is visible, and bottom potentially is
 				{
-					if (pixpri >= dstpriptr[x])
+					if (pixdatbg & 0xf) // if top pixel is visible, mid pixel is visible and bottom pixel is visible
 					{
-						dstptr[x] = pixdat;
-						dstpriptr[x] = pixpri;
+						UINT16 pixpritop = (pixdattop & 0xe000);
+						UINT16 pixprifg = (pixdatfg & 0xe000);
+						UINT16 pixpribg = (pixdatbg & 0xe000);
+
+						if (pixpribg > pixprifg) // bg is greater than fg, so fg will never be drawn
+						{
+							if (pixpribg > pixpritop) // bg is greater than top, so bg is drawn
+							{
+								//pixpribg >>= 12;
+								if (pixpribg > *dstpriptr)
+								{
+									*dstptr++ = pixdatbg &0x07ff;
+									*dstpriptr++ = pixpribg;
+								}
+								else
+								{
+									// sprite wins
+									dstptr++;
+									dstpriptr++;
+								}
+							}
+							else
+							{
+								//pixpritop >>= 12;
+								if (pixpritop > *dstpriptr)
+								{
+									*dstptr++ = pixdattop &0x07ff;
+									*dstpriptr++ = pixpritop;
+								}
+								else
+								{
+									// sprite wins
+									dstptr++;
+									dstpriptr++;
+								}
+							}
+
+						}
+						else // fg is greater than bg, so bg will never be drawn
+						{
+							if (pixprifg > pixpritop) // fg is greater than top, so top never drawn
+							{
+								//pixprifg >>= 12;
+								if (pixprifg > *dstpriptr)
+								{
+									*dstptr++ = pixdatfg &0x07ff;
+									*dstpriptr++ = pixprifg;
+								}
+								else
+								{
+									// sprite wins
+									dstptr++;
+									dstpriptr++;
+								}
+							}
+							else // fg is lower than top, so fg never drawn
+							{
+								//pixpritop >>= 12;
+								if (pixpritop > *dstpriptr)
+								{
+									*dstptr++ = pixdattop &0x07ff;
+									*dstpriptr++ = pixpritop;
+								}
+								else
+								{
+									// sprite wins
+									dstptr++;
+									dstpriptr++;
+								}
+							}
+						}
+					}
+					else // if top pixel is visible, mid pixel is visible and bottom is not
+					{
+						UINT16 pixpritop = (pixdattop & 0xe000);
+						UINT16 pixprifg = (pixdatfg & 0xe000);
+
+						if (pixprifg > pixpritop)
+						{
+							//pixprifg >>= 12;
+							if (pixprifg > *dstpriptr)
+							{
+								*dstptr++ = pixdatfg &0x07ff;
+								*dstpriptr++ = pixprifg;
+							}
+							else
+							{
+								// sprite wins
+								dstptr++;
+								dstpriptr++;
+							}
+						}
+						else
+						{
+							//pixpritop >>= 12;
+							if (pixpritop > *dstpriptr)
+							{
+								*dstptr++ = pixdattop &0x07ff;
+								*dstpriptr++ = pixpritop;
+							}
+							else
+							{
+								// sprite wins
+								dstptr++;
+								dstpriptr++;
+							}
+						}
 					}
 				}
+				else // if top pixel is visible, mid pixel is NOT, but bottom potentially is
+				{
+					if (pixdatbg & 0xf) // if top pixel is visible, mid pixel is NOT, but bottom IS
+					{
+						UINT16 pixpritop = (pixdattop & 0xe000);
+						UINT16 pixpribg = (pixdatbg & 0xe000);
+
+						if (pixpribg > pixpritop)
+						{
+							//pixpribg >>= 12;
+							if (pixpribg > *dstpriptr)
+							{
+								*dstptr++ = pixdatbg &0x07ff;
+								*dstpriptr++ = pixpribg;
+							}
+							else
+							{
+								// sprite wins
+								dstptr++;
+								dstpriptr++;
+							}
+						}
+						else
+						{
+							//pixpritop >>= 12;
+							if (pixpritop > *dstpriptr)
+							{
+								*dstptr++ = pixdattop &0x07ff;
+								*dstpriptr++ = pixpritop;
+							}
+							else
+							{
+								// sprite wins
+								dstptr++;
+								dstpriptr++;
+							}
+						}
+					}
+					else  // if top pixel is visible mid is not, bottom is not
+					{
+						UINT16 pixpritop = (pixdattop & 0xe000);
+						if (pixpritop > *dstpriptr)
+						{
+							*dstptr++ = pixdattop &0x07ff;
+							*dstpriptr++ = pixpritop;
+						}
+						else
+						{
+							// sprite wins
+							dstptr++;
+							dstpriptr++;
+						}
+					}
+				}
+			}
+			else if (pixdatfg & 0xf)  // if top pixel isn't visible but mid pixel is and bottom potentially is
+			{
+				if (pixdatbg & 0xf) // if top pixel isn't visible, but mid and bottom are
+				{
+
+					UINT16 pixprifg = (pixdatfg & 0xe000);
+					UINT16 pixpribg = (pixdatbg & 0xe000);
+
+					if (pixpribg > pixprifg)
+					{
+						//pixpribg >>= 12;
+						if (pixpribg > *dstpriptr)
+						{
+							*dstptr++ = pixdatbg &0x07ff;
+							*dstpriptr++ = pixpribg;
+						}
+						else
+						{
+							// sprite wins
+							dstptr++;
+							dstpriptr++;
+						}
+					}
+					else
+					{
+						//pixprifg >>= 12;
+						if (pixprifg > *dstpriptr)
+						{
+							*dstptr++ = pixdatfg &0x07ff;
+							*dstpriptr++ = pixprifg;
+						}
+						else
+						{
+							// sprite wins
+							dstptr++;
+							dstpriptr++;
+						}
+					}
+				}
+				else // if top pixel isn't visible, but mid is, and bottom isn't
+				{
+					UINT16 pixprifg = (pixdatfg & 0xe000);
+					if (pixprifg > *dstpriptr)
+					{
+						*dstptr++ = pixdatfg &0x07ff;
+						*dstpriptr++ = pixprifg;
+					}
+					else
+					{
+						// sprite wins
+						dstptr++;
+						dstpriptr++;
+					}
+				}
+			}
+			else if (pixdatbg & 0xf)  // if top pixel and mid pixels aren't visible, but bottom is
+			{
+				UINT16 pixpribg = (pixdatbg & 0xe000);
+				if (pixpribg > *dstpriptr)
+				{
+					*dstptr++ = pixdatbg &0x07ff;
+					*dstpriptr++ = pixpribg;
+				}
+				else
+				{
+					// sprite wins
+					dstptr++;
+					dstpriptr++;
+				}
+
+			}
+			else
+			{
+				// sprite wins
+				dstptr++;
+				dstpriptr++;
 			}
 		}
 	}
 }
 
 
-static const UINT8 gp9001_primap1[16] =  { 0x00, 0x04, 0x08, 0x0c, 0x10, 0x14, 0x18, 0x1c, 0x20, 0x24, 0x28, 0x2c, 0x30, 0x34, 0x38, 0x3c };
-//static const UINT8 gp9001_sprprimap1[16] =  { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
-static const UINT8 gp9001_sprprimap1[16] =  { 0x00, 0x04, 0x08, 0x0c, 0x10, 0x14, 0x18, 0x1c, 0x20, 0x24, 0x28, 0x2c, 0x30, 0x34, 0x38, 0x3c };
 
-static const UINT8 batsugun_prienable0[16]={ 1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1,    1 };
 
 void gp9001vdp_device::gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
@@ -926,10 +1674,8 @@ void gp9001vdp_device::gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &
 		gp9001_gfxrom_bank_dirty = 0;
 	}
 
-	gp9001_draw_custom_tilemap(bitmap, bg.tmap, gp9001_primap1, batsugun_prienable0);
-	gp9001_draw_custom_tilemap(bitmap, fg.tmap, gp9001_primap1, batsugun_prienable0);
-	gp9001_draw_custom_tilemap(bitmap, top.tmap, gp9001_primap1, batsugun_prienable0);
-	draw_sprites(bitmap,cliprect, gp9001_sprprimap1);
+	draw_sprites(bitmap,cliprect);
+	gp9001_draw_mixed_tilemap(bitmap, cliprect);
 }
 
 

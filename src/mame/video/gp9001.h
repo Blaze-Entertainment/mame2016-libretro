@@ -32,15 +32,14 @@ struct gp9001spritelayer : gp9001layer
 
 class gp9001vdp_device : public device_t,
 							public device_gfx_interface,
-							public device_video_interface,
-							public device_memory_interface
+							public device_video_interface
 {
 	static const gfx_layout tilelayout, spritelayout;
 	DECLARE_GFXDECODE_MEMBER(gfxinfo);
 
 public:
 	gp9001vdp_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock);
-
+	void set_status(int status) { m_status = status; }
 	UINT16 gp9001_voffs;
 	UINT16 gp9001_scroll_reg;
 
@@ -55,16 +54,14 @@ public:
 	UINT16 gp9001_gfxrom_bank[8];       /* Batrider object bank */
 
 
-	void draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect, const UINT8* primap );
-	void gp9001_draw_custom_tilemap( bitmap_ind16 &bitmap, tilemap_t* tilemap, const UINT8* priremap, const UINT8* pri_enable );
+	void draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect );
+	void gp9001_draw_mixed_tilemap( bitmap_ind16 &bitmap, const rectangle &cliprect );
 	void gp9001_render_vdp( bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void gp9001_screen_eof(void);
 	void create_tilemaps(void);
 	void init_scroll_regs(void);
 
-	bitmap_ind8 *custom_priority_bitmap;
-
-	DECLARE_ADDRESS_MAP(map, 16);
+	bitmap_ind16 *custom_priority_bitmap;
 
 	// access to VDP
 	DECLARE_READ16_MEMBER( gp9001_vdp_r );
@@ -83,31 +80,31 @@ public:
 	DECLARE_WRITE16_MEMBER( gp9001_bg_tmap_w );
 	DECLARE_WRITE16_MEMBER( gp9001_fg_tmap_w );
 	DECLARE_WRITE16_MEMBER( gp9001_top_tmap_w );
+	
+	UINT16 gp9001_vdpstatus_r(void);
 
 protected:
 	virtual void device_start() override;
 	virtual void device_reset() override;
-
-	virtual const address_space_config *memory_space_config(address_spacenum spacenum = AS_0) const override;
-
-	address_space_config        m_space_config;
 
 	TILE_GET_INFO_MEMBER(get_top0_tile_info);
 	TILE_GET_INFO_MEMBER(get_fg0_tile_info);
 	TILE_GET_INFO_MEMBER(get_bg0_tile_info);
 
 private:
-	required_shared_ptr<UINT16> m_vram_bg;
-	required_shared_ptr<UINT16> m_vram_fg;
-	required_shared_ptr<UINT16> m_vram_top;
-	required_shared_ptr<UINT16> m_spriteram;
+	UINT16 m_vram_bg[0x800];
+	UINT16 m_vram_fg[0x800];
+	UINT16 m_vram_top[0x800];
+	UINT16 m_spriteram[0x800];
+	UINT16 m_unkram[0x800];
 
-	void gp9001_voffs_w(UINT16 data, UINT16 mem_mask);
-	int gp9001_videoram16_r(void);
-	void gp9001_videoram16_w(UINT16 data, UINT16 mem_mask);
-	UINT16 gp9001_vdpstatus_r(void);
-	void gp9001_scroll_reg_select_w(UINT16 data, UINT16 mem_mask);
-	void gp9001_scroll_reg_data_w(UINT16 data, UINT16 mem_mask);
+	int m_status;
+
+	inline void gp9001_voffs_w(UINT16 data, UINT16 mem_mask);
+	inline int gp9001_videoram16_r(void);
+	inline void gp9001_videoram16_w(UINT16 data, UINT16 mem_mask);
+	inline void gp9001_scroll_reg_select_w(UINT16 data, UINT16 mem_mask);
+	inline void gp9001_scroll_reg_data_w(UINT16 data, UINT16 mem_mask);
 };
 
 extern const device_type GP9001_VDP;

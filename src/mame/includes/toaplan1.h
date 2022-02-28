@@ -5,7 +5,7 @@
                 ------------------------------------
 ****************************************************************************/
 
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "video/toaplan_scu.h"
 
 class toaplan1_state : public driver_device
@@ -13,6 +13,10 @@ class toaplan1_state : public driver_device
 public:
 	toaplan1_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
+		m_dswa(*this, "DSWA"),
+		m_dswb(*this, "DSWB"),
+		m_jmpr(*this, "TJUMP"),
+		m_mainram(*this, "mainram"),
 		m_bgpaletteram(*this, "bgpalette"),
 		m_fgpaletteram(*this, "fgpalette"),
 		m_sharedram(*this, "sharedram"),
@@ -24,10 +28,21 @@ public:
 		m_screen(*this, "screen"),
 		m_palette(*this, "palette") { }
 
+	optional_ioport m_dswa;
+	optional_ioport m_dswb;
+	optional_ioport m_jmpr;
+
+	optional_shared_ptr<UINT16> m_mainram;
 	required_shared_ptr<UINT16> m_bgpaletteram;
 	required_shared_ptr<UINT16> m_fgpaletteram;
 
+	int m_bgpaldirty[0x400];
+	int m_fgpaldirty[0x400];
+
 	optional_shared_ptr<UINT8> m_sharedram;
+
+	DECLARE_WRITE_LINE_MEMBER( truxton_soundirq_w );
+	
 
 	int m_coin_count; /* coin count increments on startup ? , so don't count it */
 	int m_intenable;
@@ -39,9 +54,6 @@ public:
 	UINT32 m_dsp_addr_w;
 	UINT32 m_main_ram_seg;
 
-	UINT8 m_vimana_coins[2];
-	UINT8 m_vimana_credits;
-	UINT8 m_vimana_latch;
 
 	std::unique_ptr<UINT16[]> m_pf4_tilevram16;   /*  ||  Drawn in this order */
 	std::unique_ptr<UINT16[]> m_pf3_tilevram16;   /*  ||  */
@@ -84,6 +96,16 @@ public:
 	tilemap_t *m_pf3_tilemap;
 	tilemap_t *m_pf4_tilemap;
 
+	uint8_t m_to_mcu;
+	uint8_t m_cmdavailable;
+
+	DECLARE_WRITE16_MEMBER(samesame_mcu_w);
+	DECLARE_READ8_MEMBER(samesame_soundlatch_r);
+	DECLARE_WRITE8_MEMBER(samesame_sound_done_w);
+	DECLARE_READ8_MEMBER(samesame_cmdavailable_r);
+	DECLARE_READ8_MEMBER(vimana_dswb_invert_r);
+	DECLARE_READ8_MEMBER(vimana_tjump_invert_r);
+
 	DECLARE_WRITE16_MEMBER(toaplan1_intenable_w);
 	DECLARE_WRITE16_MEMBER(demonwld_dsp_addrsel_w);
 	DECLARE_READ16_MEMBER(demonwld_dsp_r);
@@ -92,9 +114,6 @@ public:
 	DECLARE_READ16_MEMBER(demonwld_BIO_r);
 	DECLARE_WRITE16_MEMBER(demonwld_dsp_ctrl_w);
 	DECLARE_READ16_MEMBER(samesame_port_6_word_r);
-	DECLARE_READ16_MEMBER(vimana_system_port_r);
-	DECLARE_READ16_MEMBER(vimana_mcu_r);
-	DECLARE_WRITE16_MEMBER(vimana_mcu_w);
 	DECLARE_READ16_MEMBER(toaplan1_shared_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_shared_w);
 	DECLARE_WRITE16_MEMBER(toaplan1_reset_sound_w);
@@ -121,9 +140,15 @@ public:
 	DECLARE_READ16_MEMBER(toaplan1_scroll_regs_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_scroll_regs_w);
 
+	DECLARE_READ16_MEMBER(truxton_main_skip_r);
+	DECLARE_READ8_MEMBER(truxton_sound_skip_r);
+
 	DECLARE_DRIVER_INIT(toaplan1);
 	DECLARE_DRIVER_INIT(demonwld);
 	DECLARE_DRIVER_INIT(vimana);
+	DECLARE_DRIVER_INIT(truxton);
+	DECLARE_DRIVER_INIT(fireshrk);
+
 	TILE_GET_INFO_MEMBER(get_pf1_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf2_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf3_tile_info);
@@ -153,12 +178,15 @@ public:
 	void demonwld_driver_savestate();
 	void vimana_driver_savestate();
 	DECLARE_WRITE_LINE_MEMBER(toaplan1_reset_callback);
-	required_device<m68000_device> m_maincpu;
+	required_device<simpletoaplan_m68000_device> m_maincpu;
 	required_device<cpu_device> m_audiocpu;
 	optional_device<cpu_device> m_dsp;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
+
+	void draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, bitmap_ind8& priority);
+	int m_vblank;
 };
 
 class toaplan1_rallybik_state : public toaplan1_state

@@ -1394,6 +1394,30 @@ if (CPUS["M680X0"]~=null or _OPTIONS["with-tools"]) then
 end
 
 --------------------------------------------------
+-- Motorola 68000 series
+--@src/devices/cpu/simpletoaplan_m68000/m68000.h,CPUS["SIMPLETOAPLAN_M680X0"] = true
+--------------------------------------------------
+
+if (CPUS["SIMPLETOAPLAN_M680X0"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kcpu.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kcpu.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kops.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kops.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68000.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kfpu.hxx",
+		--MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kmake.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kmmu.h",
+		--MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68k_in.cpp",
+	}
+end
+
+if (CPUS["SIMPLETOAPLAN_M680X0"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/simpletoaplan_m68000/m68kdasm.cpp")
+end
+
+
+--------------------------------------------------
 -- Motorola/Freescale dsp56k
 --@src/devices/cpu/dsp56k/dsp56k.h,CPUS["DSP56156"] = true
 --------------------------------------------------
