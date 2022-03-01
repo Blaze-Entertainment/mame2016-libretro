@@ -272,13 +272,13 @@ static ADDRESS_MAP_START( astdelux_map, AS_PROGRAM, 8, asteroid_state )
 	AM_RANGE(0x3000, 0x3000) AM_DEVWRITE("dvg", dvg_device, go_w)
 	AM_RANGE(0x3200, 0x323f) AM_DEVWRITE("earom", atari_vg_earom_device, write)
 	AM_RANGE(0x3400, 0x3400) AM_DEVWRITE("watchdog", watchdog_timer_device, reset_w)
-	AM_RANGE(0x3600, 0x3600) AM_WRITE(asteroid_explode_w)
+//	AM_RANGE(0x3600, 0x3600) AM_WRITE(asteroid_explode_w)
 	AM_RANGE(0x3a00, 0x3a00) AM_DEVWRITE("earom", atari_vg_earom_device, ctrl_w)
 	AM_RANGE(0x3c00, 0x3c01) AM_WRITE(astdelux_led_w)
-	AM_RANGE(0x3c03, 0x3c03) AM_WRITE(astdelux_sounds_w)
+//	AM_RANGE(0x3c03, 0x3c03) AM_WRITE(astdelux_sounds_w)
 	AM_RANGE(0x3c04, 0x3c04) AM_WRITE(astdelux_bank_switch_w)
 	AM_RANGE(0x3c05, 0x3c07) AM_WRITE(astdelux_coin_counter_w)
-	AM_RANGE(0x3e00, 0x3e00) AM_WRITE(asteroid_noise_reset_w)
+//	AM_RANGE(0x3e00, 0x3e00) AM_WRITE(asteroid_noise_reset_w)
 	AM_RANGE(0x4000, 0x47ff) AM_RAM AM_SHARE("vectorram") AM_REGION("maincpu", 0x4000)
 	AM_RANGE(0x4800, 0x57ff) AM_ROM                     /* vector rom */
 	AM_RANGE(0x6000, 0x7fff) AM_ROM
@@ -687,13 +687,11 @@ static MACHINE_CONFIG_DERIVED( astdelux, asteroid )
 	MCFG_ATARIVGEAROM_ADD("earom")
 
 	/* sound hardware */
-	MCFG_SOUND_REPLACE("discrete", DISCRETE, 0)
-	MCFG_DISCRETE_INTF(astdelux)
-	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
+	MCFG_DEVICE_REMOVE("discrete")
 
 	MCFG_SOUND_ADD("pokey", POKEY, MASTER_CLOCK/8)
 	MCFG_POKEY_ALLPOT_R_CB(IOPORT("DSW2"))
-	MCFG_POKEY_OUTPUT_RC(RES_K(10), CAP_U(0.015), 5.0)
+//	MCFG_POKEY_OUTPUT_RC(RES_K(10), CAP_U(0.015), 5.0)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 

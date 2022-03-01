@@ -18,27 +18,27 @@
 INTERRUPT_GEN_MEMBER(asteroid_state::asteroid_interrupt)
 {
 	/* Turn off interrupts if self-test is enabled */
-	if (!(ioport("IN0")->read() & 0x80))
+	if (!(m_in0->read() & 0x80))
 		device.execute().set_input_line(INPUT_LINE_NMI, PULSE_LINE);
 }
 
 INTERRUPT_GEN_MEMBER(asteroid_state::asterock_interrupt)
 {
 	/* Turn off interrupts if self-test is enabled */
-	if ((ioport("IN0")->read() & 0x80))
+	if ((m_in0->read() & 0x80))
 		device.execute().set_input_line(INPUT_LINE_NMI, PULSE_LINE);
 }
 
 INTERRUPT_GEN_MEMBER(asteroid_state::llander_interrupt)
 {
 	/* Turn off interrupts if self-test is enabled */
-	if (ioport("IN0")->read() & 0x02)
+	if (m_in0->read() & 0x02)
 		device.execute().set_input_line(INPUT_LINE_NMI, PULSE_LINE);
 }
 
 READ8_MEMBER(asteroid_state::asteroid_IN0_r)
 {
-	int res = ioport("IN0")->read();
+	int res = m_in0->read();
 	int bitmask = (1 << offset);
 
 	if (res & bitmask)
@@ -52,7 +52,7 @@ READ8_MEMBER(asteroid_state::asteroid_IN0_r)
 
 READ8_MEMBER(asteroid_state::asterock_IN0_r)
 {
-	int res = ioport("IN0")->read();
+	int res = m_in0->read();
 	int bitmask = (1 << offset);
 
 	if (res & bitmask)
@@ -70,7 +70,7 @@ READ8_MEMBER(asteroid_state::asterock_IN0_r)
 
 READ8_MEMBER(asteroid_state::asteroid_IN1_r)
 {
-	int res = ioport("IN1")->read();
+	int res = m_in1->read();
 	int bitmask = (1 << (offset & 0x7));
 
 	if (res & bitmask)
@@ -87,7 +87,7 @@ READ8_MEMBER(asteroid_state::asteroid_DSW1_r)
 	int res;
 	int res1;
 
-	res1 = ioport("DSW1")->read();
+	res1 = m_dsw1->read();
 
 	res = 0xfc | ((res1 >> (2 * (3 - (offset & 0x3)))) & 0x3);
 	return res;

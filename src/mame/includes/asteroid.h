@@ -14,6 +14,9 @@ class asteroid_state : public driver_device
 public:
 	asteroid_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
+		m_in0(*this, "IN0"),
+		m_in1(*this, "IN1"),
+		m_dsw1(*this, "DSW1"),
 		m_maincpu(*this, "maincpu"),
 		m_dvg(*this, "dvg"),
 		m_discrete(*this, "discrete"),
@@ -21,9 +24,14 @@ public:
 		m_ram2(*this, "ram2") { }
 
 	/* devices */
+	optional_ioport m_in0;
+	optional_ioport m_in1;
+	optional_ioport m_dsw1;
+
+
 	required_device<cpu_device> m_maincpu;
 	required_device<dvg_device> m_dvg;
-	required_device<discrete_device> m_discrete;
+	optional_device<discrete_device> m_discrete;
 
 	/* memory banks */
 	optional_memory_bank m_ram1;
