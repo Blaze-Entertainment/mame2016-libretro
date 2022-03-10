@@ -13,6 +13,7 @@ public:
 		m_eeprom(*this, "eeprom"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_palette(*this, "palette"),
+		m_mainram(*this, "mainram"),
 		m_bg_videoram(*this, "bg_videoram"),
 		m_mlow_videoram(*this, "mlow_videoram"),
 		m_mhigh_videoram(*this, "mhigh_videoram"),
@@ -29,6 +30,7 @@ public:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 
+	required_shared_ptr<UINT16> m_mainram;
 	required_shared_ptr<UINT16> m_bg_videoram;
 	required_shared_ptr<UINT16> m_mlow_videoram;
 	required_shared_ptr<UINT16> m_mhigh_videoram;
@@ -45,6 +47,8 @@ public:
 	tilemap_t *m_tx_tilemap;
 
 	int m_sprxoffs;
+
+	DECLARE_READ16_MEMBER(twinbrat_censor_r);
 
 	DECLARE_WRITE16_MEMBER(stlforce_bg_videoram_w);
 	DECLARE_WRITE16_MEMBER(stlforce_mlow_videoram_w);

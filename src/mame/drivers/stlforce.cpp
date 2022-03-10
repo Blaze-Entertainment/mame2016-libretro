@@ -105,7 +105,8 @@ static ADDRESS_MAP_START( stlforce_map, AS_PROGRAM, 16, stlforce_state )
 	AM_RANGE(0x104000, 0x104fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 	AM_RANGE(0x105000, 0x107fff) AM_RAM /* unknown / ram */
 	AM_RANGE(0x108000, 0x108fff) AM_RAM AM_SHARE("spriteram")
-	AM_RANGE(0x109000, 0x11ffff) AM_RAM
+	AM_RANGE(0x109000, 0x10ffff) AM_RAM
+	AM_RANGE(0x110000, 0x11ffff) AM_RAM AM_SHARE("mainram")
 	AM_RANGE(0x400000, 0x400001) AM_READ_PORT("INPUT")
 	AM_RANGE(0x400002, 0x400003) AM_READ_PORT("SYSTEM")
 	AM_RANGE(0x400010, 0x400011) AM_WRITE(eeprom_w)
@@ -366,9 +367,22 @@ DRIVER_INIT_MEMBER(stlforce_state,stlforce)
 	m_sprxoffs = 0;
 }
 
+
+READ16_MEMBER(stlforce_state::twinbrat_censor_r)
+{
+	//cpu_device* mcpu = (cpu_device*)m_maincpu;
+	//int pc = mcpu->pc();
+	uint16_t ret = m_mainram[0x241e / 2];
+
+	ret &= 0xff00;
+
+	return ret;
+}
+
 DRIVER_INIT_MEMBER(stlforce_state,twinbrat)
 {
 	m_sprxoffs = 9;
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x11241e, 0x11241f, read16_delegate(FUNC(stlforce_state::twinbrat_censor_r), this));
 }
 
 
