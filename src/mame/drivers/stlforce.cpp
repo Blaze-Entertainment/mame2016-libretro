@@ -296,10 +296,7 @@ ROM_START( twinbrat )
 	ROM_LOAD16_BYTE( "3.u104", 0x00001, 0x20000, CRC(b1186a67) SHA1(502074063101885874db76ae707db1082313efcf) )
 
 	ROM_REGION( 0x200000, "gfx1", 0 )
-	ROM_LOAD16_BYTE( "6.bin", 0x000000, 0x80000, CRC(af10ddfd) SHA1(e5e83044f20d6cbbc1b4ef1812ac57b6dc958a8a) )
-	ROM_LOAD16_BYTE( "7.bin", 0x000001, 0x80000, CRC(3696345a) SHA1(ea38be3586757527b2a1aad2e22b83937f8602da) )
-	ROM_LOAD16_BYTE( "4.bin", 0x100000, 0x80000, CRC(1ae8a751) SHA1(5f30306580c6ab4af0ddbdc4519eb4e0ab9bd23a) )
-	ROM_LOAD16_BYTE( "5.bin", 0x100001, 0x80000, CRC(cf235eeb) SHA1(d067e2dd4f28a8986dd76ec0eba90e1adbf5787c) )
+	ROM_LOAD( "gfx11", 0x000000, 0x200000, CRC(6980a261) SHA1(8dce56b2315e25ff1694c99dcb1aad88f9a29e07) )
 
 	ROM_REGION( 0x100000, "gfx2", 0 )
 	ROM_LOAD( "11.bin", 0x000000, 0x40000, CRC(00eecb03) SHA1(5913da4d2ad97c1ce5e8e601a22b499cd93af744) )
@@ -332,10 +329,7 @@ ROM_START( twinbrata )
 	ROM_LOAD16_BYTE( "3.bin", 0x00001, 0x20000, CRC(0e3fa9b0) SHA1(0148cc616eac84dc16415e1557ec6040d14392d4) )
 
 	ROM_REGION( 0x200000, "gfx1", 0 )
-	ROM_LOAD16_BYTE( "6.bin", 0x000000, 0x80000, CRC(af10ddfd) SHA1(e5e83044f20d6cbbc1b4ef1812ac57b6dc958a8a) )
-	ROM_LOAD16_BYTE( "7.bin", 0x000001, 0x80000, CRC(3696345a) SHA1(ea38be3586757527b2a1aad2e22b83937f8602da) )
-	ROM_LOAD16_BYTE( "4.bin", 0x100000, 0x80000, CRC(1ae8a751) SHA1(5f30306580c6ab4af0ddbdc4519eb4e0ab9bd23a) )
-	ROM_LOAD16_BYTE( "5.bin", 0x100001, 0x80000, CRC(cf235eeb) SHA1(d067e2dd4f28a8986dd76ec0eba90e1adbf5787c) )
+	ROM_LOAD( "gfx11", 0x000000, 0x200000, CRC(6980a261) SHA1(8dce56b2315e25ff1694c99dcb1aad88f9a29e07) )
 
 	ROM_REGION( 0x100000, "gfx2", 0 )
 	ROM_LOAD( "11.bin", 0x000000, 0x40000, CRC(00eecb03) SHA1(5913da4d2ad97c1ce5e8e601a22b499cd93af744) )
@@ -379,10 +373,52 @@ READ16_MEMBER(stlforce_state::twinbrat_censor_r)
 	return ret;
 }
 
+void stlforce_state::erase_tile(uint8_t* ptr, int tileno)
+{
+	int addr = tileno * 32 * 4;
+
+	for (int i = 0; i < 32 * 4; i++)
+	{
+		ptr[addr + i] = 0x12;
+	}
+
+}
+
 DRIVER_INIT_MEMBER(stlforce_state,twinbrat)
 {
 	m_sprxoffs = 9;
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x11241e, 0x11241f, read16_delegate(FUNC(stlforce_state::twinbrat_censor_r), this));
+
+	// not strictly neccessary since we load the censored ROM but..
+
+	//1000-1bdf bottom layer
+	//0000-09e1 next layer
+	// 
+	UINT8 *rgn = memregion("gfx1")->base();
+
+	for (int i = 0x1001; i <= 0x1bdf; i++)
+	{
+		erase_tile(rgn, i);
+	}
+
+	for (int i = 0x0001; i <= 0x09e1; i++)
+	{
+		erase_tile(rgn, i);
+	}
+
+#if 0
+	{
+		FILE *fp;
+		char filename[256];
+		sprintf(filename,"censored_%s", machine().system().name);
+		fp=fopen(filename, "w+b");
+		if (fp)
+		{
+			fwrite(rgn, 0x200000, 1, fp);
+			fclose(fp);
+		}
+	}
+#endif
 }
 
 
