@@ -150,7 +150,7 @@ UINT8 v25_common_iremsound_device::fetchop()
 	prefetch();
 
 	if (addr < 0x20000)
-		ret = m_fastrom[addr];
+		return m_fastromdec[addr];
 	else
 		ret = m_direct->read_byte(addr, m_fetch_xor);
 

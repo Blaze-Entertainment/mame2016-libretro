@@ -274,6 +274,7 @@ MACHINE_RESET_MEMBER(m92_state,inthunt)
 
 	UINT8 *ROM2 = memregion("soundcpu")->base();
 	soundcpu->set_rom_ptr(ROM2);
+	soundcpu->set_dec_ptr(decrypted_sound);
 }
 
 
@@ -2385,6 +2386,20 @@ DRIVER_INIT_MEMBER(m92_state,inthunt)
 
 	m_maincpu->set_clock_scale(0.75f);
 	m_soundcpu->set_clock_scale(0.50f);
+
+	UINT8 *ROM = memregion("soundcpu")->base();
+
+	for (int x = 0; x < 0x20000; x++)
+	{
+		int val = ROM[x];
+		val = inthunt_decryption_table[val];
+
+		if (val == -1)
+			val = 0;
+
+		decrypted_sound[x] = val;
+	}
+
 }
 
 

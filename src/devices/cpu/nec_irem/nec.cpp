@@ -125,7 +125,7 @@ const device_type V33AIREM =&device_creator<v33a_irem_device>;
 nec_common_irem_device::nec_common_irem_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname, const char *source, bool is_16bit, offs_t fetch_xor, UINT8 prefetch_size, UINT8 prefetch_cycles, UINT32 chip_type)
 	: cpu_device(mconfig, type, name, tag, owner, clock, shortname, source)
 	, m_fastrom(nullptr)
-	, m_fastram(nullptr)
+	//, m_fastram(nullptr)
 	, m_program_config("program", ENDIANNESS_LITTLE, is_16bit ? 16 : 8, 20, 0)
 	, m_io_config("io", ENDIANNESS_LITTLE, is_16bit ? 16 : 8, 16, 0)
 	, m_fetch_xor(0)

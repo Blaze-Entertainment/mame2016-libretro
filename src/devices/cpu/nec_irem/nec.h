@@ -83,7 +83,7 @@ public:
 	nec_common_irem_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname, const char *source, bool is_16bit, offs_t fetch_xor, UINT8 prefetch_size, UINT8 prefetch_cycles, UINT32 chip_type);
 
 	void set_rom_ptr(UINT8* ROM) { m_fastrom = ROM; }
-	void set_ram_ptr(UINT8* RAM) { m_fastram = RAM; }
+//	void set_ram_ptr(UINT8* RAM) { m_fastram = RAM; }
 
 protected:
 	// device-level overrides
@@ -113,7 +113,7 @@ protected:
 
 private:
 	UINT8* m_fastrom;
-	UINT8* m_fastram;
+//	UINT8* m_fastram;
 	void do_opcode(const UINT8 opcode);
 
 	address_space_config m_program_config;

@@ -39,7 +39,9 @@ public:
 
 	TIMER_CALLBACK_MEMBER(v25_timer_callback);
 	void set_rom_ptr(UINT8* ROM) { m_fastrom = ROM; }
+	void set_dec_ptr(UINT8* ROM) { m_fastromdec = ROM; }
 
+	
 protected:
 	// device-level overrides
 	virtual void device_start() override;
@@ -71,6 +73,7 @@ protected:
 
 private:
 	UINT8* m_fastrom;
+	UINT8* m_fastromdec;
 
 	address_space_config m_program_config;
 	address_space_config m_io_config;
