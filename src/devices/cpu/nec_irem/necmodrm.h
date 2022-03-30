@@ -1,25 +1,19 @@
 // license:BSD-3-Clause
 // copyright-holders:Bryan McPhail
-static struct {
-	struct {
-		WREGS w[256];
-		BREGS b[256];
-	} reg;
-	struct {
-		WREGS w[256];
-		BREGS b[256];
-	} RM;
-} Mod_RM;
 
-#define RegWord(ModRM) Wreg(Mod_RM.reg.w[ModRM])
-#define RegByte(ModRM) Breg(Mod_RM.reg.b[ModRM])
+UINT8 reg_b[256];
+
+UINT8 RM_b[256];
+
+#define RegWord(ModRM) Wreg(((ModRM&0x38)>>3))
+#define RegByte(ModRM) Breg(reg_b[ModRM])
 
 #define GetRMWord(ModRM) \
-	((ModRM) >= 0xc0 ? Wreg(Mod_RM.RM.w[ModRM]) : ( GET_EA(ModRM), read_mem_word( m_EA ) ))
+	((ModRM) >= 0xc0 ? Wreg((ModRM&7)) : ( GET_EA(ModRM), read_mem_word( m_EA ) ))
 
 #define PutbackRMWord(ModRM,val)                 \
 {                                \
-	if (ModRM >= 0xc0) Wreg(Mod_RM.RM.w[ModRM])=val; \
+	if (ModRM >= 0xc0) Wreg((ModRM&7))=val; \
 	else write_mem_word(m_EA,val);  \
 }
 
@@ -28,7 +22,7 @@ static struct {
 #define PutRMWord(ModRM,val)                \
 {                           \
 	if (ModRM >= 0xc0)              \
-		Wreg(Mod_RM.RM.w[ModRM])=val;   \
+		Wreg((ModRM&7))=val;   \
 	else {                      \
 		GET_EA(ModRM);         \
 		write_mem_word( m_EA ,val);           \
@@ -39,7 +33,7 @@ static struct {
 {                           \
 	WORD val;                   \
 	if (ModRM >= 0xc0)              \
-		Wreg(Mod_RM.RM.w[ModRM]) = FETCHWORD(); \
+		Wreg((ModRM&7)) = FETCHWORD(); \
 	else {                      \
 		GET_EA(ModRM);         \
 		val = FETCHWORD();              \
@@ -48,12 +42,12 @@ static struct {
 }
 
 #define GetRMByte(ModRM) \
-	((ModRM) >= 0xc0 ? Breg(Mod_RM.RM.b[ModRM]) : read_mem_byte( GET_EA(ModRM) ))
+	((ModRM) >= 0xc0 ? Breg(RM_b[ModRM]) : read_mem_byte( GET_EA(ModRM) ))
 
 #define PutRMByte(ModRM,val)                \
 {                           \
 	if (ModRM >= 0xc0)              \
-		Breg(Mod_RM.RM.b[ModRM])=val;   \
+		Breg(RM_b[ModRM])=val;   \
 	else                        \
 		write_mem_byte( GET_EA(ModRM) ,val);   \
 }
@@ -61,7 +55,7 @@ static struct {
 #define PutImmRMByte(ModRM)                 \
 {                           \
 	if (ModRM >= 0xc0)              \
-		Breg(Mod_RM.RM.b[ModRM])=FETCH();   \
+		Breg(RM_b[ModRM])=FETCH();   \
 	else {                      \
 		GET_EA(ModRM);         \
 		write_mem_byte( m_EA , FETCH() );     \
@@ -71,7 +65,7 @@ static struct {
 #define PutbackRMByte(ModRM,val)            \
 {                           \
 	if (ModRM >= 0xc0)              \
-		Breg(Mod_RM.RM.b[ModRM])=val;   \
+		Breg(RM_b[ModRM])=val;   \
 	else                        \
 		write_mem_byte(m_EA,val);         \
 }

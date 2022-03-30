@@ -26,22 +26,17 @@
 #define SegBase(Seg) (Sreg(Seg) << 4)
 
 
-#define GetMemB(Seg,Off) (read_mem_byte(DefaultBase(Seg) + (Off)))
-#define GetMemW(Seg,Off) (read_mem_word(DefaultBase(Seg) + (Off)))
-
-#define PutMemB(Seg,Off,x) { write_mem_byte(DefaultBase(Seg) + (Off), (x)); }
-#define PutMemW(Seg,Off,x) { write_mem_word(DefaultBase(Seg) + (Off), (x)); }
 
 
 
 /* prefetch timing */
 
 
-#define EMPTY_PREFETCH()    m_prefetch_reset = 1
+//#define EMPTY_PREFETCH()    m_prefetch_reset = 1
+#define EMPTY_PREFETCH()  { }
 
-
-#define PUSH(val) { Wreg(SP) -= 2; write_mem_word(((Sreg(SS)<<4)+Wreg(SP)), val); }
-#define POP(var) { Wreg(SP) += 2; var = read_mem_word(((Sreg(SS)<<4) + ((Wreg(SP)-2) & 0xffff))); }
+#define PUSH(val) { Wreg(SP) -= 2; write_mem_word(((Sreg_shift(SS))+Wreg(SP)), val); }
+#define POP(var) { Wreg(SP) += 2; var = read_mem_word(((Sreg_shift(SS)) + ((Wreg(SP)-2) & 0xffff))); }
 
 #define GetModRM UINT32 ModRM=FETCH()
 

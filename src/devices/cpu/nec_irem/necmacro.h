@@ -3,9 +3,6 @@
 /* parameter x = result, y = source 1, z = source 2 */
 
 
-#define D0GetMemB(Off) (read_mem_byte(DefaultBase(DS0) + (Off)))
-#define D1GetMemB(Off) (read_mem_byte(DefaultBase(DS1) + (Off)))
-
 
 #define SetTF(x)        (m_TF = (x))
 #define SetIF(x)        (m_IF = (x))
@@ -104,7 +101,7 @@
 #define BITOP_BYTE                          \
 	ModRM = FETCH();                            \
 	if (ModRM >= 0xc0) {                    \
-		tmp=Breg(Mod_RM.RM.b[ModRM]);   \
+		tmp=Breg(RM_b[ModRM]);   \
 	}                                       \
 	else {                                  \
 		GET_EA(ModRM);                 \
@@ -114,7 +111,7 @@
 #define BITOP_WORD                          \
 	ModRM = FETCH();                            \
 	if (ModRM >= 0xc0) {                    \
-		tmp=Wreg(Mod_RM.RM.w[ModRM]);   \
+		tmp=Wreg((ModRM&7));   \
 	}                                       \
 	else {                                  \
 		GET_EA(ModRM);                 \
@@ -197,15 +194,15 @@
 	m_ZeroVal = m_CarryVal = 0;                               \
 	for (i=0;i<count;i++) {                                 \
 		m_icount-=18;                   \
-		tmp = GetMemB(DS0, si);                             \
-		tmp2 = D1GetMemB( di);                            \
+		tmp = (read_mem_byte((m_seg_prefix ? m_prefix_base : Sreg_shift(DS0)) + (si)));                             \
+		tmp2 = (read_mem_byte(( Sreg_shift(DS1)) + (di)));                            \
 		v1 = (tmp>>4)*10 + (tmp&0xf);                       \
 		v2 = (tmp2>>4)*10 + (tmp2&0xf);                     \
 		result = v1+v2+m_CarryVal;                         \
 		m_CarryVal = result > 99 ? 1 : 0;                  \
 		result = result % 100;                              \
 		v1 = ((result/10)<<4) | (result % 10);              \
-		PutMemB(DS1, di,v1);                                \
+		{ write_mem_byte(( Sreg_shift(DS1)) + (di), (v1)); }                                \
 		if (v1) m_ZeroVal = 1;                             \
 		si++;                                               \
 		di++;                                               \
@@ -221,8 +218,8 @@
 	m_ZeroVal = m_CarryVal = 0;                               \
 	for (i=0;i<count;i++) {                                 \
 		m_icount-=18;                   \
-		tmp = D1GetMemB( di);                             \
-		tmp2 = GetMemB(DS0, si);                            \
+		tmp = (read_mem_byte(( Sreg_shift(DS1)) + (di)));                             \
+		tmp2 = (read_mem_byte((m_seg_prefix ? m_prefix_base : Sreg_shift(DS0)) + (si)));                            \
 		v1 = (tmp>>4)*10 + (tmp&0xf);                       \
 		v2 = (tmp2>>4)*10 + (tmp2&0xf);                     \
 		if (v1 < (v2+m_CarryVal)) {                            \
@@ -234,7 +231,7 @@
 			m_CarryVal = 0;                                    \
 		}                                                   \
 		v1 = ((result/10)<<4) | (result % 10);              \
-		PutMemB(DS1, di,v1);                                \
+		{ write_mem_byte(( Sreg_shift(DS1)) + (di), (v1)); }                                \
 		if (v1) m_ZeroVal = 1;                             \
 		si++;                                               \
 		di++;                                               \
@@ -252,8 +249,8 @@
 	m_ZeroVal = m_CarryVal = 0;                               \
 	for (i=0;i<count;i++) {                                 \
 		m_icount-=14;                   \
-		tmp = D1GetMemB( di);                             \
-		tmp2 = D0GetMemB(si);                            \
+		tmp = (read_mem_byte(( Sreg_shift(DS1)) + (di)));                             \
+		tmp2 = (read_mem_byte((m_seg_prefix ? m_prefix_base : Sreg_shift(DS0)) + (si)));                            \
 		v1 = (tmp>>4)*10 + (tmp&0xf);                       \
 		v2 = (tmp2>>4)*10 + (tmp2&0xf);                     \
 		if (v1 < (v2+m_CarryVal)) {                            \

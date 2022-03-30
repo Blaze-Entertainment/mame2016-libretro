@@ -2384,7 +2384,7 @@ DRIVER_INIT_MEMBER(m92_state,inthunt)
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0xe025e, 0xe025f, read16_delegate(FUNC(m92_state::inthunt_speedup_r),this));	
 	m_soundcpu->space(AS_PROGRAM).install_read_handler(0x84a, 0x84b, read16_delegate(FUNC(m92_state::inthunt_soundspeedup_r),this));
 
-	m_maincpu->set_clock_scale(0.75f);
+	//m_maincpu->set_clock_scale(0.75f);
 	m_soundcpu->set_clock_scale(0.50f);
 
 	UINT8 *ROM = memregion("soundcpu")->base();
