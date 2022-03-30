@@ -1548,6 +1548,64 @@ if (CPUS["V30MZ"]~=null or _OPTIONS["with-tools"]) then
 	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/nec/necdasm.cpp")
 end
 
+
+--------------------------------------------------
+-- NEC V-series Intel-compatible
+--@src/devices/cpu/nec_irem/nec.h,CPUS["NECIREM"] = true
+--------------------------------------------------
+
+if (CPUS["NECIREM"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/nec_irem/nec.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_irem/nec.h",
+		MAME_DIR .. "src/devices/cpu/nec_irem/necea.h",
+		MAME_DIR .. "src/devices/cpu/nec_irem/necinstr.h",
+		MAME_DIR .. "src/devices/cpu/nec_irem/necinstr.hxx",
+		MAME_DIR .. "src/devices/cpu/nec_irem/necmacro.h",
+		MAME_DIR .. "src/devices/cpu/nec_irem/necmodrm.h",
+		MAME_DIR .. "src/devices/cpu/nec_irem/necpriv.h",
+	}
+end
+
+if (CPUS["NECIREM"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/nec_irem/necdasm.cpp")
+end
+
+
+--------------------------------------------------
+-- NEC V-series Intel-compatible
+--@src/devices/cpu/nec_iremsound/nec.h,CPUS["NECIREMSOUND"] = true
+--@src/devices/cpu/nec_iremsound/v25.h,CPUS["NECIREMSOUND"] = true
+--@src/devices/cpu/nec_iremsound/v53.h,CPUS["NECIREMSOUND"] = true
+--------------------------------------------------
+
+if (CPUS["NECIREMSOUND"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/nec.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/nec.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/necea.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/necinstr.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/necinstr.hxx",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/necmacro.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/necmodrm.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/necpriv.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v25instr.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v25instr.hxx",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v25priv.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v25.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v25.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v25sfr.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v53.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremsound/v53.h",
+	}
+end
+
+if (CPUS["NECIREMSOUND"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/nec_iremsound/necdasm.cpp")
+end
+
+
+
 --------------------------------------------------
 -- NEC V60/V70
 --@src/devices/cpu/v60/v60.h,CPUS["V60"] = true

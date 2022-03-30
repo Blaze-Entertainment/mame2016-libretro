@@ -202,7 +202,7 @@ psoldier dip locations still need verification.
 
 #include "emu.h"
 #include "cpu/nec/nec.h"
-#include "cpu/nec/v25.h"
+//#include "cpu/nec/v25.h"
 #include "includes/m92.h"
 #include "includes/iremipt.h"
 #include "machine/irem_cpu.h"
@@ -253,6 +253,29 @@ MACHINE_RESET_MEMBER(m92_state,m92)
 {
 	m_sprite_buffer_busy = 1;
 }
+
+MACHINE_RESET_MEMBER(m92_state,inthunt)
+{
+	m_sprite_buffer_busy = 1;
+
+	//required_device<nec_common_irem_device> m_maincpu;
+	//optional_device<v25_common_iremsound_device> m_soundcpu;
+
+	cpu_device* m = (cpu_device*)m_maincpu;
+	cpu_device* s = (cpu_device*)m_soundcpu;
+
+
+	nec_common_irem_device* maincpu = (nec_common_irem_device*)m;
+	v25_common_iremsound_device* soundcpu = (v25_common_iremsound_device*)s;
+
+	UINT8 *ROM = memregion("maincpu")->base();
+	maincpu->set_rom_ptr(ROM);
+	//m_maincpu->set_ram_ptr((UINT8*)&m_mainram[0]);
+
+	UINT8 *ROM2 = memregion("soundcpu")->base();
+	soundcpu->set_rom_ptr(ROM2);
+}
+
 
 /*****************************************************************************/
 
@@ -380,7 +403,18 @@ WRITE16_MEMBER(m92_state::m92_sound_reset_w)
 static ADDRESS_MAP_START( lethalth_map, AS_PROGRAM, 16, m92_state )
 	AM_RANGE(0x00000, 0x7ffff) AM_ROM
 	AM_RANGE(0x80000, 0x8ffff) AM_RAM_WRITE(m92_vram_w) AM_SHARE("vram_data")
-	AM_RANGE(0xe0000, 0xeffff) AM_RAM /* System ram */
+	AM_RANGE(0xe0000, 0xeffff) AM_RAM AM_SHARE("mainram") /* System ram */
+	AM_RANGE(0xf8000, 0xf87ff) AM_RAM AM_SHARE("spriteram")
+	AM_RANGE(0xf8800, 0xf8fff) AM_READWRITE(m92_paletteram_r, m92_paletteram_w)
+	AM_RANGE(0xf9000, 0xf900f) AM_WRITE(m92_spritecontrol_w) AM_SHARE("spritecontrol")
+	AM_RANGE(0xf9800, 0xf9801) AM_WRITE(m92_videocontrol_w)
+	AM_RANGE(0xffff0, 0xfffff) AM_ROM AM_REGION("maincpu", 0x7fff0)
+ADDRESS_MAP_END
+
+static ADDRESS_MAP_START( m92_nobank_map, AS_PROGRAM, 16, m92_state )
+	AM_RANGE(0x00000, 0xcffff) AM_ROM
+	AM_RANGE(0xd0000, 0xdffff) AM_RAM_WRITE(m92_vram_w) AM_SHARE("vram_data")
+	AM_RANGE(0xe0000, 0xeffff) AM_RAM AM_SHARE("mainram") /* System ram */
 	AM_RANGE(0xf8000, 0xf87ff) AM_RAM AM_SHARE("spriteram")
 	AM_RANGE(0xf8800, 0xf8fff) AM_READWRITE(m92_paletteram_r, m92_paletteram_w)
 	AM_RANGE(0xf9000, 0xf900f) AM_WRITE(m92_spritecontrol_w) AM_SHARE("spritecontrol")
@@ -393,7 +427,7 @@ static ADDRESS_MAP_START( m92_map, AS_PROGRAM, 16, m92_state )
 	AM_RANGE(0xa0000, 0xbffff) AM_ROMBANK("bank1")
 	AM_RANGE(0xc0000, 0xcffff) AM_ROM AM_REGION("maincpu", 0x00000) /* Mirror used by In The Hunt as protection */
 	AM_RANGE(0xd0000, 0xdffff) AM_RAM_WRITE(m92_vram_w) AM_SHARE("vram_data")
-	AM_RANGE(0xe0000, 0xeffff) AM_RAM /* System ram */
+	AM_RANGE(0xe0000, 0xeffff) AM_RAM AM_SHARE("mainram") /* System ram */
 	AM_RANGE(0xf8000, 0xf87ff) AM_RAM AM_SHARE("spriteram")
 	AM_RANGE(0xf8800, 0xf8fff) AM_READWRITE(m92_paletteram_r, m92_paletteram_w)
 	AM_RANGE(0xf9000, 0xf900f) AM_WRITE(m92_spritecontrol_w) AM_SHARE("spritecontrol")
@@ -1073,10 +1107,74 @@ static MACHINE_CONFIG_DERIVED( rtypeleo, m92 )
 	MCFG_V25_CONFIG(rtypeleo_decryption_table)
 MACHINE_CONFIG_END
 
-
 static MACHINE_CONFIG_DERIVED( inthunt, m92 )
 	MCFG_CPU_MODIFY("soundcpu")
 	MCFG_V25_CONFIG(inthunt_decryption_table)
+
+#ifndef USE_HACKED_IRQS
+	MCFG_CPU_IRQ_ACKNOWLEDGE_DEVICE("upd71059c", pic8259_device, inta_cb)
+#endif
+MACHINE_CONFIG_END
+
+static MACHINE_CONFIG_START( inthunta, m92_state )
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu",V33IREM,XTAL_18MHz/2)
+	MCFG_CPU_PROGRAM_MAP(m92_map)
+	MCFG_CPU_IO_MAP(m92_portmap)
+#ifndef USE_HACKED_IRQS
+	MCFG_CPU_IRQ_ACKNOWLEDGE_DEVICE("upd71059c", pic8259_device, inta_cb)
+#endif
+
+	MCFG_CPU_ADD("soundcpu" ,V35IREMSOUND, XTAL_14_31818MHz)
+	MCFG_CPU_PROGRAM_MAP(sound_map)
+
+	MCFG_PIC8259_ADD( "upd71059c", INPUTLINE("maincpu", 0), VCC, NOOP)
+
+	MCFG_MACHINE_START_OVERRIDE(m92_state,m92)
+	MCFG_MACHINE_RESET_OVERRIDE(m92_state,m92)
+
+	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", m92_state, m92_scanline_interrupt, "screen", 0, 1)
+
+	/* video hardware */
+	MCFG_BUFFERED_SPRITERAM16_ADD("spriteram")
+
+	MCFG_SCREEN_ADD("screen", RASTER)
+	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
+	MCFG_SCREEN_SIZE(512, 256)
+	MCFG_SCREEN_VISIBLE_AREA(80, 511-112, 8, 247) /* 320 x 240 */
+	MCFG_SCREEN_UPDATE_DRIVER(m92_state, screen_update_m92)
+	MCFG_SCREEN_PALETTE("palette")
+
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", m92)
+	MCFG_PALETTE_ADD("palette", 2048)
+	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
+
+	MCFG_VIDEO_START_OVERRIDE(m92_state,m92)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_MONO("mono")
+
+	MCFG_YM2151_ADD("ymsnd", XTAL_14_31818MHz/4)
+	MCFG_YM2151_IRQ_HANDLER(INPUTLINE("soundcpu", NEC_INPUT_LINE_INTP0))
+	MCFG_SOUND_ROUTE(0, "mono", 0.40)
+	MCFG_SOUND_ROUTE(1, "mono", 0.40)
+
+	MCFG_IREMGA20_ADD("irem", XTAL_14_31818MHz/4)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
+
+	////////////////////////////////////////////////////
+
+	MCFG_CPU_MODIFY("soundcpu")
+	MCFG_V25IREMSOUND_CONFIG(inthunt_decryption_table)
+
+	MCFG_CPU_MODIFY("maincpu")
+	MCFG_CPU_PROGRAM_MAP(m92_nobank_map)
+	MCFG_CPU_IO_MAP(m92_portmap)
+
+	MCFG_MACHINE_RESET_OVERRIDE(m92_state,inthunt)
+
 MACHINE_CONFIG_END
 
 
@@ -1484,6 +1582,7 @@ ROM_START( inthunt )
 	ROM_LOAD16_BYTE( "ith-l0-d.bin", 0x000000, 0x040000, CRC(5db79eb7) SHA1(ffd4228d7b88a44a82e639a5583753da183fcb23) )
 	ROM_LOAD16_BYTE( "ith-h1-b.bin", 0x080001, 0x020000, CRC(fc2899df) SHA1(f811ff5fd55655afdb25950d317db85c8091b6d6) )
 	ROM_LOAD16_BYTE( "ith-l1-b.bin", 0x080000, 0x020000, CRC(955a605a) SHA1(2515accc2f4a06b07418e45eb62e746d09c81720) )
+	ROM_COPY( "maincpu", 0x00000, 0xc0000, 0x40000 )
 
 	ROM_REGION( 0x20000, "soundcpu", 0 )    /* Irem D8000011A1 */
 	ROM_LOAD16_BYTE( "ith-sh0.rom", 0x00001, 0x10000, CRC(209c8b7f) SHA1(eaf4a6d9222fe181df65cea1f13c3f2ebff2ec5b) )
@@ -2245,6 +2344,51 @@ DRIVER_INIT_MEMBER(m92_state,m92)
 	m_game_kludge = 0;
 }
 
+READ16_MEMBER(m92_state::inthunt_speedup_r)
+{
+	uint16_t data = m_mainram[0x25e / 2];
+	int pc = m_maincpu->pc();
+
+	if (pc == 0x858)
+	{
+		if (!(data & 0x8000))
+			space.device().execute().spin_until_interrupt();
+	}
+	else
+	{
+	//	printf("pc %08x\n", pc);
+	}
+
+	return data;
+}
+
+
+READ16_MEMBER(m92_state::inthunt_soundspeedup_r)
+{
+	int pc = m_soundcpu->pc();
+
+	if (pc == 0x84c)
+	{
+		space.device().execute().spin_until_interrupt();
+	}
+
+	return 0xfe82;
+}
+
+
+DRIVER_INIT_MEMBER(m92_state,inthunt)
+{
+	m_game_kludge = 0;
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xe025e, 0xe025f, read16_delegate(FUNC(m92_state::inthunt_speedup_r),this));	
+	m_soundcpu->space(AS_PROGRAM).install_read_handler(0x84a, 0x84b, read16_delegate(FUNC(m92_state::inthunt_soundspeedup_r),this));
+
+	m_maincpu->set_clock_scale(0.75f);
+	m_soundcpu->set_clock_scale(0.50f);
+}
+
+
+
 /* different address map (no bank1) */
 DRIVER_INIT_MEMBER(m92_state,lethalth)
 {
@@ -2323,7 +2467,7 @@ GAME( 1992, ppan,     hook,     ppan,          hook, m92_state,     ppan,     RO
 GAME( 1992, rtypeleo, 0,        rtypeleo,      rtypeleo, m92_state, m92,     ROT0,   "Irem",         "R-Type Leo (World)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL)
 GAME( 1992, rtypeleoj,rtypeleo, rtypeleo,      rtypeleo, m92_state, m92,     ROT0,   "Irem",         "R-Type Leo (Japan)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL)
 
-GAME( 1993, inthunt,  0,        inthunt,       inthunt, m92_state,  m92,      ROT0,   "Irem",         "In The Hunt (World)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL)
+GAME( 1993, inthunt,  0,        inthunta,      inthunt, m92_state,  inthunt,      ROT0,   "Irem",         "In The Hunt (World)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL)
 GAME( 1993, inthuntu, inthunt,  inthunt,       inthunt, m92_state,  m92,      ROT0,   "Irem America", "In The Hunt (US)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL)
 GAME( 1993, kaiteids, inthunt,  inthunt,       inthunt, m92_state,  m92,      ROT0,   "Irem",         "Kaitei Daisensou (Japan)", MACHINE_SUPPORTS_SAVE | MACHINE_NO_COCKTAIL )
 

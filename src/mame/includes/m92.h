@@ -9,6 +9,12 @@
 #include "video/bufsprite.h"
 #include "sound/okim6295.h"
 #include "machine/pic8259.h"
+#include "cpu/nec_irem/nec.h"
+#include "cpu/nec_iremsound/v25.h"
+
+#include "cpu/nec/nec.h"
+#include "cpu/nec/v25.h"
+
 
 struct M92_pf_layer_info
 {
@@ -28,6 +34,7 @@ public:
 
 	m92_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
+			m_mainram(*this, "mainram"),
 			m_spriteram(*this, "spriteram"),
 			m_vram_data(*this, "vram_data"),
 			m_spritecontrol(*this, "spritecontrol"),
@@ -40,6 +47,7 @@ public:
 			m_upd71059c(*this, "upd71059c")
 	{ }
 
+	required_shared_ptr<UINT16> m_mainram;
 	required_device<buffered_spriteram16_device> m_spriteram;
 	required_shared_ptr<UINT16> m_vram_data;
 	required_shared_ptr<UINT16> m_spritecontrol;
@@ -61,6 +69,9 @@ public:
 	INT32 m_sprite_list;
 	UINT8 m_palette_bank;
 	std::vector<UINT16> m_paletteram;
+
+	DECLARE_READ16_MEMBER(inthunt_speedup_r);
+	DECLARE_READ16_MEMBER(inthunt_soundspeedup_r);
 
 	DECLARE_READ16_MEMBER(m92_eeprom_r);
 	DECLARE_WRITE16_MEMBER(m92_eeprom_w);
@@ -87,10 +98,12 @@ public:
 	DECLARE_DRIVER_INIT(ppan);
 	DECLARE_DRIVER_INIT(lethalth);
 	DECLARE_DRIVER_INIT(m92);
+	DECLARE_DRIVER_INIT(inthunt);
 	DECLARE_DRIVER_INIT(m92_bank);
 	TILE_GET_INFO_MEMBER(get_pf_tile_info);
 	DECLARE_MACHINE_START(m92);
 	DECLARE_MACHINE_RESET(m92);
+	DECLARE_MACHINE_RESET(inthunt);
 	DECLARE_VIDEO_START(m92);
 	DECLARE_VIDEO_START(ppan);
 	UINT32 screen_update_m92(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
