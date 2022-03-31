@@ -122,7 +122,7 @@ void v25_common_iremsound_device::do_prefetch(int previous_ICount)
 
 UINT8 v25_common_iremsound_device::fetch()
 {
-	prefetch();
+	//prefetch();
 	return m_direct->read_byte((Sreg(PS)<<4)+m_ip++, m_fetch_xor);
 }
 
@@ -147,7 +147,7 @@ UINT8 v25_common_iremsound_device::fetchop()
 	const UINT32 addr = (Sreg(PS) << 4) + m_ip++;
 	UINT8 ret;
 
-	prefetch();
+	//prefetch();
 
 	if (addr < 0x20000)
 		return m_fastromdec[addr];
@@ -701,7 +701,7 @@ void v25_common_iremsound_device::state_export(const device_state_entry &entry)
 
 void v25_common_iremsound_device::execute_run()
 {
-	int prev_ICount;
+	//int prev_ICount;
 
 	int pending = m_pending_irq & m_unmasked_irq;
 
@@ -752,9 +752,9 @@ void v25_common_iremsound_device::execute_run()
 		if (m_no_interrupt)
 			m_no_interrupt--;
 
-	//	debugger_instruction_hook(this, (Sreg(PS)<<4) + m_ip);
-		prev_ICount = m_icount;
+		//debugger_instruction_hook(this, (Sreg(PS)<<4) + m_ip);
+		//prev_ICount = m_icount;
 		(this->*s_nec_instruction[fetchop()])();
-		do_prefetch(prev_ICount);
+		//do_prefetch(prev_ICount);
 	}
 }

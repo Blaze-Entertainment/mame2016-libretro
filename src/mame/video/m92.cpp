@@ -128,7 +128,10 @@ WRITE16_MEMBER(m92_state::m92_videocontrol_w)
 	*/
 
 	/* Access to upper palette bank */
-	m_palette_bank = (m_videocontrol >> 1) & 1;
+	if (m_use_palette_bank)
+		m_palette_bank = (m_videocontrol >> 1) & 1;  // breaks r-type leo flickering sprites, and causes some sprites to be black when screen fades in attract demo of inthunt
+	else
+		m_palette_bank = 0;
 
 //  logerror("%04x: m92_videocontrol_w %d = %02x\n",space.device().safe_pc(),offset,data);
 }
@@ -328,20 +331,25 @@ void m92_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const 
 	{
 		for (offs = 0; offs < m_sprite_list; )
 		{
+			int curlayer = (source[offs+0] >> 13) & 7;
+			int numcols = 1 << ((source[offs+0] >> 11) & 3);
+			if (layer != curlayer)
+			{
+				offs += 4 * numcols;
+				continue;
+			}
+
 			int x = source[offs+3] & 0x1ff;
 			int y = source[offs+0] & 0x1ff;
 			int code = source[offs+1];
 			int color = source[offs+2] & 0x007f;
 			int pri = (~source[offs+2] >> 6) & 2;
-			int curlayer = (source[offs+0] >> 13) & 7;
 			int flipx = (source[offs+2] >> 8) & 1;
 			int flipy = (source[offs+2] >> 9) & 1;
-			int numcols = 1 << ((source[offs+0] >> 11) & 3);
 			int numrows = 1 << ((source[offs+0] >> 9) & 3);
 			int row, col, s_ptr;
 
 			offs += 4 * numcols;
-			if (layer != curlayer) continue;
 
 			x = (x - 16) & 0x1ff;
 			y = 384 - 16 - y;
@@ -370,16 +378,23 @@ void m92_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const 
 					}
 					else
 					{
+						int realx = x;
+
+						if (realx > 400)
+							realx -= 512;
+
 						m_gfxdecode->gfx(1)->prio_transpen(bitmap,cliprect,
 								code + s_ptr, color, flipx, flipy,
-								x, y - row * 16,
+								realx, y - row * 16,
 								screen.priority(), pri, 0);
 
+#if 0
 						// wrap around x
 						m_gfxdecode->gfx(1)->prio_transpen(bitmap,cliprect,
 								code + s_ptr, color, flipx, flipy,
 								x - 512, y - row * 16,
 								screen.priority(), pri, 0);
+#endif
 					}
 					if (flipy) s_ptr++;
 					else s_ptr--;
@@ -546,10 +561,11 @@ UINT32 m92_state::screen_update_m92(screen_device &screen, bitmap_ind16 &bitmap,
 	draw_sprites(screen, bitmap, cliprect);
 
 	/* Flipscreen appears hardwired to the dipswitch - strange */
-	if (ioport("DSW")->read() & 0x100)
+	if (m_dsw->read() & 0x100)
 		flip_screen_set(0);
 	else
 		flip_screen_set(1);
+
 	return 0;
 }
 
@@ -563,7 +579,7 @@ UINT32 m92_state::screen_update_ppan(screen_device &screen, bitmap_ind16 &bitmap
 	ppan_draw_sprites(screen, bitmap, cliprect);
 
 	/* Flipscreen appears hardwired to the dipswitch - strange */
-	if (ioport("DSW")->read() & 0x100)
+	if (m_dsw->read() & 0x100)
 		flip_screen_set(0);
 	else
 		flip_screen_set(1);

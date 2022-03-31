@@ -2385,7 +2385,7 @@ DRIVER_INIT_MEMBER(m92_state,inthunt)
 	m_soundcpu->space(AS_PROGRAM).install_read_handler(0x84a, 0x84b, read16_delegate(FUNC(m92_state::inthunt_soundspeedup_r),this));
 
 	//m_maincpu->set_clock_scale(0.75f);
-	m_soundcpu->set_clock_scale(0.50f);
+	//m_soundcpu->set_clock_scale(0.50f);
 
 	UINT8 *ROM = memregion("soundcpu")->base();
 
@@ -2419,6 +2419,7 @@ DRIVER_INIT_MEMBER(m92_state,m92_bank)
 	m_maincpu->space(AS_IO).install_write_handler(0x20, 0x21, write16_delegate(FUNC(m92_state::m92_bankswitch_w),this));
 
 	m_game_kludge = 0;
+	m_use_palette_bank = true;
 }
 
 /* has bankswitching, has eeprom, needs sprite kludge */
@@ -2433,6 +2434,7 @@ DRIVER_INIT_MEMBER(m92_state,majtitl2)
 	m_maincpu->space(AS_PROGRAM).install_readwrite_handler(0xf0000, 0xf3fff, read16_delegate(FUNC(m92_state::m92_eeprom_r),this), write16_delegate(FUNC(m92_state::m92_eeprom_w),this));
 
 	m_game_kludge = 2;
+	m_use_palette_bank = true;
 }
 
 /* TODO: figure out actual address map and other differences from real Irem h/w */

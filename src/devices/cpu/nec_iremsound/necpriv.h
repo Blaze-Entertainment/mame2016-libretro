@@ -85,7 +85,8 @@ enum BREGS {
 
 #define FETCH()             fetch()
 #define FETCHWORD()         fetchword()
-#define EMPTY_PREFETCH()    m_prefetch_reset = 1
+//#define EMPTY_PREFETCH()    m_prefetch_reset = 1
+#define EMPTY_PREFETCH()    { }
 
 
 #define PUSH(val) { Wreg(SP) -= 2; write_mem_word(((Sreg(SS)<<4)+Wreg(SP)), val); }

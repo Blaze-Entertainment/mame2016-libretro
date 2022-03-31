@@ -44,7 +44,9 @@ public:
 			m_gfxdecode(*this, "gfxdecode"),
 			m_screen(*this, "screen"),
 			m_palette(*this, "palette"),
-			m_upd71059c(*this, "upd71059c")
+			m_upd71059c(*this, "upd71059c"),
+			m_dsw(*this, "DSW"),
+			m_use_palette_bank(false)
 	{ }
 
 	required_shared_ptr<UINT16> m_mainram;
@@ -58,6 +60,7 @@ public:
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 	required_device<pic8259_device> m_upd71059c;
+	required_ioport m_dsw;
 
 	UINT8 decrypted_sound[0x20000];
 
@@ -116,6 +119,7 @@ public:
 	void m92_update_scroll_positions();
 	void m92_draw_tiles(screen_device &screen, bitmap_ind16 &bitmap,const rectangle &cliprect);
 	void m92_sprite_interrupt();
+	bool m_use_palette_bank;
 
 protected:
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
