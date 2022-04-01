@@ -351,8 +351,8 @@ void nec_common_iremsound_device::device_start()
 {
 	unsigned int i, j, c;
 
-	static const WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };
-	static const BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
+	static const NECIREMSOUND_WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };
+	static const NECIREMSOUND_BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
 
 	for (i = 0; i < 256; i++)
 	{
@@ -510,7 +510,7 @@ void nec_common_iremsound_device::state_export(const device_state_entry &entry)
 
 void nec_common_iremsound_device::execute_run()
 {
-	int prev_ICount;
+	//int prev_ICount;
 
 	if (m_halted)
 	{
@@ -534,8 +534,8 @@ void nec_common_iremsound_device::execute_run()
 			m_no_interrupt--;
 
 	//	debugger_instruction_hook(this, (Sreg(PS)<<4) + m_ip);
-		prev_ICount = m_icount;
+	//	prev_ICount = m_icount;
 		(this->*s_nec_instruction[fetchop()])();
-		do_prefetch(prev_ICount);
+	//	do_prefetch(prev_ICount);
 	}
 }

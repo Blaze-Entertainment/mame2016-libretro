@@ -333,8 +333,8 @@ void nec_common_irem_device::device_start()
 {
 	unsigned int i, j, c;
 
-//	static const WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };  // 0,1,2,3,4,5,6,7
-	static const BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
+//	static const NECIREM_WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };  // 0,1,2,3,4,5,6,7
+	static const NECIREM_BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
 
 	for (i = 0; i < 256; i++)
 	{

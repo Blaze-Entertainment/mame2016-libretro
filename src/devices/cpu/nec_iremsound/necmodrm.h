@@ -2,12 +2,12 @@
 // copyright-holders:Bryan McPhail
 static struct {
 	struct {
-		WREGS w[256];
-		BREGS b[256];
+		NECIREMSOUND_WREGS w[256];
+		NECIREMSOUND_BREGS b[256];
 	} reg;
 	struct {
-		WREGS w[256];
-		BREGS b[256];
+		NECIREMSOUND_WREGS w[256];
+		NECIREMSOUND_BREGS b[256];
 	} RM;
 } Mod_RM;
 

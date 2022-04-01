@@ -74,7 +74,7 @@ enum SREGS {
 	DS0 = 0x08/2
 };
 
-enum WREGS {
+enum NECIREMSOUND_WREGS {
 	AW = 0x1E/2,
 	CW = 0x1C/2,
 	DW = 0x1A/2,
@@ -85,7 +85,7 @@ enum WREGS {
 	IY = 0x10/2
 };
 
-enum BREGS {
+enum NECIREMSOUND_BREGS {
 	AL = NATIVE_ENDIAN_VALUE_LE_BE(0x1E, 0x1F),
 	AH = NATIVE_ENDIAN_VALUE_LE_BE(0x1F, 0x1E),
 	CL = NATIVE_ENDIAN_VALUE_LE_BE(0x1C, 0x1D),

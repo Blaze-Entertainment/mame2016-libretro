@@ -415,8 +415,8 @@ void v25_common_device::device_start()
 {
 	unsigned int i, j, c;
 
-	static const WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };
-	static const BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
+	static const NEC_WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };
+	static const NEC_BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
 
 	for (i = 0; i < 256; i++)
 	{
