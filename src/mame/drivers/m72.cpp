@@ -256,6 +256,11 @@ void m72_state::machine_reset()
 
 	m_scanline_timer->adjust(m_screen->time_until_pos(0));
 	machine().scheduler().synchronize(timer_expired_delegate(FUNC(m72_state::synch_callback),this));
+
+
+	if (m_soundram)
+		m_soundcpu->set_input_line(INPUT_LINE_RESET, ASSERT_LINE);
+
 }
 
 MACHINE_RESET_MEMBER(m72_state,kengo)
@@ -1899,7 +1904,7 @@ static MACHINE_CONFIG_START( m72_base, m72_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", m72)
-	MCFG_PALETTE_ADD("palette", 512)
+	MCFG_PALETTE_ADD("palette", 0x10000)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK/4, 512, 64, 448, 284, 0, 256)
@@ -2014,7 +2019,7 @@ static MACHINE_CONFIG_START( rtype2, m72_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", rtype2)
-	MCFG_PALETTE_ADD("palette", 512)
+	MCFG_PALETTE_ADD("palette", 0x10000)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK/4, 512, 64, 448, 284, 0, 256)
@@ -2062,7 +2067,7 @@ static MACHINE_CONFIG_START( cosmccop, m72_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", rtype2)
-	MCFG_PALETTE_ADD("palette", 512)
+	MCFG_PALETTE_ADD("palette", 0x10000)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK/4, 512, 64, 448, 284, 0, 256)
@@ -2107,7 +2112,7 @@ static MACHINE_CONFIG_START( m82, m72_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", majtitle)
-	MCFG_PALETTE_ADD("palette", 512)
+	MCFG_PALETTE_ADD("palette", 0x10000)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK/4, 512, 64, 448, 284, 0, 256)
@@ -2143,7 +2148,7 @@ static MACHINE_CONFIG_START( poundfor, m72_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", rtype2)
-	MCFG_PALETTE_ADD("palette", 512)
+	MCFG_PALETTE_ADD("palette", 0x10000)
 
 	MCFG_SCREEN_ADD("screen", RASTER)
 	MCFG_SCREEN_RAW_PARAMS(MASTER_CLOCK/4, 512, 64, 448, 284, 0, 256)

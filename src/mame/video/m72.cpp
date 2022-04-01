@@ -390,7 +390,7 @@ WRITE16_MEMBER(m72_state::port02_w)
 		machine().bookkeeping().coin_counter_w(1,data & 0x02);
 
 		/* bit 2 is flip screen (handled both by software and hardware) */
-		flip_screen_set(((data & 0x04) >> 2) ^ ((~ioport("DSW")->read() >> 8) & 1));
+		flip_screen_set(((data & 0x04) >> 2) ^ ((~m_dsw->read() >> 8) & 1));
 
 		/* bit 3 is display disable */
 		m_video_off = data & 0x08;

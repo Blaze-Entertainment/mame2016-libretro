@@ -55,6 +55,7 @@ private:
 	UINT32 m_samples_size;
 	address_space *m_space;
 	dac_device *m_dac;
+	cpu_device* m_soundcpu;
 
 	TIMER_CALLBACK_MEMBER( setvector_callback );
 };

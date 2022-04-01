@@ -74,9 +74,6 @@ void m72_audio_device::device_config_complete()
 
 void m72_audio_device::device_start()
 {
-	m_samples_size = m_samples.bytes();
-	m_space = &machine().device("soundcpu")->memory().space(AS_IO);
-	m_dac = machine().device<dac_device>("dac");
 
 	save_item(NAME(m_irqvector));
 	save_item(NAME(m_sample_addr));
@@ -88,6 +85,11 @@ void m72_audio_device::device_start()
 
 void m72_audio_device::device_reset()
 {
+	m_samples_size = m_samples.bytes();
+	m_space = &machine().device("soundcpu")->memory().space(AS_IO);
+	m_dac = machine().device<dac_device>("dac");
+	m_soundcpu = machine().device<cpu_device>("soundcpu");
+
 	m_irqvector = 0xff;
 }
 
@@ -124,7 +126,7 @@ TIMER_CALLBACK_MEMBER( m72_audio_device::setvector_callback )
 			break;
 	}
 
-	machine().device("soundcpu")->execute().set_input_line_and_vector(0, (m_irqvector == 0xff) ? CLEAR_LINE : ASSERT_LINE, m_irqvector);
+	m_soundcpu->set_input_line_and_vector(0, (m_irqvector == 0xff) ? CLEAR_LINE : ASSERT_LINE, m_irqvector);
 }
 
 

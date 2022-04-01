@@ -46,6 +46,7 @@ public:
 		m_fg_source(0),
 		m_bg_source(0),
 		m_m81_b_b_j3(*this, "JumperJ3"),
+		m_dsw(*this, "DSW"),
 		m_m82_rowscroll(0),
 		m_m82_tmcontrol(0)
 		{ }
@@ -87,6 +88,7 @@ public:
 	int m_fg_source;
 	int m_bg_source;
 	optional_ioport m_m81_b_b_j3;
+	required_ioport m_dsw;
 
 	//poundfor specific
 	int m_prev[4];
