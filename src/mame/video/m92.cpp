@@ -251,6 +251,7 @@ WRITE16_MEMBER(m92_state::m92_master_control_w)
 VIDEO_START_MEMBER(m92_state,m92)
 {
 	int laynum;
+	m_palette_bank = 0;
 
 	memset(&m_pf_layer, 0, sizeof(m_pf_layer));
 	for (laynum = 0; laynum < 3; laynum++)
@@ -332,7 +333,7 @@ void m92_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const 
 		for (offs = 0; offs < m_sprite_list; )
 		{
 			int curlayer = (source[offs+0] >> 13) & 7;
-			int numcols = 1 << ((source[offs+0] >> 11) & 3);
+			int numcols = 1 << ((source[offs+0] >> 11) & 3);  // sprites can be 1/2/4/8 tiles - up to 128 pixels wide
 			if (layer != curlayer)
 			{
 				offs += 4 * numcols;
@@ -346,23 +347,38 @@ void m92_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const 
 			int pri = (~source[offs+2] >> 6) & 2;
 			int flipx = (source[offs+2] >> 8) & 1;
 			int flipy = (source[offs+2] >> 9) & 1;
-			int numrows = 1 << ((source[offs+0] >> 9) & 3);
-			int row, col, s_ptr;
+			int numrows = 1 << ((source[offs+0] >> 9) & 3);   // sprites can be 1/2/4/8 tiles - up to 128 pixels high
 
 			offs += 4 * numcols;
 
 			x = (x - 16) & 0x1ff;
 			y = 384 - 16 - y;
 
+			int ystart = (y - 16 * numrows) + 16;
+			int yend = y + 16;
+
+			//printf("y start %d y end %d\n", y, yend);
+
+			if (ystart > cliprect.max_y)
+				continue;
+
+			if (yend < cliprect.min_y)
+				continue;
+
+			// horizontal visible area is 80 - 400
+			// max sprite width is 128
+
+
 			if (flipx) x += 16 * (numcols - 1);
 
-			for (col = 0; col < numcols; col++)
+			for (int col = 0; col < numcols; col++)
 			{
-				s_ptr = 8 * col;
+				int s_ptr = 8 * col;
 				if (!flipy) s_ptr += numrows - 1;
 
-				for (row = 0; row < numrows; row++)
+				for (int row = 0; row < numrows; row++)
 				{
+#if 0
 					if (flip_screen())
 					{
 						m_gfxdecode->gfx(1)->prio_transpen(bitmap,cliprect,
@@ -377,6 +393,7 @@ void m92_state::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const 
 								screen.priority(), pri, 0);
 					}
 					else
+#endif
 					{
 						int realx = x;
 
@@ -444,6 +461,7 @@ void m92_state::ppan_draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 
 				for (row = 0; row < numrows; row++)
 				{
+#if 0
 					if (flip_screen())
 					{
 						m_gfxdecode->gfx(1)->prio_transpen(bitmap,cliprect,
@@ -458,6 +476,7 @@ void m92_state::ppan_draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 								screen.priority(), pri, 0);
 					}
 					else
+#endif
 					{
 						m_gfxdecode->gfx(1)->prio_transpen(bitmap,cliprect,
 								code + s_ptr, color, flipx, flipy,
@@ -560,11 +579,13 @@ UINT32 m92_state::screen_update_m92(screen_device &screen, bitmap_ind16 &bitmap,
 
 	draw_sprites(screen, bitmap, cliprect);
 
+#if 0
 	/* Flipscreen appears hardwired to the dipswitch - strange */
 	if (m_dsw->read() & 0x100)
 		flip_screen_set(0);
 	else
 		flip_screen_set(1);
+#endif
 
 	return 0;
 }
@@ -578,10 +599,13 @@ UINT32 m92_state::screen_update_ppan(screen_device &screen, bitmap_ind16 &bitmap
 
 	ppan_draw_sprites(screen, bitmap, cliprect);
 
+#if 0
 	/* Flipscreen appears hardwired to the dipswitch - strange */
 	if (m_dsw->read() & 0x100)
 		flip_screen_set(0);
 	else
 		flip_screen_set(1);
+#endif
+
 	return 0;
 }

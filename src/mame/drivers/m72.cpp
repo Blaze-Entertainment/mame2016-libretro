@@ -184,14 +184,7 @@ other supported games as well.
 ***************************************************************************/
 
 #include "emu.h"
-#include "cpu/z80/z80.h"
-#include "cpu/nec/nec.h"
-#include "cpu/nec/v25.h"
-#include "machine/irem_cpu.h"
-#include "sound/2151intf.h"
-#include "includes/iremipt.h"
 #include "includes/m72.h"
-#include "cpu/mcs51/mcs51.h"
 
 #define MASTER_CLOCK        XTAL_32MHz
 #define SOUND_CLOCK         XTAL_3_579545MHz
@@ -240,6 +233,19 @@ void m72_state::machine_start()
 MACHINE_START_MEMBER(m72_state,kengo)
 {
 	m_scanline_timer = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(m72_state::kengo_scanline_interrupt),this));
+}
+
+MACHINE_START_MEMBER(m72_state,kengo_cp)
+{
+	m_scanline_timer = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(m72_state::kengo_scanline_interrupt),this));
+
+	cpu_device* m = (cpu_device*)m_maincpu;
+
+	v25_common_iremkengo_device* maincpu = (v25_common_iremkengo_device*)m;
+
+	UINT8 *ROM2 = memregion("maincpu")->base();
+	maincpu->set_rom_ptr(ROM2);
+	maincpu->set_dec_ptr(decrypted_rom);
 }
 
 TIMER_CALLBACK_MEMBER(m72_state::synch_callback)
@@ -2080,8 +2086,14 @@ static MACHINE_CONFIG_START( cosmccop, m72_state )
 MACHINE_CONFIG_END
 
 static MACHINE_CONFIG_DERIVED( kengo, cosmccop )
-	MCFG_CPU_MODIFY("maincpu")
-	MCFG_V25_CONFIG(gunforce_decryption_table)
+	MCFG_CPU_REPLACE("maincpu", V35IREMKENGO,MASTER_CLOCK/2)
+	MCFG_CPU_PROGRAM_MAP(kengo_map)
+	MCFG_CPU_IO_MAP(m84_v33_portmap)
+
+	MCFG_V25IREMKENGO_CONFIG(gunforce_decryption_table)
+
+	MCFG_MACHINE_START_OVERRIDE(m72_state,kengo_cp)
+
 MACHINE_CONFIG_END
 
 
@@ -2160,6 +2172,24 @@ static MACHINE_CONFIG_START( poundfor, m72_state )
 	MCFG_FRAGMENT_ADD(m72_audio_chips)
 MACHINE_CONFIG_END
 
+
+
+DRIVER_INIT_MEMBER(m72_state,ltswords)
+{
+	UINT8 *ROM = memregion("maincpu")->base();
+
+	for (int x = 0; x < 0x100000; x++)
+	{
+		int val = ROM[x];
+		val = gunforce_decryption_table[val];
+
+		if (val == -1)
+			val = 0;
+
+		decrypted_rom[x] = val;
+	}
+
+}
 
 /***************************************************************************
 
@@ -3833,9 +3863,9 @@ GAME( 1989, rtype2jc,    rtype2,   rtype2,      rtype2,   driver_device, 0,     
 
 GAME( 1991, cosmccop,    0,        cosmccop,    gallop,   driver_device, 0,           ROT0,   "Irem", "Cosmic Cop (World)", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE )
 
-GAME( 1991, ltswords,    0,        kengo,       kengo,    driver_device, 0,           ROT0,   "Irem", "Lightning Swords", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE )
-GAME( 1991, kengo,       ltswords, kengo,       kengo,    driver_device, 0,           ROT0,   "Irem", "Ken-Go (set 1)", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE )
-GAME( 1991, kengoa,      ltswords, kengo,       kengo,    driver_device, 0,           ROT0,   "Irem", "Ken-Go (set 2)", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE ) // has 'for use in Japan' message, above set doesn't
+GAME( 1991, ltswords,    0,        kengo,       kengo,    m72_state, ltswords,    ROT0,   "Irem", "Lightning Swords", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE )
+GAME( 1991, kengo,       ltswords, kengo,       kengo,    m72_state, ltswords,           ROT0,   "Irem", "Ken-Go (set 1)", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE )
+GAME( 1991, kengoa,      ltswords, kengo,       kengo,    m72_state, ltswords,           ROT0,   "Irem", "Ken-Go (set 2)", MACHINE_NO_COCKTAIL | MACHINE_SUPPORTS_SAVE ) // has 'for use in Japan' message, above set doesn't
 
 /* M85 */
 

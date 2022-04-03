@@ -1605,6 +1605,37 @@ if (CPUS["NECIREMSOUND"]~=null or _OPTIONS["with-tools"]) then
 end
 
 
+--------------------------------------------------
+-- NEC V-series Intel-compatible
+--@src/devices/cpu/nec_iremkengo/nec.h,CPUS["NECIREMKENGO"] = true
+--@src/devices/cpu/nec_iremkengo/v25.h,CPUS["NECIREMKENGO"] = true
+--@src/devices/cpu/nec_iremkengo/v53.h,CPUS["NECIREMKENGO"] = true
+--------------------------------------------------
+
+if (CPUS["NECIREMKENGO"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/nec.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/nec.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/necea.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/necinstr.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/necinstr.hxx",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/necmacro.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/necmodrm.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/necpriv.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v25instr.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v25instr.hxx",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v25priv.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v25.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v25.h",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v25sfr.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v53.cpp",
+		MAME_DIR .. "src/devices/cpu/nec_iremkengo/v53.h",
+	}
+end
+
+if (CPUS["NECIREMKENGO"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/nec_iremkengo/necdasm.cpp")
+end
 
 --------------------------------------------------
 -- NEC V60/V70

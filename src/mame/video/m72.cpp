@@ -250,7 +250,7 @@ VIDEO_START_MEMBER(m72_state,hharryu)
 {
 	VIDEO_START_CALL_MEMBER(rtype2);
 
-	m_fg_tilemap->set_scrolldx(4,3);
+	m_fg_tilemap->set_scrolldx(3,3);
 	m_bg_tilemap->set_scrolldx(6,0);
 	m_fg_tilemap->set_scrolldy(-128,-128);
 	m_bg_tilemap->set_scrolldy(-128,-128);

@@ -2,13 +2,13 @@
 // copyright-holders:Bryan McPhail, Alex W. Jackson
 /****************************************************************************
 
-    NEC V25IREMSOUND/V35IREMSOUND emulator
+    NEC V25IREMKENGO/V35IREMKENGO emulator
 
     ---------------------------------------------
 
     TODO:
 
-    Using V20IREMSOUND/V30IREMSOUND cycle counts for now. V25IREMSOUND/V35IREMSOUND cycle counts
+    Using V20IREMKENGO/V30IREMKENGO cycle counts for now. V25IREMKENGO/V35IREMKENGO cycle counts
     vary based on whether internal RAM access is enabled (RAMEN).
 
     BTCLR and STOP instructions not implemented.
@@ -24,7 +24,7 @@
 
     Serial interface and DMA functions not implemented.
     Note that these functions differ considerably between
-    the V25IREMSOUND/35 and the V25IREMSOUND+/35+.
+    the V25IREMKENGO/35 and the V25IREMKENGO+/35+.
 
     Make internal RAM into a real RAM region, and use an
     internal address map (remapped when IDB is written to)
@@ -45,11 +45,11 @@ typedef UINT32 DWORD;
 #include "v25.h"
 #include "v25priv.h"
 
-const device_type V25IREMSOUND = &device_creator<v25_iremsound_device>;
-const device_type V35IREMSOUND = &device_creator<v35_iremsound_device>;
+const device_type V25IREMKENGO = &device_creator<v25_iremkengo_device>;
+const device_type V35IREMKENGO = &device_creator<v35_iremkengo_device>;
 
 
-v25_common_iremsound_device::v25_common_iremsound_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname, bool is_16bit, offs_t fetch_xor, UINT8 prefetch_size, UINT8 prefetch_cycles, UINT32 chip_type)
+v25_common_iremkengo_device::v25_common_iremkengo_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname, bool is_16bit, offs_t fetch_xor, UINT8 prefetch_size, UINT8 prefetch_cycles, UINT32 chip_type)
 	: cpu_device(mconfig, type, name, tag, owner, clock, shortname, __FILE__)
 	, m_fastrom(nullptr)
 	, m_program_config("program", ENDIANNESS_LITTLE, is_16bit ? 16 : 8, 20, 0)
@@ -64,34 +64,34 @@ v25_common_iremsound_device::v25_common_iremsound_device(const machine_config &m
 }
 
 
-v25_iremsound_device::v25_iremsound_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
-	: v25_common_iremsound_device(mconfig, V25IREMSOUND, "V25IREMSOUND", tag, owner, clock, "v25", false, 0, 4, 4, V20IREMSOUND_TYPE)
+v25_iremkengo_device::v25_iremkengo_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
+	: v25_common_iremkengo_device(mconfig, V25IREMKENGO, "V25IREMKENGO", tag, owner, clock, "v25", false, 0, 4, 4, V20IREMKENGO_TYPE)
 {
 }
 
 
-v35_iremsound_device::v35_iremsound_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
-	: v25_common_iremsound_device(mconfig, V35IREMSOUND, "V35IREMSOUND", tag, owner, clock, "v35", true, BYTE_XOR_LE(0), 6, 2, V30IREMSOUND_TYPE)
+v35_iremkengo_device::v35_iremkengo_device(const machine_config &mconfig, const char *tag, device_t *owner, UINT32 clock)
+	: v25_common_iremkengo_device(mconfig, V35IREMKENGO, "V35IREMKENGO", tag, owner, clock, "v35", true, BYTE_XOR_LE(0), 6, 2, V30IREMKENGO_TYPE)
 {
 }
 
 
-TIMER_CALLBACK_MEMBER(v25_common_iremsound_device::v25_timer_callback)
+TIMER_CALLBACK_MEMBER(v25_common_iremkengo_device::v25_timer_callback)
 {
 	m_pending_irq |= param;
 }
 
-void v25_common_iremsound_device::prefetch()
+void v25_common_iremkengo_device::prefetch()
 {
 	m_prefetch_count--;
 }
 
-void v25_common_iremsound_device::do_prefetch(int previous_ICount)
+void v25_common_iremkengo_device::do_prefetch(int previous_ICount)
 {
 	int diff = previous_ICount - (int) m_icount;
 
 	/* The implementation is not accurate, but comes close.
-	 * It does not respect that the V30IREMSOUND will fetch two bytes
+	 * It does not respect that the V30IREMKENGO will fetch two bytes
 	 * at once directly, but instead uses only 2 cycles instead
 	 * of 4. There are however only very few sources publicly
 	 * available and they are vague.
@@ -120,24 +120,25 @@ void v25_common_iremsound_device::do_prefetch(int previous_ICount)
 
 }
 
-UINT8 v25_common_iremsound_device::fetch()
+UINT8 v25_common_iremkengo_device::fetch()
 {
-	const UINT32 addr = (Sreg(PS) << 4) + m_ip++;
 	//prefetch();
-	//if (addr < 0x20000)
+	const UINT32 addr = (Sreg(PS) << 4) + m_ip++;
+
+	//if (addr < 0x40000)
 	//	return m_fastrom[addr];
 
 	return m_direct->read_byte(addr, m_fetch_xor);
 }
 
-UINT16 v25_common_iremsound_device::fetchword()
+UINT16 v25_common_iremkengo_device::fetchword()
 {
 	UINT16 r = FETCH();
 	r |= (FETCH()<<8);
 	return r;
 }
 
-#define nec_common_iremsound_device v25_common_iremsound_device
+#define nec_common_iremkengo_device v25_common_iremkengo_device
 
 #include "v25instr.h"
 #include "necmacro.h"
@@ -146,14 +147,14 @@ UINT16 v25_common_iremsound_device::fetchword()
 
 static UINT8 parity_table[256];
 
-UINT8 v25_common_iremsound_device::fetchop()
+UINT8 v25_common_iremkengo_device::fetchop()
 {
 	const UINT32 addr = (Sreg(PS) << 4) + m_ip++;
 	UINT8 ret;
 
 	//prefetch();
 
-	if (addr < 0x20000)
+	if (addr < 0x40000)
 		return m_fastromdec[addr];
 	else
 		ret = m_direct->read_byte(addr, m_fetch_xor);
@@ -170,7 +171,7 @@ UINT8 v25_common_iremsound_device::fetchop()
 
 /***************************************************************************/
 
-void v25_common_iremsound_device::device_reset()
+void v25_common_iremkengo_device::device_reset()
 {
 	attotime time;
 
@@ -231,7 +232,7 @@ void v25_common_iremsound_device::device_reset()
 }
 
 
-void v25_common_iremsound_device::nec_interrupt(unsigned int_num, int /*INTSOURCES*/ source)
+void v25_common_iremkengo_device::nec_interrupt(unsigned int_num, int /*INTSOURCES*/ source)
 {
 	standard_irq_callback(0);
 
@@ -269,7 +270,7 @@ void v25_common_iremsound_device::nec_interrupt(unsigned int_num, int /*INTSOURC
 	CHANGE_PC;
 }
 
-void v25_common_iremsound_device::nec_bankswitch(unsigned bank_num)
+void v25_common_iremkengo_device::nec_bankswitch(unsigned bank_num)
 {
 
 	int tmp = CompressFlags();
@@ -285,10 +286,10 @@ void v25_common_iremsound_device::nec_bankswitch(unsigned bank_num)
 	CHANGE_PC;
 }
 
-void v25_common_iremsound_device::nec_trap()
+void v25_common_iremkengo_device::nec_trap()
 {
 	(this->*s_nec_instruction[fetchop()])();
-	nec_interrupt(NEC_IREMSOUND_TRAP_VECTOR, BRK);
+	nec_interrupt(NEC_IREMKENGO_TRAP_VECTOR, BRK);
 }
 
 #define INTERRUPT(source, vector, priority) \
@@ -307,13 +308,13 @@ void v25_common_iremsound_device::nec_trap()
 #define SOURCES (INTTU0 | INTTU1 | INTTU2 | INTD0 | INTD1 | INTP0 | INTP1 | INTP2 \
 				| INTSER0 | INTSR0 | INTST0 | INTSER1 | INTSR1 | INTST1 | INTTB)
 
-void v25_common_iremsound_device::external_int()
+void v25_common_iremkengo_device::external_int()
 {
 	int pending = m_pending_irq & m_unmasked_irq;
 
 	if (pending & NMI_IRQ)
 	{
-		nec_interrupt(NEC_IREMSOUND_NMI_VECTOR, NMI_IRQ);
+		nec_interrupt(NEC_IREMKENGO_NMI_VECTOR, NMI_IRQ);
 		m_pending_irq &= ~NMI_IRQ;
 	}
 	else if (pending & SOURCES)
@@ -324,40 +325,40 @@ void v25_common_iremsound_device::external_int()
 
 			if (m_priority_inttu == i)
 			{
-				INTERRUPT(INTTU0, NEC_IREMSOUND_INTTU0_VECTOR, i)
-				INTERRUPT(INTTU1, NEC_IREMSOUND_INTTU1_VECTOR, i)
-				INTERRUPT(INTTU2, NEC_IREMSOUND_INTTU2_VECTOR, i)
+				INTERRUPT(INTTU0, NEC_IREMKENGO_INTTU0_VECTOR, i)
+				INTERRUPT(INTTU1, NEC_IREMKENGO_INTTU1_VECTOR, i)
+				INTERRUPT(INTTU2, NEC_IREMKENGO_INTTU2_VECTOR, i)
 			}
 
 			if (m_priority_intd == i)
 			{
-				INTERRUPT(INTD0, NEC_IREMSOUND_INTD0_VECTOR, i)
-				INTERRUPT(INTD1, NEC_IREMSOUND_INTD1_VECTOR, i)
+				INTERRUPT(INTD0, NEC_IREMKENGO_INTD0_VECTOR, i)
+				INTERRUPT(INTD1, NEC_IREMKENGO_INTD1_VECTOR, i)
 			}
 
 			if (m_priority_intp == i)
 			{
-				INTERRUPT(INTP0, NEC_IREMSOUND_INTP0_VECTOR, i)
-				INTERRUPT(INTP1, NEC_IREMSOUND_INTP1_VECTOR, i)
-				INTERRUPT(INTP2, NEC_IREMSOUND_INTP2_VECTOR, i)
+				INTERRUPT(INTP0, NEC_IREMKENGO_INTP0_VECTOR, i)
+				INTERRUPT(INTP1, NEC_IREMKENGO_INTP1_VECTOR, i)
+				INTERRUPT(INTP2, NEC_IREMKENGO_INTP2_VECTOR, i)
 			}
 
 			if (m_priority_ints0 == i)
 			{
-				INTERRUPT(INTSER0, NEC_IREMSOUND_INTSER0_VECTOR, i)
-				INTERRUPT(INTSR0, NEC_IREMSOUND_INTSR0_VECTOR, i)
-				INTERRUPT(INTST0, NEC_IREMSOUND_INTST0_VECTOR, i)
+				INTERRUPT(INTSER0, NEC_IREMKENGO_INTSER0_VECTOR, i)
+				INTERRUPT(INTSR0, NEC_IREMKENGO_INTSR0_VECTOR, i)
+				INTERRUPT(INTST0, NEC_IREMKENGO_INTST0_VECTOR, i)
 			}
 
 			if (m_priority_ints1 == i)
 			{
-				INTERRUPT(INTSER1, NEC_IREMSOUND_INTSER1_VECTOR, i)
-				INTERRUPT(INTSR1, NEC_IREMSOUND_INTSR1_VECTOR, i)
-				INTERRUPT(INTST1, NEC_IREMSOUND_INTST1_VECTOR, i)
+				INTERRUPT(INTSER1, NEC_IREMKENGO_INTSER1_VECTOR, i)
+				INTERRUPT(INTSR1, NEC_IREMKENGO_INTSR1_VECTOR, i)
+				INTERRUPT(INTST1, NEC_IREMKENGO_INTST1_VECTOR, i)
 			}
 
 			if (i == 7)
-				INTERRUPT(INTTB, NEC_IREMSOUND_INTTB_VECTOR, 7)
+				INTERRUPT(INTTB, NEC_IREMKENGO_INTTB_VECTOR, 7)
 		}
 	}
 	else if (pending & INT_IRQ)
@@ -379,7 +380,7 @@ void v25_common_iremsound_device::external_int()
 
 /*****************************************************************************/
 
-void v25_common_iremsound_device::execute_set_input(int irqline, int state)
+void v25_common_iremkengo_device::execute_set_input(int irqline, int state)
 {
 	switch (irqline)
 	{
@@ -402,34 +403,34 @@ void v25_common_iremsound_device::execute_set_input(int irqline, int state)
 				m_halted = 0;
 			}
 			break;
-		case NEC_IREMSOUND_INPUT_LINE_INTP0:
-		case NEC_IREMSOUND_INPUT_LINE_INTP1:
-		case NEC_IREMSOUND_INPUT_LINE_INTP2:
-			irqline -= NEC_IREMSOUND_INPUT_LINE_INTP0;
+		case NEC_IREMKENGO_INPUT_LINE_INTP0:
+		case NEC_IREMKENGO_INPUT_LINE_INTP1:
+		case NEC_IREMKENGO_INPUT_LINE_INTP2:
+			irqline -= NEC_IREMKENGO_INPUT_LINE_INTP0;
 			if (m_intp_state[irqline] == state) return;
 			m_intp_state[irqline] = state;
 			if (state != CLEAR_LINE)
 				m_pending_irq |= (INTP0 << irqline);
 			break;
-		case NEC_IREMSOUND_INPUT_LINE_POLL:
+		case NEC_IREMKENGO_INPUT_LINE_POLL:
 			m_poll_state = state;
 			break;
 	}
 }
 
-offs_t v25_common_iremsound_device::disasm_disassemble(char *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, UINT32 options)
+offs_t v25_common_iremkengo_device::disasm_disassemble(char *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram, UINT32 options)
 {
-	extern int necv_iremsound_dasm_one(char *buffer, UINT32 eip, const UINT8 *oprom, const UINT8 *decryption_table);
+	extern int necv_iremkengo_dasm_one(char *buffer, UINT32 eip, const UINT8 *oprom, const UINT8 *decryption_table);
 
-	return necv_iremsound_dasm_one(buffer, pc, oprom, m_v25v35_decryptiontable);
+	return necv_iremkengo_dasm_one(buffer, pc, oprom, m_v25v35_decryptiontable);
 }
 
-void v25_common_iremsound_device::device_start()
+void v25_common_iremkengo_device::device_start()
 {
 	unsigned int i, j, c;
 
-	static const NECIREMSOUND_WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };
-	static const NECIREMSOUND_BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
+	static const NECIREMKENGO_WREGS wreg_name[8]={ AW, CW, DW, BW, SP, BP, IX, IY };
+	static const NECIREMKENGO_BREGS breg_name[8]={ AL, CL, DL, BL, AH, CH, DH, BH };
 
 	for (i = 0; i < 256; i++)
 	{
@@ -460,7 +461,7 @@ void v25_common_iremsound_device::device_start()
 	m_E16 = 0;
 
 	for (i = 0; i < 4; i++)
-		m_timers[i] = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(v25_common_iremsound_device::v25_timer_callback),this));
+		m_timers[i] = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(v25_common_iremkengo_device::v25_timer_callback),this));
 
 	save_item(NAME(m_ram.w));
 	save_item(NAME(m_intp_state));
@@ -514,21 +515,21 @@ void v25_common_iremsound_device::device_start()
 	m_direct = &m_program->direct();
 	m_io = &space(AS_IO);
 
-	state_add( V25IREMSOUND_PC,    "PC", m_debugger_temp).callimport().callexport().formatstr("%05X");
-	state_add( V25IREMSOUND_IP,    "IP", m_ip).formatstr("%04X");
-	state_add( V25IREMSOUND_SP,    "SP", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_FLAGS, "F", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_AW,    "AW", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_CW,    "CW", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_DW,    "DW", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_BW,    "BW", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_BP,    "BP", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_IX,    "IX", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_IY,    "IY", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_ES,    "DS1", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_CS,    "PS", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_SS,    "SS", m_debugger_temp).callimport().callexport().formatstr("%04X");
-	state_add( V25IREMSOUND_DS,    "DS0", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_PC,    "PC", m_debugger_temp).callimport().callexport().formatstr("%05X");
+	state_add( V25IREMKENGO_IP,    "IP", m_ip).formatstr("%04X");
+	state_add( V25IREMKENGO_SP,    "SP", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_FLAGS, "F", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_AW,    "AW", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_CW,    "CW", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_DW,    "DW", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_BW,    "BW", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_BP,    "BP", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_IX,    "IX", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_IY,    "IY", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_ES,    "DS1", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_CS,    "PS", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_SS,    "SS", m_debugger_temp).callimport().callexport().formatstr("%04X");
+	state_add( V25IREMKENGO_DS,    "DS0", m_debugger_temp).callimport().callexport().formatstr("%04X");
 
 	state_add( STATE_GENPC, "GENPC", m_debugger_temp).callimport().callexport().noshow();
 	state_add( STATE_GENSP, "GENSP", m_debugger_temp).callimport().callexport().noshow();
@@ -538,7 +539,7 @@ void v25_common_iremsound_device::device_start()
 }
 
 
-void v25_common_iremsound_device::state_string_export(const device_state_entry &entry, std::string &str) const
+void v25_common_iremkengo_device::state_string_export(const device_state_entry &entry, std::string &str) const
 {
 	UINT16 flags = CompressFlags();
 
@@ -564,11 +565,11 @@ void v25_common_iremsound_device::state_string_export(const device_state_entry &
 	}
 }
 
-void v25_common_iremsound_device::state_import(const device_state_entry &entry)
+void v25_common_iremkengo_device::state_import(const device_state_entry &entry)
 {
 	switch (entry.index())
 	{
-		case V25IREMSOUND_PC:
+		case V25IREMKENGO_PC:
 			if( m_debugger_temp - (Sreg(PS)<<4) < 0x10000 )
 			{
 				m_ip = m_debugger_temp - (Sreg(PS)<<4);
@@ -580,67 +581,67 @@ void v25_common_iremsound_device::state_import(const device_state_entry &entry)
 			}
 			break;
 
-		case V25IREMSOUND_SP:
+		case V25IREMKENGO_SP:
 			Wreg(SP) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_FLAGS:
+		case V25IREMKENGO_FLAGS:
 			ExpandFlags(m_debugger_temp);
 			break;
 
-		case V25IREMSOUND_AW:
+		case V25IREMKENGO_AW:
 			Wreg(AW) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_CW:
+		case V25IREMKENGO_CW:
 			Wreg(CW) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_DW:
+		case V25IREMKENGO_DW:
 			Wreg(DW) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_BW:
+		case V25IREMKENGO_BW:
 			Wreg(BW) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_BP:
+		case V25IREMKENGO_BP:
 			Wreg(BP) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_IX:
+		case V25IREMKENGO_IX:
 			Wreg(IX) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_IY:
+		case V25IREMKENGO_IY:
 			Wreg(IY) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_ES:
+		case V25IREMKENGO_ES:
 			Sreg(DS1) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_CS:
+		case V25IREMKENGO_CS:
 			Sreg(PS) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_SS:
+		case V25IREMKENGO_SS:
 			Sreg(SS) = m_debugger_temp;
 			break;
 
-		case V25IREMSOUND_DS:
+		case V25IREMKENGO_DS:
 			Sreg(DS0) = m_debugger_temp;
 			break;
 	}
 }
 
 
-void v25_common_iremsound_device::state_export(const device_state_entry &entry)
+void v25_common_iremkengo_device::state_export(const device_state_entry &entry)
 {
 	switch (entry.index())
 	{
 		case STATE_GENPC:
-		case V25IREMSOUND_PC:
+		case V25IREMKENGO_PC:
 			m_debugger_temp = (Sreg(PS)<<4) + m_ip;
 			break;
 
@@ -648,62 +649,62 @@ void v25_common_iremsound_device::state_export(const device_state_entry &entry)
 			m_debugger_temp = (Sreg(SS)<<4) + Wreg(SP);
 			break;
 
-		case V25IREMSOUND_SP:
+		case V25IREMKENGO_SP:
 			m_debugger_temp = Wreg(SP);
 			break;
 
-		case V25IREMSOUND_FLAGS:
+		case V25IREMKENGO_FLAGS:
 			m_debugger_temp = CompressFlags();
 			break;
 
-		case V25IREMSOUND_AW:
+		case V25IREMKENGO_AW:
 			m_debugger_temp = Wreg(AW);
 			break;
 
-		case V25IREMSOUND_CW:
+		case V25IREMKENGO_CW:
 			m_debugger_temp = Wreg(CW);
 			break;
 
-		case V25IREMSOUND_DW:
+		case V25IREMKENGO_DW:
 			m_debugger_temp = Wreg(DW);
 			break;
 
-		case V25IREMSOUND_BW:
+		case V25IREMKENGO_BW:
 			m_debugger_temp = Wreg(BW);
 			break;
 
-		case V25IREMSOUND_BP:
+		case V25IREMKENGO_BP:
 			m_debugger_temp = Wreg(BP);
 			break;
 
-		case V25IREMSOUND_IX:
+		case V25IREMKENGO_IX:
 			m_debugger_temp = Wreg(IX);
 			break;
 
-		case V25IREMSOUND_IY:
+		case V25IREMKENGO_IY:
 			m_debugger_temp = Wreg(IY);
 			break;
 
-		case V25IREMSOUND_ES:
+		case V25IREMKENGO_ES:
 			m_debugger_temp = Sreg(DS1);
 			break;
 
-		case V25IREMSOUND_CS:
+		case V25IREMKENGO_CS:
 			m_debugger_temp = Sreg(PS);
 			break;
 
-		case V25IREMSOUND_SS:
+		case V25IREMKENGO_SS:
 			m_debugger_temp = Sreg(SS);
 			break;
 
-		case V25IREMSOUND_DS:
+		case V25IREMKENGO_DS:
 			m_debugger_temp = Sreg(DS0);
 			break;
 	}
 }
 
 
-void v25_common_iremsound_device::execute_run()
+void v25_common_iremkengo_device::execute_run()
 {
 	//int prev_ICount;
 
@@ -738,7 +739,7 @@ void v25_common_iremsound_device::execute_run()
 	if (m_halted)
 	{
 		m_icount = 0;
-	//	debugger_instruction_hook(this, (Sreg(PS)<<4) + m_ip);
+		//debugger_instruction_hook(this, (Sreg(PS)<<4) + m_ip);
 		return;
 	}
 

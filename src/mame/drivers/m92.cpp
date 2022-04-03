@@ -264,13 +264,11 @@ MACHINE_RESET_MEMBER(m92_state,inthunt)
 	cpu_device* m = (cpu_device*)m_maincpu;
 	cpu_device* s = (cpu_device*)m_soundcpu;
 
-
 	nec_common_irem_device* maincpu = (nec_common_irem_device*)m;
 	v25_common_iremsound_device* soundcpu = (v25_common_iremsound_device*)s;
 
 	UINT8 *ROM = memregion("maincpu")->base();
 	maincpu->set_rom_ptr(ROM);
-	//m_maincpu->set_ram_ptr((UINT8*)&m_mainram[0]);
 
 	UINT8 *ROM2 = memregion("soundcpu")->base();
 	soundcpu->set_rom_ptr(ROM2);

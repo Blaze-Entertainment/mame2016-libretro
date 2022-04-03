@@ -8,6 +8,18 @@
 #include "audio/m72.h"
 #include "sound/dac.h"
 #include "machine/pic8259.h"
+#include "cpu/z80/z80.h"
+#include "cpu/nec/nec.h"
+#include "cpu/nec/v25.h"
+
+#include "cpu/nec_iremkengo/v25.h"
+
+#include "machine/irem_cpu.h"
+#include "sound/2151intf.h"
+#include "includes/iremipt.h"
+
+#include "cpu/mcs51/mcs51.h"
+
 
 #define M81_B_B_JUMPER_J3_S \
 	PORT_START("JumperJ3") \
@@ -168,6 +180,7 @@ public:
 	DECLARE_VIDEO_START(hharryu);
 	DECLARE_VIDEO_START(poundfor);
 	DECLARE_MACHINE_START(kengo);
+	DECLARE_MACHINE_START(kengo_cp);
 	DECLARE_MACHINE_RESET(kengo);
 	DECLARE_DRIVER_INIT(dkgenm72);
 	DECLARE_DRIVER_INIT(bchopper);
@@ -178,6 +191,9 @@ public:
 	DECLARE_DRIVER_INIT(nspirit);
 	DECLARE_DRIVER_INIT(loht);
 	DECLARE_DRIVER_INIT(imgfight);
+	DECLARE_DRIVER_INIT(ltswords);
+
+	UINT8 decrypted_rom[0x100000];
 
 	INTERRUPT_GEN_MEMBER(mcu_int);
 	INTERRUPT_GEN_MEMBER(fake_nmi);

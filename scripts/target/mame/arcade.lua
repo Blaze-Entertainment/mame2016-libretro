@@ -25,6 +25,7 @@ CPUS["NEC"] = true
 CPUS["V30MZ"] = true
 CPUS["NECIREM"] = true
 CPUS["NECIREMSOUND"] = true
+CPUS["NECIREMKENGO"] = true
 CPUS["V60"] = true
 CPUS["MCS48"] = true
 CPUS["MCS51"] = true
