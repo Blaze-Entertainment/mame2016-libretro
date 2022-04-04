@@ -126,7 +126,8 @@ WRITE8_MEMBER(m58_state::scroll_panel_w)
 		col = (data >> i) & 0x11;
 		col = ((col >> 3) | col) & 3;
 
-		m_scroll_panel_bitmap.pix16(sy, sx + i) = 0x100 + (sy & 0xfc) + col;
+		m_scroll_panel_bitmap.pix(sy, sx + i) = 0x100 + (sy & 0xfc) + col;
+		m_scroll_panel_bitmap.pix(sy, sx + i + 0x2c8) = 0x100 + (sy & 0xfc) + col; // for flipscreen
 	}
 }
 
@@ -174,11 +175,11 @@ void m58_state::video_start()
 	const rectangle &visarea = m_screen->visible_area();
 
 	m_bg_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(m58_state::get_bg_tile_info),this), tilemap_mapper_delegate(FUNC(m58_state::tilemap_scan_rows),this), 8, 8, 64, 32);
-	m_bg_tilemap->set_scrolldx(visarea.min_x, width - (visarea.max_x + 1));
-	m_bg_tilemap->set_scrolldy(visarea.min_y - 8, height + 16 - (visarea.max_y + 1));
+	m_bg_tilemap->set_scrolldy(26, 26);
 
 	m_screen->register_screen_bitmap(m_scroll_panel_bitmap);
 	save_item(NAME(m_scroll_panel_bitmap));
+
 }
 
 
@@ -220,7 +221,7 @@ void m58_state::draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect )
 		int flipx = attr & 0x40;
 		int flipy = attr & 0x80;
 		int sx = m_spriteram[offs + 3];
-		int sy1 = 233 - m_spriteram[offs];
+		int sy1 = 210 - m_spriteram[offs];
 		int sy2 = 0;
 
 		if (flipy)
