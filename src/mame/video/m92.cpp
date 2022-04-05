@@ -88,6 +88,7 @@ WRITE16_MEMBER(m92_state::m92_spritecontrol_w)
 		/* this implementation is not accurate: still some delayed sprites in gunforc2 (might be another issue?) */
 		m_spriteram->copy();
 		m_sprite_buffer_busy = 0;
+		m_upd71059c->ir1_w(0);
 
 		/* Pixel clock is 26.6666MHz (some boards 27MHz??), we have 0x800 bytes, or 0x400 words to copy from
 		spriteram to the buffer.  It seems safe to assume 1 word can be copied per clock. */
@@ -242,6 +243,7 @@ WRITE16_MEMBER(m92_state::m92_master_control_w)
 
 		case 3:
 			m_raster_irq_position = m_pf_master_control[3] - 128;
+			m_upd71059c->ir2_w(0);
 			break;
 	}
 }
@@ -251,6 +253,12 @@ WRITE16_MEMBER(m92_state::m92_master_control_w)
 VIDEO_START_MEMBER(m92_state,m92)
 {
 	int laynum;
+
+	m_pf_master_control[0] = m_pf_master_control[1] = m_pf_master_control[2] = m_pf_master_control[3] = 0;
+	m_videocontrol = 0;
+	m_sprite_list = 0;
+	m_raster_irq_position = 0;
+	m_sprite_buffer_busy = 0;
 	m_palette_bank = 0;
 
 	memset(&m_pf_layer, 0, sizeof(m_pf_layer));

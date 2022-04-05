@@ -213,7 +213,7 @@ psoldier dip locations still need verification.
 
 // I haven't managed to find a way to keep nbbatman happy when using the proper upd71059c device
 // so we just use an ugly hack and get the vector base from it for now until this is properly resolved.
-#define USE_HACKED_IRQS
+//#define USE_HACKED_IRQS
 
 #ifdef USE_HACKED_IRQS
 
@@ -286,12 +286,13 @@ TIMER_DEVICE_CALLBACK_MEMBER(m92_state::m92_scanline_interrupt)
 	/* raster interrupt */
 	if (scanline == m_raster_irq_position)
 	{
+	//	printf("raster %d\n", scanline);
 		m_screen->update_partial(scanline);
 		M92_TRIGGER_IRQ2
 	}
 	else
 	{
-		M92_CLEAR_IRQ2
+		//M92_CLEAR_IRQ2
 
 		/* VBLANK interrupt */
 		if (scanline == m_screen->visible_area().max_y + 1)
