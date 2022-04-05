@@ -37,8 +37,8 @@ TILE_GET_INFO_MEMBER(slapfght_state::get_pf1_tile_info)
 
 TILE_GET_INFO_MEMBER(slapfght_state::get_fix_tile_info)
 {
-	int tile = m_fixvideoram[tile_index] | ((m_fixcolorram[tile_index] & 0x03) << 8);
-	int color = (m_fixcolorram[tile_index] & 0xfc) >> 2;
+	int tile = m_shadow_fixvideoram[tile_index] | ((m_shadow_fixcolorram[tile_index] & 0x03) << 8);
+	int color = (m_shadow_fixcolorram[tile_index] & 0xfc) >> 2;
 
 	SET_TILE_INFO_MEMBER(0, tile, color, 0);
 }
@@ -60,6 +60,9 @@ VIDEO_START_MEMBER(slapfght_state, perfrman)
 
 VIDEO_START_MEMBER(slapfght_state, slapfight)
 {
+	save_item(NAME(m_shadow_fixvideoram));
+	save_item(NAME(m_shadow_fixcolorram));
+
 	m_pf1_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(slapfght_state::get_pf1_tile_info), this), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 	m_fix_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(slapfght_state::get_fix_tile_info), this), TILEMAP_SCAN_ROWS, 8, 8, 64, 32);
 
@@ -92,14 +95,114 @@ WRITE8_MEMBER(slapfght_state::colorram_w)
 WRITE8_MEMBER(slapfght_state::fixram_w)
 {
 	m_fixvideoram[offset] = data;
+	m_shadow_fixvideoram[offset] = data;
 	m_fix_tilemap->mark_tile_dirty(offset);
 }
 
 WRITE8_MEMBER(slapfght_state::fixcol_w)
 {
 	m_fixcolorram[offset] = data;
+	m_shadow_fixcolorram[offset] = data;
 	m_fix_tilemap->mark_tile_dirty(offset);
 }
+
+WRITE8_MEMBER(slapfght_state::alcon_fixram_w)
+{
+	m_fixvideoram[offset] = data;
+
+	int pc = m_maincpu->pc();
+	
+	if (pc == 0x9a2)
+	{
+		int bc = m_maincpu->state_int(Z80_BC);
+		if ((bc >= 0xb6f4) && (bc < 0xb6f4 + 25))
+		{
+			static UINT8 newstring[] = { 0x2d, 0x2d, 0x2d, 0x2d,0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x06, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d };
+			data = newstring[bc - 0xb6f4];
+		}
+	}
+
+	m_shadow_fixvideoram[offset] = data;
+	m_fix_tilemap->mark_tile_dirty(offset);
+}
+
+WRITE8_MEMBER(slapfght_state::alcon_fixcol_w)
+{
+	m_fixcolorram[offset] = data;
+	m_shadow_fixcolorram[offset] = data;
+	m_fix_tilemap->mark_tile_dirty(offset);
+}
+
+WRITE8_MEMBER(slapfght_state::grdiana_fixram_w)
+{
+	m_fixvideoram[offset] = data;
+
+	int pc = m_maincpu->pc();
+	
+	if (pc == 0x662)
+	{
+		int de = m_maincpu->state_int(Z80_DE);
+		if ((de >= 0x67b6) && (de < 0x67b6 + 17))
+		{
+			static const UINT8 newstring[] = { 0x2d, 0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x06, 0x2d, 0x2d };
+			data = newstring[de - 0x67b6];
+		}
+	}
+
+
+	m_shadow_fixvideoram[offset] = data;
+	m_fix_tilemap->mark_tile_dirty(offset);
+}
+
+WRITE8_MEMBER(slapfght_state::grdiana_fixcol_w)
+{
+	m_fixcolorram[offset] = data;
+
+	int pc = m_maincpu->pc();
+	if (pc == 0x802)
+	{
+		int de = m_maincpu->state_int(Z80_DE) & 0xff00;
+		if (de == 0x5100)
+		{
+			data = 0x55;
+		}
+	}
+
+	m_shadow_fixcolorram[offset] = data;
+	m_fix_tilemap->mark_tile_dirty(offset);
+}
+
+
+
+
+
+WRITE8_MEMBER(slapfght_state::tigerh_fixram_w)
+{
+	m_fixvideoram[offset] = data;
+
+	int pc = m_maincpu->pc();
+	
+	if (pc == 0x69)
+	{
+		int de = m_maincpu->state_int(Z80_DE);
+		if ((de >= 0x38e7) && (de < 0x38e7+25))
+		{
+			static const UINT8 newstring[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x05, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d };
+			data = newstring[de-0x38e7];
+		}
+	}
+
+	m_shadow_fixvideoram[offset] = data;
+	m_fix_tilemap->mark_tile_dirty(offset);
+}
+
+WRITE8_MEMBER(slapfght_state::tigerh_fixcol_w)
+{
+	m_fixcolorram[offset] = data;
+	m_shadow_fixcolorram[offset] = data;
+	m_fix_tilemap->mark_tile_dirty(offset);
+}
+
 
 WRITE8_MEMBER(slapfght_state::scrollx_lo_w)
 {

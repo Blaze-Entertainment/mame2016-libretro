@@ -857,6 +857,7 @@ DRIVER_INIT_MEMBER(slapfght_state,slapfigh)
 
 READ8_MEMBER(slapfght_state::alcon_copyright_r)
 {
+#if 0 // unsafe
 	int bc = m_maincpu->state_int(Z80_BC);
 
 	UINT8 newstring[] = { 0x2d, 0x2d, 0x2d, 0x2d,0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x06, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d };
@@ -865,8 +866,19 @@ READ8_MEMBER(slapfght_state::alcon_copyright_r)
 	{
 		m_maincpu->set_state_int(Z80_A, newstring[bc-0xb6f4]);
 	}
-
+#endif 
 	return 0xfe;
+
+}
+
+READ8_MEMBER(slapfght_state::alcon_cheat_r)
+{
+	int pc = m_maincpu->pc();
+	
+	// only change if this is where we're executing
+	if (pc == 0x695a) return 0x18;
+
+	return 0x30;
 }
 
 DRIVER_INIT_MEMBER(slapfght_state,alcon)
@@ -874,12 +886,21 @@ DRIVER_INIT_MEMBER(slapfght_state,alcon)
 	// it is important to avoid modifying the program ROMS!
 	// b6f4 copyright sring in alcon, read at 99a
 	init_banks();
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x99b, 0x99b, read8_delegate(FUNC(slapfght_state::alcon_copyright_r), this));
+	//m_maincpu->space(AS_PROGRAM).install_read_handler(0x99b, 0x99b, read8_delegate(FUNC(slapfght_state::alcon_copyright_r), this));
+	
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf000, 0xf7ff, write8_delegate(FUNC(slapfght_state::alcon_fixram_w), this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf800, 0xffff, write8_delegate(FUNC(slapfght_state::alcon_fixcol_w), this));
+
+
+	// 6959 to 0x18 is invulnerability
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x6959, 0x6959, read8_delegate(FUNC(slapfght_state::alcon_cheat_r), this));
+
 }
 
 
 READ8_MEMBER(slapfght_state::tigerh_copyright_r)
 {
+#if 0 // unsafe
 	int de = m_maincpu->state_int(Z80_DE);
 
 	UINT8 newstring[] = { 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x05, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d, 0x2d };
@@ -888,6 +909,7 @@ READ8_MEMBER(slapfght_state::tigerh_copyright_r)
 	{
 		m_maincpu->set_state_int(Z80_A, newstring[de-0x38e7]);
 	}
+#endif
 
 	return 0xfe;
 }
@@ -895,12 +917,15 @@ READ8_MEMBER(slapfght_state::tigerh_copyright_r)
 DRIVER_INIT_MEMBER(slapfght_state,tigerh)
 {
 	// it is important to avoid modifying the program ROMS!
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x64, 0x64, read8_delegate(FUNC(slapfght_state::tigerh_copyright_r), this));
+	//m_maincpu->space(AS_PROGRAM).install_read_handler(0x64, 0x64, read8_delegate(FUNC(slapfght_state::tigerh_copyright_r), this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf000, 0xf7ff, write8_delegate(FUNC(slapfght_state::tigerh_fixram_w), this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf800, 0xffff, write8_delegate(FUNC(slapfght_state::tigerh_fixcol_w), this));
 }
 
 
 READ8_MEMBER(slapfght_state::grdiana_copyright_r)
 {
+#if 0 // unsafe
 	int de = m_maincpu->state_int(Z80_DE);
 
 	UINT8 newstring[] = { 0x2d, 0x2d, 0x2e,0x1D,0x18,0x0a,0x19,0x15,0x0a,0x17, 0x2d, 0x01, 0x09, 0x08, 0x06, 0x2d, 0x2d };
@@ -909,7 +934,7 @@ READ8_MEMBER(slapfght_state::grdiana_copyright_r)
 	{
 		m_maincpu->set_state_int(Z80_A, newstring[de-0x67b6]);
 	}
-
+#endif
 	return 0xfe;
 }
 
@@ -919,7 +944,10 @@ DRIVER_INIT_MEMBER(slapfght_state,grdiana)
 	// it is important to avoid modifying the program ROMS!
 	// b6f4 copyright sring in alcon, read at 99a
 	init_banks();
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x65e, 0x65e, read8_delegate(FUNC(slapfght_state::grdiana_copyright_r), this));
+	//m_maincpu->space(AS_PROGRAM).install_read_handler(0x65e, 0x65e, read8_delegate(FUNC(slapfght_state::grdiana_copyright_r), this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf000, 0xf7ff, write8_delegate(FUNC(slapfght_state::grdiana_fixram_w), this));
+	m_maincpu->space(AS_PROGRAM).install_write_handler(0xf800, 0xffff, write8_delegate(FUNC(slapfght_state::grdiana_fixcol_w), this));
+
 }
 
 
@@ -1102,7 +1130,7 @@ static MACHINE_CONFIG_START( tigerh, slapfght_state )
 	MCFG_CPU_ADD("mcu", M68705, XTAL_36MHz/12) // 3MHz
 	MCFG_CPU_PROGRAM_MAP(tigerh_m68705_map)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(600))
+	MCFG_QUANTUM_TIME(attotime::from_hz(10000))
 
 	/* video hardware */
 	MCFG_BUFFERED_SPRITERAM8_ADD("spriteram")
@@ -1167,7 +1195,7 @@ static MACHINE_CONFIG_START( slapfigh, slapfght_state )
 	MCFG_CPU_ADD("mcu", M68705, XTAL_36MHz/12) // 3MHz
 	MCFG_CPU_PROGRAM_MAP(slapfight_m68705_map)
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(600))
+	MCFG_QUANTUM_TIME(attotime::from_hz(10000))
 
 	/* video hardware */
 	MCFG_BUFFERED_SPRITERAM8_ADD("spriteram")
@@ -2033,7 +2061,22 @@ ROM_END
 ROM_START( grdiana )
 	ROM_REGION( 0x18000, "maincpu", 0 )     /* Region 0 - main cpu code */
 	ROM_LOAD( "a68_00a.8p", 0x00000, 0x4000, CRC(5f6aaa78) SHA1(aa0e39f068bb2b4e5c52ce1a779916f2e3d8873d) )
+	ROM_FILL( 0x0728, 0x01, 0x51 )
+	ROM_FILL( 0x0738, 0x01, 0x51 )
+	ROM_FILL( 0x0758, 0x01, 0x51 )
+	ROM_FILL( 0x0768, 0x01, 0x51 )
+	ROM_FILL( 0x0788, 0x01, 0x51 )
+	ROM_FILL( 0x0798, 0x01, 0x51 )
+	ROM_FILL( 0x07b8, 0x01, 0x51 )
+	ROM_FILL( 0x07c8, 0x01, 0x51 )
+	ROM_FILL( 0x07e8, 0x01, 0x51 )
+	ROM_FILL( 0x07f8, 0x01, 0x51 )
+
 	ROM_LOAD( "a68_01a.8n", 0x04000, 0x4000, CRC(a7b63eba) SHA1(257844a25705747903b36fb9d31f9cb23727b082) )
+	ROM_FILL( 0x6D89, 0x01, 0x05 )
+	ROM_FILL( 0x6D8A, 0x01, 0x34 )
+	ROM_FILL( 0x6D8B, 0x01, 0x34 )
+
 	ROM_LOAD( "a68_02.8k", 0x10000, 0x8000, CRC(3567da17) SHA1(29d698606d0bd30abfc3171d79bfad95b0de89fc) )
 
 	ROM_REGION( 0x10000, "audiocpu", 0 )        /* Region 3 - sound cpu code */
@@ -2063,6 +2106,7 @@ ROM_START( grdiana )
 	ROM_LOAD( "rom20.12m", 0x0100, 0x0100, CRC(4ca01887) SHA1(2892c89d5e60f1d10593adffff55c1a9654e8209) )
 	ROM_LOAD( "rom19.12p", 0x0200, 0x0100, CRC(513224f0) SHA1(15b34612206138f6fc5f7478925b1fff2ed56aa8) )
 ROM_END
+
 
 
 
@@ -2166,6 +2210,8 @@ ROM_START( getstarb2 )
 	ROM_LOAD( "rom20",        0x0100,  0x0100, CRC(4ca01887) SHA1(2892c89d5e60f1d10593adffff55c1a9654e8209) )
 	ROM_LOAD( "rom19",        0x0200,  0x0100, CRC(513224f0) SHA1(15b34612206138f6fc5f7478925b1fff2ed56aa8) )
 ROM_END
+
+
 
 
 /*  ( YEAR  NAME        PARENT    MACHINE     INPUT      INIT                       MONITOR, COMPANY, FULLNAME, FLAGS ) */

@@ -42,6 +42,10 @@ public:
 	optional_shared_ptr<UINT8> m_fixvideoram;
 	optional_shared_ptr<UINT8> m_fixcolorram;
 
+	UINT8 m_shadow_fixvideoram[0x800];
+	UINT8 m_shadow_fixcolorram[0x800];
+
+
 	/* This it the best way to allow game specific kludges until the system is fully understood */
 	enum getstar_id
 	{
@@ -93,6 +97,15 @@ public:
 	DECLARE_WRITE8_MEMBER(colorram_w);
 	DECLARE_WRITE8_MEMBER(fixram_w);
 	DECLARE_WRITE8_MEMBER(fixcol_w);
+
+	DECLARE_WRITE8_MEMBER(alcon_fixram_w);
+	DECLARE_WRITE8_MEMBER(alcon_fixcol_w);
+	DECLARE_WRITE8_MEMBER(grdiana_fixram_w);
+	DECLARE_WRITE8_MEMBER(grdiana_fixcol_w);
+	DECLARE_WRITE8_MEMBER(tigerh_fixram_w);
+	DECLARE_WRITE8_MEMBER(tigerh_fixcol_w);
+	DECLARE_READ8_MEMBER(alcon_cheat_r);
+
 	DECLARE_WRITE8_MEMBER(scrollx_lo_w);
 	DECLARE_WRITE8_MEMBER(scrollx_hi_w);
 	DECLARE_WRITE8_MEMBER(scrolly_w);
