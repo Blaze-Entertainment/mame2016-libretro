@@ -1314,6 +1314,20 @@ READ16_MEMBER(twincobr_state::fshark_boot_speed2_r)
 	return 0x43f9;
 }
 
+READ16_MEMBER(twincobr_state::fshark_cheat1_r)
+{
+	int pc = space.device().safe_pc();
+	if (pc == 0x1cd0) return 0x6000;
+	return 0x6600;
+}
+
+READ16_MEMBER(twincobr_state::fshark_cheat2_r)
+{
+	int pc = space.device().safe_pc();	
+	if (pc == 0x2aa8) return 0x600c;
+	return 0x670c;
+}
+
 
 DRIVER_INIT_MEMBER(twincobr_state,fshark)
 {
@@ -1324,9 +1338,11 @@ DRIVER_INIT_MEMBER(twincobr_state,fshark)
 
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x07e000, 0x07e001, write16_delegate(FUNC(twincobr_state::twincobr_patched_txram_w),this));
 
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x001cd0, 0x001cd1, read16_delegate(FUNC(twincobr_state::fshark_cheat1_r),this));
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x002aa8, 0x002aa9, read16_delegate(FUNC(twincobr_state::fshark_cheat2_r),this));
+
 }
 
-	
 
 GAME( 1987, fshark,    0,        fshark,   fshark,    twincobr_state,  fshark, ROT270, "Toaplan / Taito Corporation", "Flying Shark (World)", 0 )
 GAME( 1987, skyshark,  fshark,   fshark,   skyshark,  twincobr_state,  twincobr, ROT270, "Toaplan / Taito America Corporation (Romstar license)", "Sky Shark (US, set 1)", 0 )

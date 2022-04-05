@@ -134,4 +134,6 @@ public:
 	DECLARE_READ16_MEMBER(fshark_boot_speed1_r);
 	DECLARE_READ16_MEMBER(fshark_boot_speed2_r);
 
+	DECLARE_READ16_MEMBER(fshark_cheat1_r);
+	DECLARE_READ16_MEMBER(fshark_cheat2_r);
 };
