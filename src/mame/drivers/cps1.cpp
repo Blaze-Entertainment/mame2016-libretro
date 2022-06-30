@@ -3283,6 +3283,7 @@ static MACHINE_CONFIG_START( cps1_10MHz, cps_state )
 	MCFG_CPU_PROGRAM_MAP(sub_map)
 
 	MCFG_MACHINE_START_OVERRIDE(cps_state,cps1)
+	MCFG_MACHINE_RESET_OVERRIDE(cps_state,cps1ram)
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -12265,11 +12266,39 @@ READ16_MEMBER(cps_state::captcomm_skip2_r)
 		return 0x273E;
 }
 
+
+
+READ16_MEMBER(cps_state::captcomm_skip3_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x64e)
+		{
+			return 0x4ef8;
+		}
+		if (pc == 0x650)
+		{
+			return 0x0a64;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x49fa;
+	else
+		return 0x0006;
+
+}
+
+
 DRIVER_INIT_MEMBER(cps_state, captcomm)
 {
 	DRIVER_INIT_CALL(cps1);
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8C8, 0x1A8Cb, read16_delegate(FUNC(cps_state::captcomm_skip_r), this));
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8E4, 0x1A8E7, read16_delegate(FUNC(cps_state::captcomm_skip2_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x64e, 0x651, read16_delegate(FUNC(cps_state::captcomm_skip3_r), this));
 
 
 }

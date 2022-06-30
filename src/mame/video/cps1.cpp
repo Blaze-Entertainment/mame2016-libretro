@@ -1659,9 +1659,18 @@ CPS1 VIDEO RENDERER
 #define CPS2_OBJ_XOFFS  0x08    /* X offset (usually 0x0040) */
 #define CPS2_OBJ_YOFFS  0x0a    /* Y offset (always 0x0010) */
 
+MACHINE_RESET_MEMBER(cps_state, cps1ram)
+{
+	printf("reset\n");
+	for (int i = 0; i < 0x8000; i++)
+		m_mainram[i] = 0x0000;
+
+}
 
 MACHINE_RESET_MEMBER(cps_state,cps)
 {
+	printf("reset2\n");
+
 	const char *gamename = machine().system().name;
 	const struct CPS1config *pCFG = &cps1_config_table[0];
 

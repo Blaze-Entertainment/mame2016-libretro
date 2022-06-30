@@ -325,6 +325,8 @@ public:
 	DECLARE_MACHINE_START(qsound);
 	DECLARE_MACHINE_START(ganbare);
 	DECLARE_MACHINE_RESET(cps);
+	DECLARE_MACHINE_RESET(cps1ram);
+
 	DECLARE_VIDEO_START(cps);
 	DECLARE_MACHINE_START(sf2m1);
 	UINT32 screen_update_cps1(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
@@ -384,6 +386,7 @@ public:
 	
 	DECLARE_READ16_MEMBER(captcomm_skip_r);
 	DECLARE_READ16_MEMBER(captcomm_skip2_r);
+	DECLARE_READ16_MEMBER(captcomm_skip3_r);
 	DECLARE_DRIVER_INIT(captcomm);
 	DECLARE_READ16_MEMBER(fw_skip_r);
 	DECLARE_READ16_MEMBER(fw_skip2_r);
