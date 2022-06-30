@@ -381,6 +381,10 @@ public:
 	void fcrash_render_high_layer(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int layer);
 	void fcrash_build_palette();
 
+	
+	DECLARE_READ16_MEMBER(captcomm_skip_r);
+	DECLARE_READ16_MEMBER(captcomm_skip2_r);
+	DECLARE_DRIVER_INIT(captcomm);
 
 	/* cps video */
 	inline UINT16 *cps1_base( int offset, int boundary );

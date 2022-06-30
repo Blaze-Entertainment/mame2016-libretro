@@ -12135,7 +12135,6 @@ DRIVER_INIT_MEMBER(cps_state,dinohunt)
 	m_maincpu->space(AS_PROGRAM).install_read_port(0xfc0000, 0xfc0001, "IN2"); ;
 	// the ym2151 doesn't seem to be used. Is it actually on the PCB?
 
-	DRIVER_INIT_CALL(cps1);
 }
 
 WRITE16_MEMBER( cps_state::sf2m3_layer_w )
@@ -12144,6 +12143,136 @@ WRITE16_MEMBER( cps_state::sf2m3_layer_w )
 }
 
 
+//000D4E: 4ED1                       jmp     (A1)   --- can jump to 01A812   -- jump to 2ce4 instead of e64 / 14ec / 1a8aa
+
+/* 
+
+01A8AA: 4BF8 8000                  lea     $8000.w, A5
+01A8AE: 4880                       ext.w   D0
+01A8B0: 303B 0006                  move.w  ($6,PC,D0.w), D0
+01A8B4: 4EFB 0002                  jmp     ($2,PC,D0.w)   --- jump table
+----
+01A8B8: 0006 006A                  ori.b   #$6a, D6
+01A8BC: 00CE                       dc.w    $00ce; ILLEGAL
+----
+01A8BE: 4EB8 21A6                  jsr     $21a6.w
+01A8C2: 7003                       moveq   #$3, D0
+01A8C4: D02D 788A                  add.b   ($788a,A5), D0
+01A8C8: 4EB8 22DA                  jsr     $22da.w           ------- draw startup text?
+01A8CC: 303C 00B4                  move.w  #$b4, D0
+01A8D0: 4EB8 0DD2                  jsr     $dd2.w
+
+0022DA: D040                       add.w   D0, D0
+0022DC: 247C 000F E41A             movea.l #$fe41a, A2
+0022E2: 3032 0000                  move.w  (A2,D0.w), D0
+0022E6: 45F2 0000                  lea     (A2,D0.w), A2
+0022EA: 43F9 0090 0000             lea     $900000.l, A1
+0022F0: 7000                       moveq   #$0, D0
+0022F2: 7200                       moveq   #$0, D1
+0022F4: 101A                       move.b  (A2)+, D0
+0022F6: 121A                       move.b  (A2)+, D1
+0022F8: 33C0 0080 0146             move.w  D0, $800146.l
+0022FE: 33FC 0080 0080 0144        move.w  #$80, $800144.l
+002306: 3039 0080 0142             move.w  $800142.l, D0
+00230C: E549                       lsl.w   #2, D1
+00230E: D041                       add.w   D1, D0
+002310: 43F1 0000                  lea     (A1,D0.w), A1
+002314: 7200                       moveq   #$0, D1
+002316: 121A                       move.b  (A2)+, D1
+002318: 7000                       moveq   #$0, D0
+00231A: 101A                       move.b  (A2)+, D0  -- reading text
+00231C: 6700 001A                  beq     $2338
+002320: 0C00 002F                  cmpi.b  #$2f, D0
+002324: 67C4                       beq     $22ea
+002326: 0640 C000                  addi.w  #-$4000, D0
+00232A: 3340 0000                  move.w  D0, ($0,A1)
+00232E: 3341 0002                  move.w  D1, ($2,A1)
+002332: 43E9 0080                  lea     ($80,A1), A1
+002336: 60E0                       bra     $2318
+002338: 4E75                       rts
+
+
+00273E: D040                       add.w   D0, D0
+002740: 247C 000F E41A             movea.l #$fe41a, A2
+002746: 3032 0000                  move.w  (A2,D0.w), D0
+00274A: 45F2 0000                  lea     (A2,D0.w), A2
+00274E: 43F9 0090 0000             lea     $900000.l, A1
+002754: 7000                       moveq   #$0, D0
+002756: 7200                       moveq   #$0, D1
+002758: 101A                       move.b  (A2)+, D0
+00275A: 121A                       move.b  (A2)+, D1
+00275C: 33C0 0080 0146             move.w  D0, $800146.l
+002762: 33FC 0080 0080 0144        move.w  #$80, $800144.l
+00276A: 3039 0080 0142             move.w  $800142.l, D0
+002770: E549                       lsl.w   #2, D1
+002772: D041                       add.w   D1, D0
+002774: 43F1 0000                  lea     (A1,D0.w), A1
+002778: 7200                       moveq   #$0, D1
+00277A: 121A                       move.b  (A2)+, D1
+00277C: 7000                       moveq   #$0, D0
+00277E: 101A                       move.b  (A2)+, D0  -- reading disclaimer text
+002780: 6700 0020                  beq     $27a2
+002784: 0C00 002F                  cmpi.b  #$2f, D0
+002788: 67C4                       beq     $274e
+00278A: 0640 C000                  addi.w  #-$4000, D0
+00278E: 3340 0000                  move.w  D0, ($0,A1)
+002792: 3341 0002                  move.w  D1, ($2,A1)
+002796: 7001                       moveq   #$1, D0
+002798: 4EB8 0DD2                  jsr     $dd2.w
+00279C: 43E9 0080                  lea     ($80,A1), A1
+0027A0: 60DA                       bra     $277c
+0027A2: 4E75                       rts
+
+*/
+
+
+READ16_MEMBER(cps_state::captcomm_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x1A8C8 || pc == 0x1A8C8)
+			return 0x4E71;
+
+	}
+	
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x22DA;
+
+
+	return 0x4E75;
+}
+
+READ16_MEMBER(cps_state::captcomm_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x01A8E4 || pc == 0x01A8E6)
+			return 0x4E71;
+
+	}
+
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x273E;
+}
+
+DRIVER_INIT_MEMBER(cps_state, captcomm)
+{
+	DRIVER_INIT_CALL(cps1);
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8C8, 0x1A8Cb, read16_delegate(FUNC(cps_state::captcomm_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8E4, 0x1A8E7, read16_delegate(FUNC(cps_state::captcomm_skip2_r), this));
+
+
+}
 
 /*************************************************** Game Macros *****************************************************/
 
@@ -12245,7 +12374,7 @@ GAME( 1991, kodr1,       kod,      cps1_10MHz, kodr1,    cps_state,   cps1,     
 GAME( 1991, kodu,        kod,      cps1_10MHz, kod,      cps_state,   cps1,     ROT0,   "Capcom", "The King of Dragons (USA 910910)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, kodj,        kod,      cps1_10MHz, kod,      cps_state,   cps1,     ROT0,   "Capcom", "The King of Dragons (Japan 910805, B-Board 90629B-3)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, kodja,       kod,      cps1_10MHz, kod,      cps_state,   cps1,     ROT0,   "Capcom", "The King of Dragons (Japan 910805, B-Board 89625B-1)", MACHINE_SUPPORTS_SAVE )
-GAME( 1991, captcomm,    0,        cps1_10MHz, captcomm, cps_state,   cps1,     ROT0,   "Capcom", "Captain Commando (World 911202)", MACHINE_SUPPORTS_SAVE )   // "OTHER COUNTRY"
+GAME( 1991, captcomm,    0,        cps1_10MHz, captcomm, cps_state,   captcomm,     ROT0,   "Capcom", "Captain Commando (World 911202)", MACHINE_SUPPORTS_SAVE )   // "OTHER COUNTRY"
 GAME( 1991, captcommr1,  captcomm, cps1_10MHz, captcomm, cps_state,   cps1,     ROT0,   "Capcom", "Captain Commando (World 911014)", MACHINE_SUPPORTS_SAVE )   // "OTHER COUNTRY"
 GAME( 1991, captcommu,   captcomm, cps1_10MHz, captcomm, cps_state,   cps1,     ROT0,   "Capcom", "Captain Commando (USA 910928)", MACHINE_SUPPORTS_SAVE )
 GAME( 1991, captcommj,   captcomm, cps1_10MHz, captcomm, cps_state,   cps1,     ROT0,   "Capcom", "Captain Commando (Japan 911202)", MACHINE_SUPPORTS_SAVE )
