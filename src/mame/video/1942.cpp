@@ -152,6 +152,11 @@ void _1942_state::video_start()
 	m_bg_tilemap = &machine().tilemap().create(m_gfxdecode, tilemap_get_info_delegate(FUNC(_1942_state::get_bg_tile_info),this), TILEMAP_SCAN_COLS, 16, 16, 32, 16);
 
 	m_fg_tilemap->set_transparent_pen(0);
+
+	m_bg_tilemap->set_scrolldx(128, 128);
+	m_bg_tilemap->set_scrolldy(  6,   6);
+	m_fg_tilemap->set_scrolldx(128, 128);
+	m_fg_tilemap->set_scrolldy(  6,   6);
 }
 
 void _1942_state::video_start_c1942p()
@@ -220,42 +225,91 @@ WRITE8_MEMBER(_1942_state::c1942_c804_w)
 
 void _1942_state::draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect )
 {
-	int offs;
+	// Sprites 0 to 15 are drawn on all scanlines.
+	// Sprites 16 to 23 are drawn on scanlines 16 to 127.
+	// Sprites 24 to 31 are drawn on scanlines 128 to 239.
+	//
+	// The reason for this is ostensibly so that the back half of the sprite list can
+	// be used to selectively mask sprites along the midpoint of the screen.
+	//
+	// Moreover, the H counter runs from 128 to 511 for a total of 384 horizontal
+	// clocks per scanline. With an effective 6MHz pixel clock, this produces a
+	// horizontal scan rate of exactly 15.625kHz, a standard scan rate for games
+	// of this era.
+	//
+	// Sprites are drawn by MAME in reverse order, as the actual hardware only
+	// permits a transparent pixel to be overwritten by an opaque pixel, and does
+	// not support opaque-opaque overwriting - i.e., the first sprite to draw wins
+	// control over its horizontal range. If MAME drew in forward order, it would
+	// instead produce a last-sprite-wins behavior.
 
-	for (offs = m_spriteram.bytes() - 4; offs >= 0; offs -= 4)
+	for (int y = cliprect.min_y; y <= cliprect.max_y; y++)
 	{
-		int i, code, col, sx, sy, dir;
-
-		code = (m_spriteram[offs] & 0x7f) + 4 * (m_spriteram[offs + 1] & 0x20)
-				+ 2 * (m_spriteram[offs] & 0x80);
-		col = m_spriteram[offs + 1] & 0x0f;
-		sx = m_spriteram[offs + 3] - 0x10 * (m_spriteram[offs + 1] & 0x10);
-		sy = m_spriteram[offs + 2];
-		dir = 1;
-
-		if (flip_screen())
+		const rectangle cliprecty(cliprect.min_x, cliprect.max_x, y, y);
+		uint8_t objdata[4];
+		uint8_t v = flip_screen() ? ~(y - 1 - 6) : y - 1 - 6;
+		for (int h = 496; h >= 128; h -= 16)
 		{
-			sx = 240 - sx;
-			sy = 240 - sy;
-			dir = -1;
+			const bool objcnt4 = BIT(h, 8) != BIT(~h, 7);
+			const bool objcnt3 = (BIT(v, 7) && objcnt4) != BIT(~h, 7);
+			uint8_t obj_idx = (h >> 4) & 7;
+			obj_idx |= objcnt3 ? 0x08 : 0x00;
+			obj_idx |= objcnt4 ? 0x10 : 0x00;
+			obj_idx <<= 2;
+			for (int i = 0; i < 4; i++)
+				objdata[i] = m_spriteram[obj_idx | i];
+
+			int code = (objdata[0] & 0x7f) + ((objdata[1] & 0x20) << 2) + ((objdata[0] & 0x80) << 1);
+			int col = objdata[1] & 0x0f;
+			int sx = objdata[3] - 0x10 * (objdata[1] & 0x10);
+			int sy = objdata[2];
+			int dir = 1;
+
+			uint8_t valpha = (uint8_t)sy;
+			uint8_t v2c = (uint8_t)(~v) + (flip_screen() ? 0x01 : 0xff);
+			uint8_t lvbeta = v2c + valpha;
+			uint8_t vbeta = ~lvbeta;
+			bool vleq = vbeta <= ((~valpha) & 0xff);
+			bool vinlen = true;
+			uint8_t vlen = objdata[1] >> 6;
+			switch (vlen & 3)
+			{
+			case 0:
+				vinlen = BIT(lvbeta, 7) && BIT(lvbeta, 6) && BIT(lvbeta, 5) && BIT(lvbeta, 4);
+				break;
+			case 1:
+				vinlen = BIT(lvbeta, 7) && BIT(lvbeta, 6) && BIT(lvbeta, 5);
+				break;
+			case 2:
+				vinlen = BIT(lvbeta, 7) && BIT(lvbeta, 6);
+				break;
+			case 3:
+				vinlen = true;
+				break;
+			}
+			bool vinzone = !(vleq && vinlen);
+
+			if (flip_screen())
+			{
+				sx = 240 - sx;
+				sy = 240 - sy;
+				dir = -1;
+			}
+
+			/* handle double / quadruple height */
+			int i = (objdata[1] & 0xc0) >> 6;
+			if (i == 2)
+				i = 3;
+
+			if (!vinzone)
+			{
+				do
+				{
+					m_gfxdecode->gfx(2)->transpen(bitmap, cliprecty, code + i, col, flip_screen(), flip_screen(), sx+128, sy + 6 + 16 * i * dir, 15);
+				} while (i-- > 0);
+			}
 		}
-
-		/* handle double / quadruple height */
-		i = (m_spriteram[offs + 1] & 0xc0) >> 6;
-		if (i == 2)
-			i = 3;
-
-		do
-		{
-			m_gfxdecode->gfx(2)->transpen(bitmap,cliprect,
-					code + i,col,
-					flip_screen(),flip_screen(),
-					sx,sy + 16 * i * dir,15);
-
-			i--;
-		} while (i >= 0);
 	}
-
 
 }
 
