@@ -9488,6 +9488,49 @@ DRIVER_INIT_MEMBER(cps_state,ecofghtr)
 
 }
 
+READ16_MEMBER(cps_state::cps2_1944_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x1744)
+		{
+			m_maincpu->set_state_int(M68K_PC, 0x1792-2);
+		}
+	}
+
+	return 0x7200;
+}
+
+READ16_MEMBER(cps_state::cps2_1944_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x7be)
+		{
+			m_maincpu->set_state_int(M68K_PC, 0x7c4-2);
+		}
+	}
+
+	return 0x4eb9;
+}
+
+DRIVER_INIT_MEMBER(cps_state,nineteen)
+{
+	DRIVER_INIT_CALL(cps2);
+
+	printf("init\n");
+	m_maincpu->space(AS_DECRYPTED_OPCODES).install_read_handler(0x1744, 0x1745, read16_delegate(FUNC(cps_state::cps2_1944_skip_r), this));
+	m_maincpu->space(AS_DECRYPTED_OPCODES).install_read_handler(0x7BE, 0x7Bf, read16_delegate(FUNC(cps_state::cps2_1944_skip2_r), this));
+
+	
+}
+
 
 
 /*************************************
@@ -9754,7 +9797,7 @@ GAME( 2001, choko,      0,        cps2, choko, cps_state,     cps2,     ROT0,   
 GAME( 2000, dimahoo,    0,        cps2, cps2_2p3b, cps_state, cps2,     ROT270, "Eighting / Raizing (Capcom license)", "Dimahoo (Euro 000121)", MACHINE_SUPPORTS_SAVE )
 GAME( 2000, dimahoou,   dimahoo,  cps2, cps2_2p3b, cps_state, cps2,     ROT270, "Eighting / Raizing (Capcom license)", "Dimahoo (USA 000121)", MACHINE_SUPPORTS_SAVE )
 GAME( 2000, gmahou,     dimahoo,  cps2, cps2_2p3b, cps_state, cps2,     ROT270, "Eighting / Raizing (Capcom license)", "Great Mahou Daisakusen (Japan 000121)", MACHINE_SUPPORTS_SAVE )
-GAME( 2000, 1944,       0,        cps2, cps2_2p2b, cps_state, cps2,     ROT0,   "Eighting / Raizing (Capcom license)", "1944: The Loop Master (USA 000620)", MACHINE_SUPPORTS_SAVE )
+GAME( 2000, 1944,       0,        cps2, cps2_2p2b, cps_state, nineteen,     ROT0,   "Eighting / Raizing (Capcom license)", "1944: The Loop Master (USA 000620)", MACHINE_SUPPORTS_SAVE )
 GAME( 2000, 1944j,      1944,     cps2, cps2_2p2b, cps_state, cps2,     ROT0,   "Eighting / Raizing (Capcom license)", "1944: The Loop Master (Japan 000620)", MACHINE_SUPPORTS_SAVE )
 
 /* Games released on CPS-2 hardware by Cave */
