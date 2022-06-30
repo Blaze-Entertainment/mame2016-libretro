@@ -2841,7 +2841,7 @@ void cps_state::cps1_render_stars( screen_device &screen, bitmap_ind16 &bitmap, 
 		for (offs = 0; offs < m_stars_rom_size / 2; offs++)
 		{
 			int col = stars_rom[8 * offs + 4];
-			if (col != 0x0f)
+			if ((col & 0x1f) != 0x0f)
 			{
 				int sx = (offs / 256) * 32;
 				int sy = (offs % 256);
@@ -2853,7 +2853,8 @@ void cps_state::cps1_render_stars( screen_device &screen, bitmap_ind16 &bitmap, 
 					sy = 256 - sy;
 				}
 
-				col = ((col & 0xe0) >> 1) + (screen.frame_number() / 16 & 0x0f);
+				int cnt = ((screen.frame_number() / 16 ) % ((col & 0x80) ? 15 : 16));
+				col = ((col & 0xe0) >> 1) + cnt;
 
 				if (cliprect.contains(sx, sy))
 					bitmap.pix16(sy, sx) = 0xa00 + col;
@@ -2866,7 +2867,7 @@ void cps_state::cps1_render_stars( screen_device &screen, bitmap_ind16 &bitmap, 
 		for (offs = 0; offs < m_stars_rom_size / 2; offs++)
 		{
 			int col = stars_rom[8*offs];
-			if (col != 0x0f)
+			if ((col & 0x1f) != 0x0f)
 			{
 				int sx = (offs / 256) * 32;
 				int sy = (offs % 256);
@@ -2878,7 +2879,8 @@ void cps_state::cps1_render_stars( screen_device &screen, bitmap_ind16 &bitmap, 
 					sy = 256 - sy;
 				}
 
-				col = ((col & 0xe0) >> 1) + (screen.frame_number() / 16 & 0x0f);
+				int cnt = ((screen.frame_number() / 16 ) % ((col & 0x80) ? 15 : 16));
+				col = ((col & 0xe0) >> 1) + cnt;
 
 				if (cliprect.contains(sx, sy))
 					bitmap.pix16(sy, sx) = 0x800 + col;
