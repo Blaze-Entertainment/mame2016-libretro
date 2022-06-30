@@ -393,7 +393,12 @@ public:
 	DECLARE_READ16_MEMBER(mercs_skip_r);
 	DECLARE_READ16_MEMBER(mercs_skip2_r);
 	DECLARE_DRIVER_INIT(mercs);
-
+	DECLARE_DRIVER_INIT(sf2hf);
+	DECLARE_DRIVER_INIT(ffight);
+	DECLARE_READ16_MEMBER(ffight_skip_r);
+	DECLARE_READ16_MEMBER(ffight_skip2_r);
+	DECLARE_DRIVER_INIT(strider);
+	DECLARE_READ16_MEMBER(strider_skip_r);
 
 	/* cps video */
 	inline UINT16 *cps1_base( int offset, int boundary );

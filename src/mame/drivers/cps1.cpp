@@ -12433,6 +12433,108 @@ DRIVER_INIT_MEMBER(cps_state, mercs)
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1242, 0x1245, read16_delegate(FUNC(cps_state::mercs_skip2_r), this));
 }
 
+
+
+DRIVER_INIT_MEMBER(cps_state, sf2hf)
+{
+	DRIVER_INIT_CALL(cps1);
+
+	m_maincpu->set_clock_scale(0.7375f); // slow CPU down like CPS2, better match PCB speed
+}
+
+
+READ16_MEMBER(cps_state::ffight_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x5e838)
+		{
+			return 0x4ef8;
+		}
+		if (pc == 0x5e83a)
+		{
+			return 0x0402;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x49fa;
+	else
+		return 0x0006;
+
+}
+
+READ16_MEMBER(cps_state::ffight_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x1258)
+		{
+			return 0x4e75;
+		}
+	}
+	
+	return 0xd000;
+}
+
+
+
+DRIVER_INIT_MEMBER(cps_state, ffight)
+{
+	DRIVER_INIT_CALL(cps1);
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x5e838, 0x5e83b, read16_delegate(FUNC(cps_state::ffight_skip_r), this));
+
+	// no, stops it drawing the credit text!
+	//m_maincpu->space(AS_PROGRAM).install_read_handler(0x1258, 0x1259, read16_delegate(FUNC(cps_state::ffight_skip2_r), this));
+
+}
+
+
+
+//5e838 do pc = 402
+
+// strider
+//074C9E: jmp     (A4)
+//0749BC: lea     ($6,PC), A4; ($749c4)  goto 400 here
+//0749C0: bra     $74ca0
+
+
+
+
+READ16_MEMBER(cps_state::strider_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x749BC)
+		{
+			return 0x4ef8;
+		}
+		if (pc == 0x749Be)
+		{
+			return 0x0400;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x49fa;
+	else
+		return 0x0006;
+
+}
+
+DRIVER_INIT_MEMBER(cps_state, strider)
+{
+	DRIVER_INIT_CALL(cps1);
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x749BC, 0x749Bf, read16_delegate(FUNC(cps_state::strider_skip_r), this));
+}
 /*************************************************** Game Macros *****************************************************/
 
 GAME( 1988, forgottn,    0,        cps1_10MHz, forgottn, cps_state,   forgottna, ROT0,   "Capcom", "Forgotten Worlds (World, newer)", MACHINE_SUPPORTS_SAVE )  // (c) Capcom U.S.A. but World "warning"
@@ -12447,7 +12549,7 @@ GAME( 1988, ghouls,      0,        cps1_10MHz, ghouls,   cps_state,   ghouls,   
 GAME( 1988, ghoulsu,     ghouls,   cps1_10MHz, ghoulsu,  cps_state,   cps1,     ROT0,   "Capcom", "Ghouls'n Ghosts (USA)", MACHINE_SUPPORTS_SAVE ) // "EXPORT" // Wed.26.10.1988 in the ROMs
 GAME( 1988, daimakai,    ghouls,   cps1_10MHz, daimakai, cps_state,   cps1,     ROT0,   "Capcom", "Daimakaimura (Japan)", MACHINE_SUPPORTS_SAVE )              // Wed.26.10.1988 in the ROMs
 GAME( 1988, daimakair,   ghouls,   cps1_12MHz, daimakai, cps_state,   cps1,     ROT0,   "Capcom", "Daimakaimura (Japan Resale Ver.)", MACHINE_SUPPORTS_SAVE )      // Wed.26.10.1988 in the ROMs   // 12MHz verified
-GAME( 1989, strider,     0,        cps1_10MHz, strider,  cps_state,   cps1,     ROT0,   "Capcom", "Strider (USA, B-Board 89624B-2)", MACHINE_SUPPORTS_SAVE )
+GAME( 1989, strider,     0,        cps1_10MHz, strider,  cps_state,   strider,     ROT0,   "Capcom", "Strider (USA, B-Board 89624B-2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, striderua,   strider,  cps1_10MHz, stridrua, cps_state,   cps1,     ROT0,   "Capcom", "Strider (USA, B-Board 89624B-3)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, strideruc,   strider,  cps1_10MHz, stridrua, cps_state,   cps1,     ROT0,   "bootleg (Capcom)", "Strider (USA, B-Board 90629B-3, buggy Street Fighter II conversion)", MACHINE_SUPPORTS_SAVE ) // various bugs even on PCB, see rom load
 GAME( 1989, striderj,    strider,  cps1_10MHz, strider,  cps_state,   cps1,     ROT0,   "Capcom", "Strider Hiryu (Japan)", MACHINE_SUPPORTS_SAVE )
@@ -12463,7 +12565,7 @@ GAME( 1989, willowj,     willow,   cps1_10MHz, willow,   cps_state,   cps1,     
 GAME( 1989, unsquad,     0,        cps1_10MHz, unsquad,  cps_state,   cps1,     ROT0,   "Capcom / Daipro", "U.N. Squadron (USA)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, area88,      unsquad,  cps1_10MHz, unsquad,  cps_state,   cps1,     ROT0,   "Capcom / Daipro", "Area 88 (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, area88r,     unsquad,  cps1_12MHz, unsquad,  cps_state,   cps1,     ROT0,   "Capcom / Daipro", "Area 88 (Japan Resale Ver.)", MACHINE_SUPPORTS_SAVE )  // 12MHz verified
-GAME( 1989, ffight,      0,        cps1_10MHz, ffight,   cps_state,   cps1,     ROT0,   "Capcom", "Final Fight (World, set 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1989, ffight,      0,        cps1_10MHz, ffight,   cps_state,   ffight,     ROT0,   "Capcom", "Final Fight (World, set 1)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, ffighta,     ffight,   cps1_10MHz, ffight,   cps_state,   cps1,     ROT0,   "Capcom", "Final Fight (World, set 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, ffightu,     ffight,   cps1_10MHz, ffight,   cps_state,   cps1,     ROT0,   "Capcom", "Final Fight (USA, set 1)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, ffightu1,    ffight,   cps1_10MHz, ffight,   cps_state,   cps1,     ROT0,   "Capcom", "Final Fight (USA, set 2)", MACHINE_SUPPORTS_SAVE )
@@ -12592,9 +12694,9 @@ GAME( 1992, wofu,        wof,      qsound,     wof,      cps_state,   wof,      
 GAME( 1992, wofa,        wof,      qsound,     wof,      cps_state,   wof,      ROT0,   "Capcom", "Sangokushi II (Asia 921005)", MACHINE_SUPPORTS_SAVE )   // World "warning"
 GAME( 1992, wofj,        wof,      qsound,     wof,      cps_state,   wof,      ROT0,   "Capcom", "Tenchi wo Kurau II: Sekiheki no Tatakai (Japan 921031)", MACHINE_SUPPORTS_SAVE )
 GAME( 1999, wofhfh,      wof,      wofhfh,     wofhfh,   cps_state,   cps1,     ROT0,   "bootleg", "Huo Feng Huang (Chinese bootleg of Sangokushi II)", MACHINE_SUPPORTS_SAVE )    // 921005 - based on Asia version
-GAME( 1992, sf2hf,       0,        cps1_12MHz, sf2,      cps_state,   cps1,     ROT0,   "Capcom", "Street Fighter II': Hyper Fighting (World 921209)", MACHINE_SUPPORTS_SAVE ) // "ETC"
-GAME( 1992, sf2hfu,      sf2hf,    cps1_12MHz, sf2,      cps_state,   cps1,     ROT0,   "Capcom", "Street Fighter II': Hyper Fighting (USA 921209)", MACHINE_SUPPORTS_SAVE )
-GAME( 1992, sf2hfj,      sf2hf,    cps1_12MHz, sf2j,     cps_state,   cps1,     ROT0,   "Capcom", "Street Fighter II' Turbo: Hyper Fighting (Japan 921209)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, sf2hf,       0,        cps1_12MHz, sf2,      cps_state,   sf2hf,     ROT0,   "Capcom", "Street Fighter II': Hyper Fighting (World 921209)", MACHINE_SUPPORTS_SAVE ) // "ETC"
+GAME( 1992, sf2hfu,      sf2hf,    cps1_12MHz, sf2,      cps_state,   sf2hf,     ROT0,   "Capcom", "Street Fighter II': Hyper Fighting (USA 921209)", MACHINE_SUPPORTS_SAVE )
+GAME( 1992, sf2hfj,      sf2hf,    cps1_12MHz, sf2j,     cps_state,   sf2hf,     ROT0,   "Capcom", "Street Fighter II' Turbo: Hyper Fighting (Japan 921209)", MACHINE_SUPPORTS_SAVE )
 GAME( 1993, dino,        0,        qsound,     dino,     cps_state,   dino,     ROT0,   "Capcom", "Cadillacs and Dinosaurs (World 930201)", MACHINE_SUPPORTS_SAVE )    // "ETC"
 GAME( 1993, dinou,       dino,     qsound,     dino,     cps_state,   dino,     ROT0,   "Capcom", "Cadillacs and Dinosaurs (USA 930201)", MACHINE_SUPPORTS_SAVE )
 GAME( 1993, dinoj,       dino,     qsound,     dino,     cps_state,   dino,     ROT0,   "Capcom", "Cadillacs: Kyouryuu Shin Seiki (Japan 930201)", MACHINE_SUPPORTS_SAVE )
