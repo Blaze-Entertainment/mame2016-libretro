@@ -37,6 +37,8 @@ public:
 	UINT8 m_scroll_x[2];
 	UINT8 m_scroll_y[2];
 
+	DECLARE_READ8_MEMBER(commando_skip_r);
+
 	/* devices */
 	required_device<cpu_device> m_audiocpu;
 	DECLARE_WRITE8_MEMBER(commando_videoram_w);

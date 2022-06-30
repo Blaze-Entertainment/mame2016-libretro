@@ -662,6 +662,19 @@ ROM_END
 
 /* Driver Initialization */
 
+READ8_MEMBER(commando_state::commando_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x015f)
+			return 0x01;
+	}
+
+	return 0xa0;
+}
+
 DRIVER_INIT_MEMBER(commando_state,commando)
 {
 	UINT8 *rom = memregion("maincpu")->base();
@@ -673,6 +686,11 @@ DRIVER_INIT_MEMBER(commando_state,commando)
 		UINT8 src = rom[A];
 		m_decrypted_opcodes[A] = (src & 0x11) | ((src & 0xe0) >> 4) | ((src & 0x0e) << 4);
 	}
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x15e, 0x15e, read8_delegate(FUNC(commando_state::commando_skip_r), this));
+
+	//015D: ld   a,$A0
+	//015F: ld   ($E047),a
 }
 
 DRIVER_INIT_MEMBER(commando_state,spaceinv)
