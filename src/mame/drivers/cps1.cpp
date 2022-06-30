@@ -12274,9 +12274,122 @@ DRIVER_INIT_MEMBER(cps_state, captcomm)
 
 }
 
+/*
+001094: jmp     (A0)
+001310: add.b   D0, D0
+001312: andi.w  #$ff, D0
+001316: lea     ($8e,PC), A0; ($13a6)
+00131A: move.w  (A0,D0.w), D0
+00131E: lea     (A0,D0.w), A0
+001322: lea     $900000.l, A1
+001328: moveq   #$0, D0
+00132A: move.w  D0, D1
+00132C: move.b  (A0)+, D0
+00132E: move.b  (A0)+, D1
+001330: lsl.w   #7, D0
+001332: lsl.w   #2, D1
+001334: add.w   D0, D1
+001336: lea     (A1,D1.w), A1
+00133A: moveq   #$0, D1
+00133C: move.b  (A0)+, D1
+00133E: moveq   #$0, D0
+001340: move.b  (A0)+, D0
+001342: beq     $135e
+*/
+
+READ16_MEMBER(cps_state::fw_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+
+		if (pc == 0x1310)
+		{
+			printf("pc %04x\n", pc);
+			m_maincpu->set_state_int(M68K_PC, 0x135e - 2);
+		}
+
+	}
+
+	return 0xd000;
+
+
+}
+
+// 0009C6: lea     ($6,PC), A4; ($9ce)
+
+
+
+READ16_MEMBER(cps_state::fw_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x9C6)
+		{
+			return 0x4ef8;
+		}
+		if (pc == 0x9C8)
+		{
+			return 0x0404;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x49fa;
+	else
+		return 0x0006;
+
+}
+
+
+DRIVER_INIT_MEMBER(cps_state, forgottna)
+{
+	DRIVER_INIT_CALL(forgottn);
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1310, 0x1311, read16_delegate(FUNC(cps_state::fw_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x9c6, 0x9c9, read16_delegate(FUNC(cps_state::fw_skip2_r), this));
+}
+
+
+//061964: lea     ($6,PC), A4; ($6196c)
+
+READ16_MEMBER(cps_state::ghouls_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x61964)
+		{
+			return 0x4ef8;
+		}
+		if (pc == 0x61966)
+		{
+			return 0x0400;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x49fa;
+	else
+		return 0x0006;
+
+}
+
+
+DRIVER_INIT_MEMBER(cps_state, ghouls)
+{
+	DRIVER_INIT_CALL(cps1);
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x61964, 0x61967, read16_delegate(FUNC(cps_state::ghouls_skip_r), this));
+}
+
+
 /*************************************************** Game Macros *****************************************************/
 
-GAME( 1988, forgottn,    0,        cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Forgotten Worlds (World, newer)", MACHINE_SUPPORTS_SAVE )  // (c) Capcom U.S.A. but World "warning"
+GAME( 1988, forgottn,    0,        cps1_10MHz, forgottn, cps_state,   forgottna, ROT0,   "Capcom", "Forgotten Worlds (World, newer)", MACHINE_SUPPORTS_SAVE )  // (c) Capcom U.S.A. but World "warning"
 GAME( 1988, forgottna,   forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Forgotten Worlds (World)", MACHINE_SUPPORTS_SAVE )  // (c) Capcom U.S.A. but World "warning"
 GAME( 1988, forgottnu,   forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Forgotten Worlds (USA, B-Board 88621B-2, Rev. C)", MACHINE_SUPPORTS_SAVE )
 GAME( 1988, forgottnu1,  forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Forgotten Worlds (USA, B-Board 88618B-2, Rev. C)", MACHINE_SUPPORTS_SAVE )
@@ -12284,7 +12397,7 @@ GAME( 1988, forgottnua,  forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, 
 GAME( 1988, forgottnuaa, forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Forgotten Worlds (USA, B-Board 88618B-2, Rev. AA)", MACHINE_SUPPORTS_SAVE )
 GAME( 1988, lostwrld,    forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Lost Worlds (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1988, lostwrldo,   forgottn, cps1_10MHz, forgottn, cps_state,   forgottn, ROT0,   "Capcom", "Lost Worlds (Japan Old Ver.)", MACHINE_SUPPORTS_SAVE )
-GAME( 1988, ghouls,      0,        cps1_10MHz, ghouls,   cps_state,   cps1,     ROT0,   "Capcom", "Ghouls'n Ghosts (World)", MACHINE_SUPPORTS_SAVE )   // "EXPORT" // Wed.26.10.1988 in the ROMs
+GAME( 1988, ghouls,      0,        cps1_10MHz, ghouls,   cps_state,   ghouls,     ROT0,   "Capcom", "Ghouls'n Ghosts (World)", MACHINE_SUPPORTS_SAVE )   // "EXPORT" // Wed.26.10.1988 in the ROMs
 GAME( 1988, ghoulsu,     ghouls,   cps1_10MHz, ghoulsu,  cps_state,   cps1,     ROT0,   "Capcom", "Ghouls'n Ghosts (USA)", MACHINE_SUPPORTS_SAVE ) // "EXPORT" // Wed.26.10.1988 in the ROMs
 GAME( 1988, daimakai,    ghouls,   cps1_10MHz, daimakai, cps_state,   cps1,     ROT0,   "Capcom", "Daimakaimura (Japan)", MACHINE_SUPPORTS_SAVE )              // Wed.26.10.1988 in the ROMs
 GAME( 1988, daimakair,   ghouls,   cps1_12MHz, daimakai, cps_state,   cps1,     ROT0,   "Capcom", "Daimakaimura (Japan Resale Ver.)", MACHINE_SUPPORTS_SAVE )      // Wed.26.10.1988 in the ROMs   // 12MHz verified

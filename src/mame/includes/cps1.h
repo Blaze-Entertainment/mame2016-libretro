@@ -385,6 +385,12 @@ public:
 	DECLARE_READ16_MEMBER(captcomm_skip_r);
 	DECLARE_READ16_MEMBER(captcomm_skip2_r);
 	DECLARE_DRIVER_INIT(captcomm);
+	DECLARE_READ16_MEMBER(fw_skip_r);
+	DECLARE_READ16_MEMBER(fw_skip2_r);
+	DECLARE_DRIVER_INIT(forgottna);
+	DECLARE_READ16_MEMBER(ghouls_skip_r);
+	DECLARE_DRIVER_INIT(ghouls);
+
 
 	/* cps video */
 	inline UINT16 *cps1_base( int offset, int boundary );
