@@ -390,6 +390,9 @@ public:
 	DECLARE_DRIVER_INIT(forgottna);
 	DECLARE_READ16_MEMBER(ghouls_skip_r);
 	DECLARE_DRIVER_INIT(ghouls);
+	DECLARE_READ16_MEMBER(mercs_skip_r);
+	DECLARE_READ16_MEMBER(mercs_skip2_r);
+	DECLARE_DRIVER_INIT(mercs);
 
 
 	/* cps video */

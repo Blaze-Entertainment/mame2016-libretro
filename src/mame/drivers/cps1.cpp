@@ -12387,6 +12387,52 @@ DRIVER_INIT_MEMBER(cps_state, ghouls)
 }
 
 
+//00: 4EB8 6F8E                  jsr     $6f8e.w        -------------- prints region info
+
+READ16_MEMBER(cps_state::mercs_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x11B4 || pc == 0x11B6)
+			return 0x4E71;
+
+	}
+
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x6F8E;
+}
+
+READ16_MEMBER(cps_state::mercs_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x1242 || pc == 0x1244)
+			return 0x4E71;
+
+	}
+
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x0D10;
+}
+
+
+DRIVER_INIT_MEMBER(cps_state, mercs)
+{
+	DRIVER_INIT_CALL(cps1);
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x11B4, 0x11B7, read16_delegate(FUNC(cps_state::mercs_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1242, 0x1245, read16_delegate(FUNC(cps_state::mercs_skip2_r), this));
+}
+
 /*************************************************** Game Macros *****************************************************/
 
 GAME( 1988, forgottn,    0,        cps1_10MHz, forgottn, cps_state,   forgottna, ROT0,   "Capcom", "Forgotten Worlds (World, newer)", MACHINE_SUPPORTS_SAVE )  // (c) Capcom U.S.A. but World "warning"
@@ -12433,7 +12479,7 @@ GAME( 1990, 1941,        0,        cps1_10MHz, 1941,     cps_state,   cps1,     
 GAME( 1990, 1941r1,      1941,     cps1_10MHz, 1941,     cps_state,   cps1,     ROT270, "Capcom", "1941: Counter Attack (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, 1941u,       1941,     cps1_10MHz, 1941,     cps_state,   cps1,     ROT270, "Capcom", "1941: Counter Attack (USA 900227)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, 1941j,       1941,     cps1_10MHz, 1941,     cps_state,   cps1,     ROT270, "Capcom", "1941: Counter Attack (Japan)", MACHINE_SUPPORTS_SAVE )
-GAME( 1990, mercs,       0,        cps1_10MHz, mercs,    cps_state,   cps1,     ROT270, "Capcom", "Mercs (World 900302)", MACHINE_SUPPORTS_SAVE )  // "ETC"
+GAME( 1990, mercs,       0,        cps1_10MHz, mercs,    cps_state,   mercs,     ROT270, "Capcom", "Mercs (World 900302)", MACHINE_SUPPORTS_SAVE )  // "ETC"
 GAME( 1990, mercsu,      mercs,    cps1_10MHz, mercs,    cps_state,   cps1,     ROT270, "Capcom", "Mercs (USA 900608)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, mercsur1,    mercs,    cps1_10MHz, mercs,    cps_state,   cps1,     ROT270, "Capcom", "Mercs (USA 900302)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, mercsj,      mercs,    cps1_10MHz, mercs,    cps_state,   cps1,     ROT270, "Capcom", "Senjou no Ookami II (Japan 900302)", MACHINE_SUPPORTS_SAVE )
