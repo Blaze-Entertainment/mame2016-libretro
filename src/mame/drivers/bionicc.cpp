@@ -387,6 +387,39 @@ static MACHINE_CONFIG_START( bionicc, bionicc_state )
 MACHINE_CONFIG_END
 
 
+READ16_MEMBER(bionicc_state::bionicc_skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x2b918)
+		{
+			return 0x4ef8;
+		}
+		if (pc == 0x2b91a)
+		{
+			return 0x42a8;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x49fa;
+	else
+		return 0x0006;
+
+}
+
+DRIVER_INIT_MEMBER(bionicc_state, bionicc)
+{
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x2b918, 0x2b91b, read16_delegate(FUNC(bionicc_state::bionicc_skip_r), this));
+}
+
+//2baba  jmp 42a8
+
+//2b918  49fa 0006
+
 
 /*************************************
  *
@@ -619,7 +652,7 @@ ROM_END
  *
  *************************************/
 
-GAME( 1987, bionicc,  0,       bionicc, bionicc, driver_device, 0, ROT0, "Capcom", "Bionic Commando (Euro)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, bionicc,  0,       bionicc, bionicc, bionicc_state, bionicc, ROT0, "Capcom", "Bionic Commando (Euro)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, bionicc1, bionicc, bionicc, bionicc, driver_device, 0, ROT0, "Capcom", "Bionic Commando (US set 1)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, bionicc2, bionicc, bionicc, bionicc, driver_device, 0, ROT0, "Capcom", "Bionic Commando (US set 2)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, topsecrt, bionicc, bionicc, bionicc, driver_device, 0, ROT0, "Capcom", "Top Secret (Japan, old revision)", MACHINE_SUPPORTS_SAVE )
