@@ -326,8 +326,8 @@ public:
 	DECLARE_MACHINE_START(ganbare);
 	DECLARE_MACHINE_RESET(cps);
 	DECLARE_MACHINE_RESET(cps1ram);
-	void show_tile_data(int tile);
-	void put_tile_data(int tile, uint8_t* data);
+	void show_tile_data(bool is32, int tile);
+	void put_tile_data(bool is32, int tile, uint8_t* data);
 
 	DECLARE_VIDEO_START(cps);
 	DECLARE_MACHINE_START(sf2m1);
