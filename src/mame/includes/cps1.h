@@ -328,6 +328,8 @@ public:
 	DECLARE_MACHINE_RESET(cps1ram);
 	void show_tile_data(bool is32, int tile);
 	void put_tile_data(bool is32, int tile, uint8_t* data);
+	void copy_tile_data(bool is32, int tile, int tile2);
+	void blank_tile_data(bool is32, int tile);
 
 	DECLARE_VIDEO_START(cps);
 	DECLARE_MACHINE_START(sf2m1);
