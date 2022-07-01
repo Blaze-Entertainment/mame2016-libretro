@@ -11,6 +11,15 @@
         * 1943: The Battle of Midway (3 regions)
         * 1943 Kai: Midway Kaisen (Japan)
 
+
+	edit:
+	tile 186 logo
+	tile 18c US
+	tile 195  US
+	tiles 19d / 19e  LOGO
+	tile 173
+	tile 177
+
 ***************************************************************************/
 
 /*
@@ -823,8 +832,43 @@ DRIVER_INIT_MEMBER(_1943_state,1943b)
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0xc007, 0xc007, read8_delegate(FUNC(_1943_state::_1943b_c007_r),this));
 }
 
+
+READ8_MEMBER(_1943_state::skip_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if ((pc == 0xA61) || (pc == 0xA62) || (pc == 0xA63))
+			return 0x00;
+	}
+
+	if (offset == 0x0)
+		return 0xcd;
+
+	if (offset == 0x1)
+		return 0x16;
+
+	if (offset == 0x2)
+		return 0x04;
+
+	return 0;
+}
+
+
+DRIVER_INIT_MEMBER(_1943_state,1943skip)
+{
+	DRIVER_INIT_CALL(1943);
+	// 0A61: call $0416
+	//cd 16 04
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xA61, 0xA63, read8_delegate(FUNC(_1943_state::skip_r),this));
+
+}
+
+
+
 /* Game Drivers */
-GAME( 1987, 1943,     0,     1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: The Battle of Midway (Euro)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943,     0,     1943,   1943, _1943_state,  1943skip, ROT270,  "Capcom",  "1943: The Battle of Midway (Euro)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, 1943u,    1943,  1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: The Battle of Midway (US, Rev C)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, 1943ua,   1943,  1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: The Battle of Midway (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, 1943j,    1943,  1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: Midway Kaisen (Japan, Rev B)", MACHINE_SUPPORTS_SAVE )
