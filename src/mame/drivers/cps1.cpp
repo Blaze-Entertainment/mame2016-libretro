@@ -13394,24 +13394,44 @@ READ16_MEMBER(cps_state::ffight_skip2_r)
 	{
 		int pc = space.device().safe_pc();
 		printf("pc %04x offset %02x\n", pc, offset);
-		if (pc == 0x1258)
+		if (pc == 0xC68)
 		{
-			return 0x4e75;
+			return 0x4e71;
+		}
+		if (pc == 0xC6a)
+		{
+			return 0x4e71;
+
 		}
 	}
 	
-	return 0xd000;
+	if (offset == 0)
+		return 0x6100;
+	else
+		return 0x01fa;
+
 }
 
-
+/*
+000C5E: tst.b   ($84,A5)
+000C62: bne     $c86
+000C64: clr.b   ($8e,A5)
+000C68: bsr     $e64  -- this jumps to draw disclaimer?
+--
+000E64: move.w  $72600.l, D1
+000E6A: move.w  ($38,PC,D1.w), D0
+000E6E: jsr     $283a.w
+00283A: lea     ($144,A5), A0
+00283E: move.w  ($16,A5), D1
+002842: move.w  D0, (A0,D1.w)  // writing to command table?
+*/
 
 DRIVER_INIT_MEMBER(cps_state, ffight)
 {
 	DRIVER_INIT_CALL(cps1);
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x5e838, 0x5e83b, read16_delegate(FUNC(cps_state::ffight_skip_r), this));
 
-	// no, stops it drawing the credit text!
-	//m_maincpu->space(AS_PROGRAM).install_read_handler(0x1258, 0x1259, read16_delegate(FUNC(cps_state::ffight_skip2_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xC68, 0xC6b, read16_delegate(FUNC(cps_state::ffight_skip2_r), this));
 
 }
 
