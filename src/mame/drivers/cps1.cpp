@@ -302,7 +302,7 @@ READ16_MEMBER(cps_state::forgottn_dial_1_r)
 WRITE16_MEMBER(cps_state::forgottn_dial_0_reset_w)
 {
 	m_dial[0] = 0x0000;
-	uint8_t fake = m_fakeio->read();
+	uint8_t fake = m_fakeio->read() & 0x0f;
 
 	if (fake == 0x01) // front left trigger
 	{
@@ -342,7 +342,7 @@ WRITE16_MEMBER(cps_state::forgottn_dial_1_reset_w)
 //	printf("forgottn_dial_1_reset_w %02x\n", m_dial[1]);
 
 	m_dial[1] = 0x0000;
-	uint8_t fake = m_fakeio->read();
+	uint8_t fake = m_fakeio->read() & 0xf0;
 
 	if (fake == 0x10) // front left trigger
 	{
