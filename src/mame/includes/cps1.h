@@ -397,6 +397,7 @@ public:
 	DECLARE_READ16_MEMBER(captcomm_skip3_r);
 	DECLARE_DRIVER_INIT(captcomm);
 	DECLARE_READ16_MEMBER(fw_skip_r);
+	DECLARE_READ16_MEMBER(fw_skipx_r);
 	DECLARE_READ16_MEMBER(fw_skip2_r);
 	DECLARE_DRIVER_INIT(forgottna);
 	DECLARE_READ16_MEMBER(ghouls_skip_r);

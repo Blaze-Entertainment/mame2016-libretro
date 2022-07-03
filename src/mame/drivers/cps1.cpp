@@ -12388,47 +12388,44 @@ DRIVER_INIT_MEMBER(cps_state, captcomm)
 
 }
 
-/*
-001094: jmp     (A0)
-001310: add.b   D0, D0
-001312: andi.w  #$ff, D0
-001316: lea     ($8e,PC), A0; ($13a6)
-00131A: move.w  (A0,D0.w), D0
-00131E: lea     (A0,D0.w), A0
-001322: lea     $900000.l, A1
-001328: moveq   #$0, D0
-00132A: move.w  D0, D1
-00132C: move.b  (A0)+, D0
-00132E: move.b  (A0)+, D1
-001330: lsl.w   #7, D0
-001332: lsl.w   #2, D1
-001334: add.w   D0, D1
-001336: lea     (A1,D1.w), A1
-00133A: moveq   #$0, D1
-00133C: move.b  (A0)+, D1
-00133E: moveq   #$0, D0
-001340: move.b  (A0)+, D0
-001342: beq     $135e
-*/
-
 READ16_MEMBER(cps_state::fw_skip_r)
 {
 	if (!space.debugger_access())
 	{
 		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
 
-		if (pc == 0x1310)
-		{
-			printf("pc %04x\n", pc);
-			m_maincpu->set_state_int(M68K_PC, 0x135e - 2);
-		}
+		if (pc == 0x116e || pc == 0x1170)
+			return 0x4E71;
 
 	}
 
-	return 0xd000;
-
-
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x40ce;
 }
+
+
+READ16_MEMBER(cps_state::fw_skipx_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x1178 || pc == 0x117a)
+			return 0x4E71;
+
+	}
+
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x0820;
+}
+
+
 
 // 0009C6: lea     ($6,PC), A4; ($9ce)
 
@@ -12659,7 +12656,9 @@ uint8_t show_tile_data_1dc8x[16 * 16] = {
 DRIVER_INIT_MEMBER(cps_state, forgottna)
 {
 	DRIVER_INIT_CALL(forgottn);
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1310, 0x1311, read16_delegate(FUNC(cps_state::fw_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x116e, 0x1171, read16_delegate(FUNC(cps_state::fw_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1178, 0x117b, read16_delegate(FUNC(cps_state::fw_skipx_r), this));  
+
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x9c6, 0x9c9, read16_delegate(FUNC(cps_state::fw_skip2_r), this));
 
 	show_tile_data(false, 0x1dc8);
@@ -12669,6 +12668,8 @@ DRIVER_INIT_MEMBER(cps_state, forgottna)
 	put_tile_data(false, 0x1dc8, show_tile_data_1dc8);
 	put_tile_data(false, 0x1dd8, show_tile_data_1dd8);
 
+	put_tile_data(false, 0x2d9e, show_tile_data_1dc8);
+	put_tile_data(false, 0x2dae, show_tile_data_1dd8);
 }
 
 
