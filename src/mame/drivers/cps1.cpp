@@ -12377,12 +12377,59 @@ READ16_MEMBER(cps_state::captcomm_skip3_r)
 
 }
 
+/*
+
+01A8BE: 4EB8 21A6                  jsr     $21a6.w  -- clear screen?
+--
+01A8C2: 7003                       moveq   #$3, D0
+01A8C4: D02D 788A                  add.b   ($788a,A5), D0
+01A8C8: 4EB8 22DA                  jsr     $22da.w
+--
+01A8CC: 303C 00B4                  move.w  #$b4, D0
+01A8D0: 4EB8 0DD2                  jsr     $dd2.w
+---
+01A8D4: 7003                       moveq   #$3, D0
+01A8D6: D02D 788A                  add.b   ($788a,A5), D0
+01A8DA: 4EB8 25BA                  jsr     $25ba.w
+--- hits here after initial wait
+01A8DE: 7000                       moveq   #$0, D0
+01A8E0: 102D 788A                  move.b  ($788a,A5), D0
+01A8E4: 4EB8 273E                  jsr     $273e.w  -- message
+--
+01A8E8: 303C 003C                  move.w  #$3c, D0
+01A8EC: 4EB8 0DD2                  jsr     $dd2.w
+
+
+01A8F0: 4EB8 21A6                  jsr     $21a6.w  -- clear screen
+
+*/
+
+READ16_MEMBER(cps_state::captcomm_skip_new_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if ((pc >= 0x01A8BE) && (pc <= 0x01A8ef))
+			return 0x4E71;
+
+	}
+	
+	return m_mainrom[offset];
+
+}
+
+
 
 DRIVER_INIT_MEMBER(cps_state, captcomm)
 {
 	DRIVER_INIT_CALL(cps1);
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8C8, 0x1A8Cb, read16_delegate(FUNC(cps_state::captcomm_skip_r), this));
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8E4, 0x1A8E7, read16_delegate(FUNC(cps_state::captcomm_skip2_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x01A8BE, 0x01A8ef, read16_delegate(FUNC(cps_state::captcomm_skip_new_r), this));
+
+
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8C8, 0x1A8Cb, read16_delegate(FUNC(cps_state::captcomm_skip_r), this));
+//	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1A8E4, 0x1A8E7, read16_delegate(FUNC(cps_state::captcomm_skip2_r), this));
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x64e, 0x651, read16_delegate(FUNC(cps_state::captcomm_skip3_r), this));
 
 

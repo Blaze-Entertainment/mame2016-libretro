@@ -118,6 +118,7 @@ public:
 		m_ecofghtr_dial_last0(0),
 		m_ecofghtr_dial_last1(0),
 		m_maincpu(*this, "maincpu"),
+		m_mainrom(*this, "maincpu"),
 		m_audiocpu(*this, "audiocpu"),
 		m_oki(*this, "oki"),
 		m_m48t35(*this,"m48t35"),
@@ -231,6 +232,7 @@ public:
 
 	/* devices */
 	required_device<m68000_base_device> m_maincpu;
+	required_region_ptr<UINT16> m_mainrom;
 	optional_device<cpu_device> m_audiocpu;
 	optional_device<okim6295_device> m_oki;
 	optional_device<m48t35_device> m_m48t35;
@@ -391,7 +393,7 @@ public:
 	void fcrash_render_high_layer(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int layer);
 	void fcrash_build_palette();
 
-	
+	DECLARE_READ16_MEMBER(captcomm_skip_new_r);
 	DECLARE_READ16_MEMBER(captcomm_skip_r);
 	DECLARE_READ16_MEMBER(captcomm_skip2_r);
 	DECLARE_READ16_MEMBER(captcomm_skip3_r);
