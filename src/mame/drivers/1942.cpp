@@ -73,11 +73,12 @@ correctly.
 #include "emu.h"
 #include "cpu/z80/z80.h"
 #include "sound/ay8910.h"
-#include "machine/netlist.h"
-#include "netlist/devices/net_lib.h"
+//#include "machine/netlist.h"
+//#include "netlist/devices/net_lib.h"
 
 #include "includes/1942.h"
 
+#if 0
 #define NLFILT(RA, R1, C1, R2) \
 	NET_C(RA.1, V5)             \
 	NET_C(RA.2, R1.1)           \
@@ -155,6 +156,7 @@ static NETLIST_START(nl_1942)
 	NET_C(CC3.2, GND)
 
 NETLIST_END()
+#endif
 
 WRITE8_MEMBER(_1942_state::c1942_bankswitch_w)
 {
@@ -588,24 +590,15 @@ static MACHINE_CONFIG_START( 1942, _1942_state )
 
 	MCFG_GENERIC_LATCH_8_ADD("soundlatch")
 
-	MCFG_SOUND_ADD("ay1", AY8910, AUDIO_CLOCK)  /* 1.5 MHz */
-	MCFG_AY8910_OUTPUT_TYPE(AY8910_RESISTOR_OUTPUT)
-	MCFG_AY8910_RES_LOADS(10000.0, 10000.0, 10000.0)
+	MCFG_SOUND_ADD("ay1", AY8910, AUDIO_CLOCK) /* 1.25 MHz - verified on PCB */
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
+	MCFG_SOUND_ADD("ay2", AY8910, AUDIO_CLOCK) /* 1.25 MHz - verified on PCB */
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 0.50)
 
-	MCFG_SOUND_ROUTE_EX(0, "snd_nl", 1.0, 0)
-	MCFG_SOUND_ROUTE_EX(1, "snd_nl", 1.0, 1)
-	MCFG_SOUND_ROUTE_EX(2, "snd_nl", 1.0, 2)
-
-	MCFG_SOUND_ADD("ay2", AY8910, AUDIO_CLOCK)  /* 1.5 MHz */
-	MCFG_AY8910_OUTPUT_TYPE(AY8910_RESISTOR_OUTPUT)
-	MCFG_AY8910_RES_LOADS(10000.0, 10000.0, 10000.0)
-
-	MCFG_SOUND_ROUTE_EX(0, "snd_nl", 1.0, 3)
-	MCFG_SOUND_ROUTE_EX(1, "snd_nl", 1.0, 4)
-	MCFG_SOUND_ROUTE_EX(2, "snd_nl", 1.0, 5)
 
 	/* NETLIST configuration using internal AY8910 resistor values */
 
+#if 0
 	/* Minimize resampling between ay8910 and netlist */
 	MCFG_SOUND_ADD("snd_nl", NETLIST_SOUND, AUDIO_CLOCK / 8 / 2)
 	MCFG_NETLIST_SETUP(nl_1942)
@@ -620,6 +613,7 @@ static MACHINE_CONFIG_START( 1942, _1942_state )
 	MCFG_NETLIST_STREAM_OUTPUT("snd_nl", 0, "R1.1")
 	//MCFG_NETLIST_STREAM_OUTPUT("snd_nl", 0, "VR.2")
 	MCFG_NETLIST_ANALOG_MULT_OFFSET(70000.0, 0.0)
+#endif
 
 MACHINE_CONFIG_END
 
