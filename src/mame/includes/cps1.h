@@ -111,6 +111,7 @@ public:
 		m_output(*this, "output"),
 		m_io_in0(*this, "IN0"),
 		m_io_in1(*this, "IN1"),
+		m_fakeio(*this, "FAKEBUTTONS"),
 		m_cps2_dial_type(0),
 		m_ecofghtr_dial_direction0(0),
 		m_ecofghtr_dial_direction1(0),
@@ -153,6 +154,9 @@ public:
 
 	optional_ioport m_io_in0;
 	optional_ioport m_io_in1;
+
+	optional_ioport m_fakeio;
+
 	std::unique_ptr<UINT16[]>     m_cps2_buffered_obj;
 	// game-specific
 	std::unique_ptr<UINT16[]>    m_gigaman2_dummyqsound_ram;

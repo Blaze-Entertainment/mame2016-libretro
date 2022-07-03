@@ -284,22 +284,95 @@ READ16_MEMBER(cps_state::cps1_in3_r)
 
 READ16_MEMBER(cps_state::forgottn_dial_0_r)
 {
-	return ((ioport("DIAL0")->read() - m_dial[0]) >> (8 * offset)) & 0xff;
+	int ret = m_dial[0];
+	return (ret >> (offset * 8)) & 0xff;
 }
 
 READ16_MEMBER(cps_state::forgottn_dial_1_r)
 {
-	return ((ioport("DIAL1")->read() - m_dial[1]) >> (8 * offset)) & 0xff;
+	int ret = m_dial[1];
+	return (ret >> (offset * 8)) & 0xff;
 }
+
+#define FW_SLOW_SPEED (0x0014)
+#define FW_FAST_SPEED (0x0028)
+#define FW_VFAST_SPEED (0x0042)
+
 
 WRITE16_MEMBER(cps_state::forgottn_dial_0_reset_w)
 {
-	m_dial[0] = ioport("DIAL0")->read();
+	m_dial[0] = 0x0000;
+	uint8_t fake = m_fakeio->read();
+
+	if (fake == 0x01) // front left trigger
+	{
+		m_dial[0] = 0x10000 - FW_SLOW_SPEED;
+	}
+
+	if (fake == 0x02) // font right trigger
+	{
+		m_dial[0] = FW_SLOW_SPEED;
+	}
+
+	if (fake == 0x04) // back left trigger
+	{
+		m_dial[0] = 0x10000 - FW_FAST_SPEED;
+	}
+
+	if (fake == 0x08) // back right trigger
+	{
+		m_dial[0] = FW_FAST_SPEED;
+	}
+
+	if (fake == (0x01 | 0x04)) // both left triggers
+	{
+		m_dial[0] = 0x10000 - FW_VFAST_SPEED;
+	}
+
+	if (fake == (0x02 | 0x08)) // both right triggers
+	{
+		m_dial[0] = FW_VFAST_SPEED;
+	}
 }
+
 
 WRITE16_MEMBER(cps_state::forgottn_dial_1_reset_w)
 {
-	m_dial[1] = ioport("DIAL1")->read();
+//	m_dial[1] = ioport("DIAL1")->read();
+//	printf("forgottn_dial_1_reset_w %02x\n", m_dial[1]);
+
+	m_dial[1] = 0x0000;
+	uint8_t fake = m_fakeio->read();
+
+	if (fake == 0x10) // front left trigger
+	{
+		m_dial[1] = 0x10000 - FW_SLOW_SPEED;
+	}
+
+	if (fake == 0x20) // font right trigger
+	{
+		m_dial[1] = FW_SLOW_SPEED;
+	}
+
+	if (fake == 0x40) // back left trigger
+	{
+		m_dial[1] = 0x10000 - FW_FAST_SPEED;
+	}
+
+	if (fake == 0x80) // back right trigger
+	{
+		m_dial[1] = FW_FAST_SPEED;
+	}
+
+	if (fake == (0x10 | 0x40)) // both left triggers
+	{
+		m_dial[1] = 0x10000 - FW_VFAST_SPEED;
+	}
+
+	if (fake == (0x20 | 0x80)) // both right triggers
+	{
+		m_dial[1] = FW_VFAST_SPEED;
+	}
 }
 
 
@@ -894,10 +967,22 @@ static INPUT_PORTS_START( forgottn )
 	PORT_DIPSETTING(    0x00, DEF_STR( On ) )
 
 	PORT_START("DIAL0")
-	PORT_BIT( 0x0fff, 0x0000, IPT_DIAL ) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_CODE_DEC(KEYCODE_Z) PORT_CODE_INC(KEYCODE_X) PORT_PLAYER(1)
+	//PORT_BIT( 0x0fff, 0x0000, IPT_DIAL ) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_CODE_DEC(KEYCODE_Z) PORT_CODE_INC(KEYCODE_X) PORT_PLAYER(1)
 
 	PORT_START("DIAL1")
-	PORT_BIT( 0x0fff, 0x0000, IPT_DIAL ) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_CODE_DEC(KEYCODE_N) PORT_CODE_INC(KEYCODE_M) PORT_PLAYER(2)
+	//PORT_BIT( 0x0fff, 0x0000, IPT_DIAL ) PORT_SENSITIVITY(100) PORT_KEYDELTA(20) PORT_CODE_DEC(KEYCODE_N) PORT_CODE_INC(KEYCODE_M) PORT_PLAYER(2)
+
+	PORT_START("FAKEBUTTONS")
+	PORT_BIT( 0x0001, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_PLAYER(1) PORT_NAME("P1 Front Left Trigger")
+	PORT_BIT( 0x0002, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_PLAYER(1) PORT_NAME("P1 Front Right Trigger")
+	PORT_BIT( 0x0004, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_PLAYER(1) PORT_NAME("P1 Back Left Trigger")
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_PLAYER(1) PORT_NAME("P1 Back Right Trigger")
+	PORT_BIT( 0x0010, IP_ACTIVE_HIGH, IPT_BUTTON2 ) PORT_PLAYER(2) PORT_NAME("P2 Front Left Trigger")
+	PORT_BIT( 0x0020, IP_ACTIVE_HIGH, IPT_BUTTON3 ) PORT_PLAYER(2) PORT_NAME("P2 Front Right Trigger")
+	PORT_BIT( 0x0040, IP_ACTIVE_HIGH, IPT_BUTTON4 ) PORT_PLAYER(2) PORT_NAME("P2 Back Left Trigger")
+	PORT_BIT( 0x0080, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_PLAYER(2) PORT_NAME("P2 Back Right Trigger")
+
+
 INPUT_PORTS_END
 
 static INPUT_PORTS_START( ghouls )
