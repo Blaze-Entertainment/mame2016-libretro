@@ -69,4 +69,5 @@ public:
 
 	DECLARE_DRIVER_INIT(bionicc);
 	DECLARE_READ16_MEMBER(bionicc_skip_r);
+	DECLARE_READ16_MEMBER(bionicc_skip2_r);
 };

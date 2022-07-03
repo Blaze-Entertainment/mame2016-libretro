@@ -411,9 +411,36 @@ READ16_MEMBER(bionicc_state::bionicc_skip_r)
 
 }
 
+READ16_MEMBER(bionicc_state::bionicc_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x49ac)
+		{
+			return 0x4e71;
+		}
+		if (pc == 0x49ae)
+		{
+			return 0x4e71;
+
+		}
+	}
+	
+	if (offset == 0)
+		return 0x4eb8;
+	else
+		return 0x20ba;
+
+}
+
+
 DRIVER_INIT_MEMBER(bionicc_state, bionicc)
 {
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x2b918, 0x2b91b, read16_delegate(FUNC(bionicc_state::bionicc_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x49ac, 0x49af, read16_delegate(FUNC(bionicc_state::bionicc_skip2_r), this));
+
 }
 
 //2baba  jmp 42a8
