@@ -12855,12 +12855,51 @@ READ16_MEMBER(cps_state::mercs_skip2_r)
 		return 0x0D10;
 }
 
+READ16_MEMBER(cps_state::mercs_skip3_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x1246 || pc == 0x1248)
+			return 0x4E71;
+
+	}
+
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x08d0;
+}
+
+READ16_MEMBER(cps_state::mercs_skip4_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		printf("pc %04x\n", pc);
+
+		if (pc == 0x11f2 || pc == 0x11f4)
+			return 0x4E71;
+
+	}
+
+	if (offset == 0x0)
+		return 0x4EB8;
+	else
+		return 0x08d0;
+}
+
+
 
 DRIVER_INIT_MEMBER(cps_state, mercs)
 {
 	DRIVER_INIT_CALL(cps1);
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x11B4, 0x11B7, read16_delegate(FUNC(cps_state::mercs_skip_r), this));
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1242, 0x1245, read16_delegate(FUNC(cps_state::mercs_skip2_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1246, 0x1249, read16_delegate(FUNC(cps_state::mercs_skip3_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x11f2, 0x11f5, read16_delegate(FUNC(cps_state::mercs_skip4_r), this));
 }
 
 // replace 0x9 with 0xc
