@@ -1196,7 +1196,7 @@ DRIVER_INIT_MEMBER(_1943_state,1943skip)
 }
 
 /* Game Drivers */
-GAME( 1987, 1943,     0,     1943,   1943, _1943_state,  1943skip, ROT0,  "Capcom",  "1943: The Battle of Midway (Euro)", MACHINE_SUPPORTS_SAVE )
+GAME( 1987, 1943,     0,     1943,   1943, _1943_state,  1943skip, ROT270,  "Capcom",  "1943: The Battle of Midway (Euro)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, 1943u,    1943,  1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: The Battle of Midway (US, Rev C)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, 1943ua,   1943,  1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: The Battle of Midway (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1987, 1943j,    1943,  1943,   1943, _1943_state,  1943, ROT270,  "Capcom",  "1943: Midway Kaisen (Japan, Rev B)", MACHINE_SUPPORTS_SAVE )
