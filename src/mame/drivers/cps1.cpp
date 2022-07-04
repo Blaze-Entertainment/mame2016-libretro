@@ -13816,10 +13816,22 @@ READ16_MEMBER(cps_state::sf2hf_skip_r)
 		}
 
 	}
-	
 	return 0x000E;
+}
 
-
+READ16_MEMBER(cps_state::sf2hf_skip2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+	//	printf("pc %04x offset %02x\n", pc, offset);
+		if (pc == 0x0B9536)
+		{
+			return 0x4e71;
+		}
+	}
+	
+	return 0x4ED4;
 }
 
 DRIVER_INIT_MEMBER(cps_state, sf2hfa)
@@ -13827,7 +13839,12 @@ DRIVER_INIT_MEMBER(cps_state, sf2hfa)
 	DRIVER_INIT_CALL(sf2hf);
 	// 0A37BC: 4EBB 000E                  jsr     ($e,PC,D0.w)
 
+	// 0B9536: 4ED4                       jmp     (A4)
+
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0xA37Be, 0xA37Bf, read16_delegate(FUNC(cps_state::sf2hf_skip_r), this));
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x0B9536, 0x0B9537, read16_delegate(FUNC(cps_state::sf2hf_skip2_r), this));
+
 }
 
 
