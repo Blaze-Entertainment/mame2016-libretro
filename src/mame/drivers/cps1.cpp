@@ -14332,11 +14332,11 @@ READ16_MEMBER(cps_state::stridera_skip_r)
 	{
 		int pc = space.device().safe_pc();
 		printf("pc %04x offset %02x\n", pc, offset);
-		if (pc == 0x749BC)
+		if (pc == 0x073AC4)
 		{
 			return 0x4ef8;
 		}
-		if (pc == 0x749Be)
+		if (pc == 0x073AC6)
 		{
 			return 0x0400;
 
@@ -14353,7 +14353,7 @@ READ16_MEMBER(cps_state::stridera_skip_r)
 DRIVER_INIT_MEMBER(cps_state, stridera)
 {
 	DRIVER_INIT_CALL(cps1);
-	m_maincpu->space(AS_PROGRAM).install_read_handler(0x749BC, 0x749Bf, read16_delegate(FUNC(cps_state::strider_skip_r), this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x073AC4, 0x073AC7, read16_delegate(FUNC(cps_state::stridera_skip_r), this));
 
 //	show_tile_data(true, 0x159f);
 //	show_tile_data(true, 0x15a0);
