@@ -100,6 +100,7 @@ class cps_state : public driver_device
 public:
 	cps_state(const machine_config &mconfig, device_type type, const char *tag)
 		: driver_device(mconfig, type, tag),
+		m_region_key(*this, "key"),
 		m_mainram(*this, "mainram"),
 		m_gfxram(*this, "gfxram"),
 		m_cps_a_regs(*this, "cps_a_regs"),
@@ -132,6 +133,8 @@ public:
 		m_decrypted_opcodes(*this, "decrypted_opcodes"),
 		m_region_stars(*this, "stars")
 	{ }
+
+	optional_memory_region m_region_key;
 
 	/* memory pointers */
 	// cps1

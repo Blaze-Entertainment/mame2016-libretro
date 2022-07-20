@@ -350,8 +350,8 @@ ROM_START( 1943 )
 	ROM_REGION( 0x10000, "audiocpu", 0 )
 	ROM_LOAD( "bm04.5h", 0x00000, 0x8000, CRC(ee2bd2d7) SHA1(4d2d019a9f8452fbbb247e893280568a2e86073e) )
 	
-	ROM_REGION( 0x1000, "mcu", 0 ) /*  C8751H-88 MCU Code */
-	ROM_LOAD( "bm.7k", 0x0000, 0x1000 , CRC(cf4781bf) SHA1(4d63da5bf39a892499c02a79c7daf33d3a94234a) )
+//	ROM_REGION( 0x1000, "mcu", 0 ) /*  C8751H-88 MCU Code */
+//	ROM_LOAD( "bm.7k", 0x0000, 0x1000 , CRC(cf4781bf) SHA1(4d63da5bf39a892499c02a79c7daf33d3a94234a) )
 
 	ROM_REGION( 0x8000, "gfx1", 0 )
 	ROM_LOAD( "bm05.4k", 0x00000, 0x8000, CRC(46cb9d3d) SHA1(96fd0e714b91fe13a2ca0d185ada9e4b4baa0c0b) )    /* characters */

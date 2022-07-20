@@ -113,18 +113,24 @@ the decryption keys.
 *******************************************************************************/
 
 #include "emu.h"
-#include "cpu/m68000/m68000.h"
-#include "ui/uimain.h"
 #include "includes/cps1.h"
 
+#include "cpu/m68000/m68000.h"
+
+#include "ui/uimain.h"
+
+
+
+
+namespace {
 
 /******************************************************************************/
 
-static const int fn1_groupA[8] = { 10, 4, 6, 7, 2, 13, 15, 14 };
-static const int fn1_groupB[8] = {  0, 1, 3, 5, 8,  9, 11, 12 };
+const int fn1_groupA[8] = { 10, 4, 6, 7, 2, 13, 15, 14 };
+const int fn1_groupB[8] = {  0, 1, 3, 5, 8,  9, 11, 12 };
 
-static const int fn2_groupA[8] = { 6, 0, 2, 13, 1,  4, 14,  7 };
-static const int fn2_groupB[8] = { 3, 5, 9, 10, 8, 15, 12, 11 };
+const int fn2_groupA[8] = { 6, 0, 2, 13, 1,  4, 14,  7 };
+const int fn2_groupB[8] = { 3, 5, 9, 10, 8, 15, 12, 11 };
 
 /******************************************************************************/
 
@@ -134,7 +140,20 @@ static const int fn2_groupB[8] = { 3, 5, 9, 10, 8, 15, 12, 11 };
 
 struct sbox
 {
-	const UINT8 table[64];
+	int extract_inputs(uint32_t val) const
+	{
+		int res = 0;
+
+		for (int i = 0; i < 6; ++i)
+		{
+			if (inputs[i] >= 0)
+				res |= BIT(val, inputs[i]) << i;
+		}
+
+		return res;
+	}
+
+	const uint8_t table[64];
 	const int inputs[6];        // positions of the inputs bits, -1 means no input except from key
 	const int outputs[2];       // positions of the output bits
 };
@@ -142,14 +161,40 @@ struct sbox
 // the above struct better defines how the hardware works, however
 // to speed up the decryption at run time we convert it to the
 // following one
-struct optimised_sbox
+class optimised_sbox
 {
-	UINT8 input_lookup[256];
-	UINT8 output[64];
+public:
+	void optimise(sbox const &in)
+	{
+		// precalculate the input lookup
+		for (int i = 0; i < 256; ++i)
+			input_lookup[i] = in.extract_inputs(i);
+
+		// precalculate the output masks
+		for (int i = 0; i < 64; ++i)
+		{
+			int const o = in.table[i];
+
+			output[i] = 0;
+			if (o & 1)
+				output[i] |= 1 << in.outputs[0];
+			if (o & 2)
+				output[i] |= 1 << in.outputs[1];
+		}
+	}
+
+	uint8_t fn(uint8_t in, uint32_t key) const
+	{
+		return output[input_lookup[in] ^ (key & 0x3f)];
+	}
+
+private:
+	uint8_t input_lookup[256];
+	uint8_t output[64];
 };
 
 
-static const struct sbox fn1_r1_boxes[4] =
+const sbox fn1_r1_boxes[4] =
 {
 	{   // subkey bits  0- 5
 		{
@@ -185,7 +230,7 @@ static const struct sbox fn1_r1_boxes[4] =
 	},
 };
 
-static const struct sbox fn1_r2_boxes[4] =
+const sbox fn1_r2_boxes[4] =
 {
 	{   // subkey bits 24-29
 		{
@@ -221,7 +266,7 @@ static const struct sbox fn1_r2_boxes[4] =
 	},
 };
 
-static const struct sbox fn1_r3_boxes[4] =
+const sbox fn1_r3_boxes[4] =
 {
 	{   // subkey bits 48-53
 		{
@@ -257,7 +302,7 @@ static const struct sbox fn1_r3_boxes[4] =
 	},
 };
 
-static const struct sbox fn1_r4_boxes[4] =
+const sbox fn1_r4_boxes[4] =
 {
 	{   // subkey bits 72-77
 		{
@@ -295,7 +340,7 @@ static const struct sbox fn1_r4_boxes[4] =
 
 /******************************************************************************/
 
-static const struct sbox fn2_r1_boxes[4] =
+const sbox fn2_r1_boxes[4] =
 {
 	{   // subkey bits  0- 5
 		{
@@ -331,7 +376,7 @@ static const struct sbox fn2_r1_boxes[4] =
 	},
 };
 
-static const struct sbox fn2_r2_boxes[4] =
+const sbox fn2_r2_boxes[4] =
 {
 	{   // subkey bits 24-29
 		{
@@ -367,7 +412,7 @@ static const struct sbox fn2_r2_boxes[4] =
 	},
 };
 
-static const struct sbox fn2_r3_boxes[4] =
+const sbox fn2_r3_boxes[4] =
 {
 	{   // subkey bits 48-53
 		{
@@ -403,7 +448,7 @@ static const struct sbox fn2_r3_boxes[4] =
 	},
 };
 
-static const struct sbox fn2_r4_boxes[4] =
+const sbox fn2_r4_boxes[4] =
 {
 	{   // subkey bits 72-77
 		{
@@ -442,25 +487,20 @@ static const struct sbox fn2_r4_boxes[4] =
 /******************************************************************************/
 
 
-static UINT8 fn(UINT8 in, const struct optimised_sbox *sboxes, UINT32 key)
+uint8_t fn(uint8_t in, const optimised_sbox *sboxes, uint32_t key)
 {
-	const struct optimised_sbox *sbox1 = &sboxes[0];
-	const struct optimised_sbox *sbox2 = &sboxes[1];
-	const struct optimised_sbox *sbox3 = &sboxes[2];
-	const struct optimised_sbox *sbox4 = &sboxes[3];
-
 	return
-		sbox1->output[sbox1->input_lookup[in] ^ ((key >>  0) & 0x3f)] |
-		sbox2->output[sbox2->input_lookup[in] ^ ((key >>  6) & 0x3f)] |
-		sbox3->output[sbox3->input_lookup[in] ^ ((key >> 12) & 0x3f)] |
-		sbox4->output[sbox4->input_lookup[in] ^ ((key >> 18) & 0x3f)];
+			sboxes[0].fn(in, key >>  0) |
+			sboxes[1].fn(in, key >>  6) |
+			sboxes[2].fn(in, key >> 12) |
+			sboxes[3].fn(in, key >> 18);
 }
 
 
 
 // srckey is the 64-bit master key (2x32 bits)
 // dstkey will contain the 96-bit key for the 1st FN (4x24 bits)
-static void expand_1st_key(UINT32 *dstkey, const UINT32 *srckey)
+void expand_1st_key(uint32_t *dstkey, const uint32_t *srckey)
 {
 	static const int bits[96] =
 	{
@@ -474,28 +514,27 @@ static void expand_1st_key(UINT32 *dstkey, const UINT32 *srckey)
 		20,  8, 55, 54, 59, 60,
 		27, 33, 35, 18,  8, 15,
 		63,  1, 50, 44, 16, 46,
-			5,  4, 45, 51, 38, 25,
+		 5,  4, 45, 51, 38, 25,
 		13, 11, 62, 29, 48,  2,
 		59, 61, 62, 56, 51, 57,
 		54,  9, 24, 63, 22,  7,
 		26, 42, 45, 40, 23, 14,
-			2, 31, 52, 28, 44, 17,
+		 2, 31, 52, 28, 44, 17,
 	};
-	int i;
 
 	dstkey[0] = 0;
 	dstkey[1] = 0;
 	dstkey[2] = 0;
 	dstkey[3] = 0;
 
-	for (i = 0; i < 96; ++i)
+	for (int i = 0; i < 96; ++i)
 		dstkey[i / 24] |= BIT(srckey[bits[i] / 32], bits[i] % 32) << (i % 24);
 }
 
 
 // srckey is the 64-bit master key (2x32 bits) XORed with the subkey
 // dstkey will contain the 96-bit key for the 2nd FN (4x24 bits)
-static void expand_2nd_key(UINT32 *dstkey, const UINT32 *srckey)
+void expand_2nd_key(uint32_t *dstkey, const uint32_t *srckey)
 {
 	static const int bits[96] =
 	{
@@ -532,14 +571,14 @@ static void expand_2nd_key(UINT32 *dstkey, const UINT32 *srckey)
 // seed is the 16-bit seed generated by the first FN
 // subkey will contain the 64-bit key to be XORed with the master key
 // for the 2nd FN (2x32 bits)
-static void expand_subkey(UINT32* subkey, UINT16 seed)
+void expand_subkey(uint32_t* subkey, uint16_t seed)
 {
 	// Note that each row of the table is a permutation of the seed bits.
 	static const int bits[64] =
 	{
-			5, 10, 14,  9,  4,  0, 15,  6,  1,  8,  3,  2, 12,  7, 13, 11,
-			5, 12,  7,  2, 13, 11,  9, 14,  4,  1,  6, 10,  8,  0, 15,  3,
-			4, 10,  2,  0,  6,  9, 12,  1, 11,  7, 15,  8, 13,  5, 14,  3,
+		 5, 10, 14,  9,  4,  0, 15,  6,  1,  8,  3,  2, 12,  7, 13, 11,
+		 5, 12,  7,  2, 13, 11,  9, 14,  4,  1,  6, 10,  8,  0, 15,  3,
+		 4, 10,  2,  0,  6,  9, 12,  1, 11,  7, 15,  8, 13,  5, 14,  3,
 		14, 11, 12,  7,  4,  5,  2, 10,  1, 15,  0,  9,  8,  6, 13,  3,
 	};
 	int i;
@@ -553,12 +592,12 @@ static void expand_subkey(UINT32* subkey, UINT16 seed)
 
 
 
-static UINT16 feistel(UINT16 val, const int *bitsA, const int *bitsB,
-		const struct optimised_sbox* boxes1, const struct optimised_sbox* boxes2, const struct optimised_sbox* boxes3, const struct optimised_sbox* boxes4,
-		UINT32 key1, UINT32 key2, UINT32 key3, UINT32 key4)
+uint16_t feistel(uint16_t val, const int *bitsA, const int *bitsB,
+		const optimised_sbox* boxes1, const optimised_sbox* boxes2, const optimised_sbox* boxes3, const optimised_sbox* boxes4,
+		uint32_t key1, uint32_t key2, uint32_t key3, uint32_t key4)
 {
-	UINT8 l = BITSWAP8(val, bitsB[7],bitsB[6],bitsB[5],bitsB[4],bitsB[3],bitsB[2],bitsB[1],bitsB[0]);
-	UINT8 r = BITSWAP8(val, bitsA[7],bitsA[6],bitsA[5],bitsA[4],bitsA[3],bitsA[2],bitsA[1],bitsA[0]);
+	uint8_t l = BITSWAP8(val, bitsB[7],bitsB[6],bitsB[5],bitsB[4],bitsB[3],bitsB[2],bitsB[1],bitsB[0]);
+	uint8_t r = BITSWAP8(val, bitsA[7],bitsA[6],bitsA[5],bitsA[4],bitsA[3],bitsA[2],bitsA[1],bitsA[0]);
 
 	l ^= fn(r, boxes1, key1);
 	r ^= fn(l, boxes2, key2);
@@ -586,63 +625,24 @@ static UINT16 feistel(UINT16 val, const int *bitsA, const int *bitsB,
 
 
 
-static int extract_inputs(UINT32 val, const int *inputs)
+void optimise_sboxes(optimised_sbox* out, const sbox* in)
 {
-	int i;
-	int res = 0;
-
-	for (i = 0; i < 6; ++i)
-	{
-		if (inputs[i] != -1)
-			res |= BIT(val, inputs[i]) << i;
-	}
-
-	return res;
+	for (int box = 0; box < 4; ++box)
+		out[box].optimise(in[box]);
 }
 
+} // anonymous namespace
 
 
-static void optimise_sboxes(struct optimised_sbox* out, const struct sbox* in)
+void cps2_decrypt(running_machine &machine, uint16_t *rom, uint16_t *dec, int length, const uint32_t *master_key, uint32_t lower_limit, uint32_t upper_limit)
 {
-	int box;
-
-	for (box = 0; box < 4; ++box)
-	{
-		int i;
-
-		// precalculate the input lookup
-		for (i = 0; i < 256; ++i)
-		{
-			out[box].input_lookup[i] = extract_inputs(i, in[box].inputs);
-		}
-
-		// precalculate the output masks
-		for (i = 0; i < 64; ++i)
-		{
-			int o = in[box].table[i];
-
-			out[box].output[i] = 0;
-			if (o & 1)
-				out[box].output[i] |= 1 << in[box].outputs[0];
-			if (o & 2)
-				out[box].output[i] |= 1 << in[box].outputs[1];
-		}
-	}
-}
-
-
-
-static void cps2_decrypt(running_machine &machine, UINT16 *rom, UINT16 *dec, int length, const UINT32 *master_key, UINT32 lower_limit, UINT32 upper_limit)
-{
-	int i;
-	UINT32 key1[4];
-	struct optimised_sbox sboxes1[4*4];
-	struct optimised_sbox sboxes2[4*4];
-
+	optimised_sbox sboxes1[4*4];
 	optimise_sboxes(&sboxes1[0*4], fn1_r1_boxes);
 	optimise_sboxes(&sboxes1[1*4], fn1_r2_boxes);
 	optimise_sboxes(&sboxes1[2*4], fn1_r3_boxes);
 	optimise_sboxes(&sboxes1[3*4], fn1_r4_boxes);
+
+	optimised_sbox sboxes2[4*4];
 	optimise_sboxes(&sboxes2[0*4], fn2_r1_boxes);
 	optimise_sboxes(&sboxes2[1*4], fn2_r2_boxes);
 	optimise_sboxes(&sboxes2[2*4], fn2_r3_boxes);
@@ -650,6 +650,7 @@ static void cps2_decrypt(running_machine &machine, UINT16 *rom, UINT16 *dec, int
 
 
 	// expand master key to 1st FN 96-bit key
+	uint32_t key1[4];
 	expand_1st_key(key1, master_key);
 
 	// add extra bits for s-boxes with less than 6 inputs
@@ -661,28 +662,24 @@ static void cps2_decrypt(running_machine &machine, UINT16 *rom, UINT16 *dec, int
 	key1[2] ^= BIT(key1[2], 1) <<  5;
 	key1[2] ^= BIT(key1[2], 8) << 11;
 
-	for (i = 0; i < 0x10000; ++i)
+	for (int i = 0; i < 0x10000; ++i)
 	{
-		int a;
-		UINT16 seed;
-		UINT32 subkey[2];
-		UINT32 key2[4];
-
 		if ((i & 0xff) == 0)
 		{
 			char loadingMessage[256]; // for displaying with UI
 			sprintf(loadingMessage, "Decrypting %d%%", i*100/0x10000);
-			machine.ui().set_startup_text(loadingMessage,FALSE);
+			machine.ui().set_startup_text(loadingMessage, false);
 		}
 
 
 		// pass the address through FN1
-		seed = feistel(i, fn1_groupA, fn1_groupB,
+		uint16_t const seed = feistel(i, fn1_groupA, fn1_groupB,
 				&sboxes1[0*4], &sboxes1[1*4], &sboxes1[2*4], &sboxes1[3*4],
 				key1[0], key1[1], key1[2], key1[3]);
 
 
 		// expand the result to 64-bit
+		uint32_t subkey[2];
 		expand_subkey(subkey, seed);
 
 		// XOR with the master key
@@ -690,6 +687,7 @@ static void cps2_decrypt(running_machine &machine, UINT16 *rom, UINT16 *dec, int
 		subkey[1] ^= master_key[1];
 
 		// expand key to 2nd FN 96-bit key
+		uint32_t key2[4];
 		expand_2nd_key(key2, subkey);
 
 		// add extra bits for s-boxes with less than 6 inputs
@@ -704,61 +702,18 @@ static void cps2_decrypt(running_machine &machine, UINT16 *rom, UINT16 *dec, int
 
 
 		// decrypt the opcodes
-		for (a = i; a < length/2 && a < upper_limit/2; a += 0x10000)
+		for (int a = i; a < length/2; a += 0x10000)
 		{
-			dec[a] = feistel(rom[a], fn2_groupA, fn2_groupB,
-				&sboxes2[0*4], &sboxes2[1*4], &sboxes2[2*4], &sboxes2[3*4],
-				key2[0], key2[1], key2[2], key2[3]);
-		}
-		// copy the unencrypted part
-		while (a < length/2)
-		{
-			dec[a] = rom[a];
-			a += 0x10000;
+			if (a >= lower_limit && a <= upper_limit)
+			{
+				dec[a] = feistel(rom[a], fn2_groupA, fn2_groupB,
+					&sboxes2[0 * 4], &sboxes2[1 * 4], &sboxes2[2 * 4], &sboxes2[3 * 4],
+					key2[0], key2[1], key2[2], key2[3]);
+			}
+			else
+			{
+				dec[a] = rom[a];
+			}
 		}
 	}
-}
-
-
-
-
-
-
-
-
-
-
-struct game_keys
-{
-	const char *name;             /* game driver name */
-	const UINT32 keys[2];
-	UINT32 upper_limit;
-};
-
-
-
-
-
-
-DRIVER_INIT_MEMBER(cps_state,cps2crypt)
-{
-	UINT32 key[2];
-	UINT32 lower;
-	UINT32 upper;
-
-	std::string skey1 = parameter("cryptkey1");;
-	key[0] = strtoll(skey1.c_str(), nullptr, 16);
-
-	std::string skey2 = parameter("cryptkey2");
-	key[1] = strtoll(skey2.c_str(), nullptr, 16);
-
-	std::string slower = parameter("cryptlower");
-	lower = strtoll(slower.c_str(), nullptr, 16);
-
-	std::string supper = parameter("cryptupper");
-	upper = strtoll(supper.c_str(), nullptr, 16);
-
-	// we have a proper key so use it to decrypt
-	if (lower!=0xff0000) // don't run the decrypt on 'dead key' games for now
-		cps2_decrypt(machine(), (UINT16 *)memregion("maincpu")->base(), m_decrypted_opcodes, memregion("maincpu")->bytes(), key, lower,upper);
 }
