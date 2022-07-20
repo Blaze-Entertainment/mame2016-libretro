@@ -418,6 +418,9 @@ public:
 	DECLARE_READ16_MEMBER(ffight_skip2_r);
 	DECLARE_DRIVER_INIT(strider);
 	DECLARE_READ16_MEMBER(strider_skip_r);
+	DECLARE_DRIVER_INIT(stridera);
+	DECLARE_READ16_MEMBER(stridera_skip_r);
+
 	DECLARE_READ16_MEMBER(sf2hf_skip_r);
 	DECLARE_READ16_MEMBER(sf2hf_skip2_r);
 	DECLARE_DRIVER_INIT(sf2hfa);

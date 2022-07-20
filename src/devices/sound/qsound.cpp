@@ -24,12 +24,7 @@
 //DEFINE_DEVICE_TYPE(QSOUND, qsound_device, "qsound_hle", "QSound (HLE)")
 const device_type QSOUND = &device_creator<qsound_device>;
 
-// DSP internal ROM region
-ROM_START( qsound_hle )
-	ROM_REGION16_LE( 0x8000, "dsp", 0 )
-	// removing WORD_SWAP from original definition
-	ROM_LOAD16_WORD( "dl-1425.bin", 0x0000, 0x6000, CRC(d6cf5ef5) SHA1(555f50fe5cdf127619da7d854c03f4a244a0c501) )
-ROM_END
+
 
 //**************************************************************************
 //  LIVE DEVICE
@@ -45,7 +40,6 @@ qsound_device::qsound_device(const machine_config &mconfig, const char *tag, dev
 	device_sound_interface(mconfig, *this),
 	m_sample_rom(*this, DEVICE_SELF),
 	m_stream(nullptr),
-	m_dsp_rom(*this, "dsp"),
 	m_data_latch(0)
 {
 }
@@ -140,17 +134,24 @@ void qsound_device::device_start()
 	save_item(NAME(m_ready_flag));
 	save_item(NAME(m_data_latch));
 	save_item(NAME(m_out));
+
+	for (int i = 0; i < 0x1000; i++)
+	{
+		m_tables[i] = 0;
+	}
+
+	for (int i = 0; i < 0x900;i++)
+	{
+		m_tables[i + 0x100] = m_table100[i];
+	}
+
+	for (int i = 0; i < 0x300;i++)
+	{
+		m_tables[i + 0xd00] = m_tabled00[i];
+	}
+
 }
 
-//-------------------------------------------------
-//  rom_region - return a pointer to the device's
-//  internal ROM region
-//-------------------------------------------------
-
-const rom_entry *qsound_device::device_rom_region() const
-{
-	return ROM_NAME( qsound_hle );
-}
 
 //-------------------------------------------------
 //  device_reset - device-specific reset
