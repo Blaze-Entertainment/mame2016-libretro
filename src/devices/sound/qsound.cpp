@@ -135,21 +135,21 @@ void qsound_device::device_start()
 	save_item(NAME(m_data_latch));
 	save_item(NAME(m_out));
 
-	for (int i = 0; i < 0x1000; i++)
-	{
-		m_tables[i] = 0;
-	}
-
-	for (int i = 0; i < 0x900;i++)
-	{
-		m_tables[i + 0x100] = m_table100[i];
-	}
-
-	for (int i = 0; i < 0x300;i++)
-	{
-		m_tables[i + 0xd00] = m_tabled00[i];
-	}
-
+	for (int i = 0; i < 0x1000; i++) { m_tables[i] = 0;	}
+	for (int i = 0; i < 0x20;i++) { m_tables[i + 0x110] = m_table110[i]; }
+	for (int i = 0; i < 0x20;i++) {	m_tables[i + 0x140] = m_table140[i]; }
+	for (int i = 0; i < 0x20;i++) { m_tables[i + 0x173] = m_table173[i]; }
+	for (int i = 0; i < 0x20;i++) { m_tables[i + 0x1d5] = m_table1d5[i]; }
+	for (int i = 0; i < 0x20;i++) { m_tables[i + 0x205] = m_table205[i]; }
+	for (int i = 0; i < 0x20;i++) { m_tables[i + 0x236] = m_table236[i]; }
+	for (int i = 0; i < 0x6c;i++) {	m_tables[i + 0x980] = m_table980[i]; }
+	for (int i = 0; i < 0x59;i++) {	m_tables[i + 0xd56] = m_tabled56[i]; }
+	for (int i = 0; i < 0x59;i++) {	m_tables[i + 0xdb5] = m_tabledb5[i]; }
+	for (int i = 0; i < 0x59;i++) {	m_tables[i + 0xe14] = m_tablee14[i]; }
+	for (int i = 0; i < 0x59;i++) { m_tables[i + 0xe73] = m_tablee73[i]; }
+	for (int i = 0; i < 0x59;i++) { m_tables[i + 0xed2] = m_tableed2[i]; }
+	for (int i = 0; i < 0x13;i++) { m_tables[i + 0xf8d] = m_tablef8d[i]; }
+	m_tables[0xfcf] = 0xc000;
 }
 
 
