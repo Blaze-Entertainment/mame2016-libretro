@@ -2480,3 +2480,36 @@ if (CPUS["ALTO2"]~=null or _OPTIONS["with-tools"]) then
 	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/alto2/alto2dsm.cpp")
 end
 
+
+--------------------------------------------------
+-- NEC V-series Intel-compatible
+--@src/devices/cpu/simpletoaplan_nec/nec.h,CPUS["SIMPLETOAPLAN_NEC"] = true
+--@src/devices/cpu/simpletoaplan_nec/v25.h,CPUS["SIMPLETOAPLAN_NEC"] = true
+--@src/devices/cpu/simpletoaplan_nec/v53.h,CPUS["SIMPLETOAPLAN_NEC"] = true
+--------------------------------------------------
+
+if (CPUS["SIMPLETOAPLAN_NEC"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/nec.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/nec.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necea.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necinstr.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necinstr.hxx",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necmacro.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necmodrm.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necpriv.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v25instr.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v25instr.hxx",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v25priv.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v25.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v25.h",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v25sfr.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v53.cpp",
+		MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/v53.h",
+	}
+end
+
+if (CPUS["SIMPLETOAPLAN_NEC"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/simpletoaplan_nec/necdasm.cpp")
+end
+

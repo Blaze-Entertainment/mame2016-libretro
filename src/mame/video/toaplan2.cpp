@@ -383,7 +383,9 @@ UINT32 toaplan2_state::screen_update_truxton2(screen_device &screen, bitmap_ind1
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 
-	gp9001_draw_mixed_tilemap_with_tx(bitmap, cliprect);
+	gp9001_draw_a_tilemap(bitmap, cliprect, &bg, m_vram_bg);
+	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
+	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
 	draw_sprites(bitmap,cliprect);
 
 	rectangle clip = cliprect;
@@ -2578,20 +2580,6 @@ void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle
 
 }
 
-void toaplan2_state::gp9001_draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle &cliprect)
-{
-	gp9001_draw_a_tilemap(bitmap, cliprect, &bg, m_vram_bg);
-	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
-	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
-}
-
-
-void toaplan2_state::gp9001_draw_mixed_tilemap_with_tx(bitmap_ind16& bitmap, const rectangle &cliprect)
-{
-	gp9001_draw_a_tilemap(bitmap, cliprect, &bg, m_vram_bg);
-	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
-	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
-}
 
 
 
@@ -2602,7 +2590,9 @@ void toaplan2_state::gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &cl
 		gp9001_gfxrom_bank_dirty = 0;
 	}
 
-	gp9001_draw_mixed_tilemap(bitmap, cliprect);
+	gp9001_draw_a_tilemap(bitmap, cliprect, &bg, m_vram_bg);
+	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
+	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
 	draw_sprites(bitmap,cliprect);
 
 }

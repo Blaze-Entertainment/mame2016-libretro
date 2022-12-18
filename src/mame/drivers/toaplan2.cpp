@@ -394,6 +394,11 @@ static const gfx_layout vdp_spritelayout =
 
 MACHINE_START_MEMBER(toaplan2_state, vfive)
 {
+	if (m_v25audiocpu)
+		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0xa0189); // v5
+	             
+	m_v25audiocpu->set_clock_scale(0.80f);
+
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
@@ -403,6 +408,11 @@ MACHINE_START_MEMBER(toaplan2_state, vfive)
 
 MACHINE_START_MEMBER(toaplan2_state, fixeight)
 {
+	if (m_v25audiocpu)
+		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0xa02fc); // fixeight
+
+	m_v25audiocpu->set_clock_scale(0.5f);
+
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
@@ -412,6 +422,12 @@ MACHINE_START_MEMBER(toaplan2_state, fixeight)
 
 MACHINE_START_MEMBER(toaplan2_state, kbash)
 {
+	UINT8* kbashrom = memregion("audiocpu")->base();
+
+	m_v25audiocpu->set_shareram(kbashrom, 0x80000, 0xf8000, 0x7fff, 0);
+	m_v25audiocpu->set_clock_scale(0.5f);
+	m_maincpu->set_clock_scale(0.7f);
+
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
@@ -476,6 +492,8 @@ MACHINE_START_MEMBER(toaplan2_state, batrider)
 
 MACHINE_START_MEMBER(toaplan2_state,toaplan2)
 {
+	//m_maincpu->set_fast_ptr(memregion("maincpu")->base(), (UINT8*)&m_mainram[0]);
+
 	save_item(NAME(m_mcu_data));
 	save_item(NAME(m_old_p1_paddle_h));
 	save_item(NAME(m_old_p2_paddle_h));
@@ -558,9 +576,48 @@ DRIVER_INIT_MEMBER(toaplan2_state,tekipaki)
 }
 
 
+READ16_MEMBER(toaplan2_state::truxton2_main_skip_r)
+{
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+	UINT16 ret = m_mainram[0x2ce / 2];
+
+	if (pc == 0x0284)
+	{
+	//	printf("ret is %04x\n", ret);
+		if (ret == 0)
+			mcpu->spin_until_interrupt();
+	}
+
+	return ret;
+}
+
 
 DRIVER_INIT_MEMBER(toaplan2_state,truxton2)
 {
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1002ce, 0x1002cf, read16_delegate(FUNC(toaplan2_state::truxton2_main_skip_r), this));
+}
+
+
+
+
+READ8_MEMBER(toaplan2_state::fixeight_alt_sound_skip_r)
+{
+	int pc = m_v25audiocpu->pc();
+
+	if (pc == 0xa02fd)
+	{
+		UINT8 result = m_shared_ram[0x7FF9];
+		if (result == 0)
+		{
+			//printf("spinning\n");
+			space.device().execute().spin_until_trigger(666);
+			//m_v25audiocpu->spin_until_interrupt();
+		}
+	}
+
+	return m_shared_ram[0x2fc];
 }
 
 
@@ -569,6 +626,7 @@ DRIVER_INIT_MEMBER(toaplan2_state,truxton2)
 DRIVER_INIT_MEMBER(toaplan2_state,fixeight)
 {
 	m_v25_reset_line = 0x08;
+	m_v25audiocpu->space(AS_PROGRAM).install_read_handler(0xa02fc, 0xa02fc, read8_delegate(FUNC(toaplan2_state::fixeight_alt_sound_skip_r), this));
 
 }
 
@@ -581,10 +639,32 @@ DRIVER_INIT_MEMBER(toaplan2_state,fixeightbl)
 }
 
 
+
+READ8_MEMBER(toaplan2_state::vfive_sound_skip_r)
+{
+	int pc = m_v25audiocpu->pc();
+
+	if (pc == 0xa018a)
+	{
+		UINT8 result = m_shared_ram[0x7FF9];
+		if (result == 0)
+		{
+			//printf("spinning\n");
+			space.device().execute().spin_until_trigger(666);
+			//m_v25audiocpu->spin_until_interrupt();
+		}
+	}
+
+	return m_shared_ram[0x189];
+}
+
 DRIVER_INIT_MEMBER(toaplan2_state,vfive)
 {
 	m_v25_reset_line = 0x10;
+
+	m_v25audiocpu->space(AS_PROGRAM).install_read_handler(0xa0189, 0xa0189, read8_delegate(FUNC(toaplan2_state::vfive_sound_skip_r), this));
 }
+
 
 
 DRIVER_INIT_MEMBER(toaplan2_state,pipibibsbl)
@@ -894,6 +974,7 @@ READ8_MEMBER(toaplan2_state::fixeight_region_r)
 	// however on the real PCB any of the EEPROMs we have work without any special treatment
 	// so is there a decryption error causing this to happen, or should this be read back
 	// from somewhere else?
+	printf("fixeight_region_r");
 
 	if (!strcmp(machine().system().name,"fixeightkt"))  return 0x00;
 	if (!strcmp(machine().system().name,"fixeightk"))   return 0x01;
@@ -1075,15 +1156,7 @@ INTERRUPT_GEN_MEMBER(toaplan2_state::bbakraid_snd_interrupt)
 	device.execute().set_input_line(0, HOLD_LINE);
 }
 
-READ16_MEMBER(toaplan2_state::in1_r)
-{
-	cpu_device* mcpu = (cpu_device*)m_maincpu;
-	int pc = mcpu->pc();
-	if (pc == 0x4ba)
-		return 0xff;
 
-	return m_in1->read();
-}
 
 static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x01ffff) AM_ROM
@@ -1096,10 +1169,75 @@ static ADDRESS_MAP_START( tekipaki_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x180020, 0x180021) AM_READ_PORT("SYS")
 	AM_RANGE(0x180030, 0x180031) AM_READ_PORT("JMPR")           // CPU 2 busy and Region Jumper block
 	AM_RANGE(0x180040, 0x180041) AM_WRITE(toaplan2_coin_word_w)
-	AM_RANGE(0x180050, 0x180051) AM_READ(in1_r)
+	AM_RANGE(0x180050, 0x180051) AM_READ_PORT("IN1")
 	AM_RANGE(0x180060, 0x180061) AM_READ_PORT("IN2")
 	AM_RANGE(0x180070, 0x180071) AM_WRITE(tekipaki_mcu_w)
 ADDRESS_MAP_END
+
+READ16_MEMBER(toaplan2_state::ghox_vdp_status_r)
+{
+	UINT16 result = gp9001_vdpstatus_r();
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+#if 0
+	if (pc == 0x1c38)
+	{
+		if (result == 0)
+			space.device().execute().spin_until_trigger(54321);
+	}
+	else if (pc == 0x1c2e)
+	{
+		if (result == 1)
+			space.device().execute().spin_until_trigger(54312);
+	}
+	else
+	{
+		printf("%08x %04x\n", pc, result);
+	}
+#endif
+	UINT16 opcode = m_mainrom[pc/2];
+
+	if (opcode == 0x67f6)
+	{
+		if (result == 0)
+			space.device().execute().spin_until_trigger(54321);
+	}
+	else if (opcode == 0x66f6)
+	{
+		if (result == 1)
+			space.device().execute().spin_until_trigger(54312);
+	}
+
+	return result;
+
+}
+
+
+// doesn't help??
+READ16_MEMBER(toaplan2_state::kbash_vdp_status_r)
+{
+	UINT16 result = gp9001_vdpstatus_r();
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+	UINT16 opcode = m_mainrom[pc/2];
+
+	if (opcode == 0x67f6)
+	{
+		if (result == 0)
+			space.device().execute().spin_until_trigger(54321);
+	}
+	else if (opcode == 0x66f6)
+	{
+		if (result == 1)
+			space.device().execute().spin_until_trigger(54312);
+	}
+
+	return result;
+}
 
 static ADDRESS_MAP_START( ghox_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x03ffff) AM_ROM
@@ -1108,6 +1246,8 @@ static ADDRESS_MAP_START( ghox_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x100000, 0x100001) AM_READ(ghox_p1_h_analog_r)
 
+	
+	AM_RANGE(0x14000c, 0x14000d) AM_READ(ghox_vdp_status_r)
 	AM_RANGE(0x140000, 0x14000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x180000, 0x180fff) AM_READWRITE(shared_ram_r, shared_ram_w)
 	AM_RANGE(0x181000, 0x181001) AM_WRITE(toaplan2_coin_word_w)
@@ -1138,6 +1278,7 @@ static ADDRESS_MAP_START( kbash_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x208014, 0x208015) AM_READ_PORT("IN2")
 	AM_RANGE(0x208018, 0x208019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20801c, 0x20801d) AM_WRITE(toaplan2_coin_word_w)
+	//AM_RANGE(0x30000c, 0x30000d) AM_READ(kbash_vdp_status_r)
 	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)         // test bit 8
@@ -1266,6 +1407,27 @@ static ADDRESS_MAP_START( fixeightbl_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 ADDRESS_MAP_END
 
 
+READ16_MEMBER(toaplan2_state::v5_vdp_status_r)
+{
+	UINT16 result = gp9001_vdpstatus_r();
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+	if (pc == 0x55de)
+	{
+		if (result == 0)
+			space.device().execute().spin_until_trigger(54321);
+	}
+	else if ((pc == 0x5ca0) || (pc == 0x55d4) || (pc == 0x20a92) || (pc ==0x881a) || (pc == 0x20a74) || (pc == 0x8838))
+	{
+		if (result == 1)
+			space.device().execute().spin_until_trigger(54312);
+	}
+
+	return result;
+
+}
 
 	
 
@@ -1294,6 +1456,7 @@ static ADDRESS_MAP_START( vfive_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200018, 0x200019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20001c, 0x20001d) AM_WRITE(toaplan2_v25_coin_word_w) // Coin count/lock + v25 reset line
 	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, v5_shared_ram_w )
+	AM_RANGE(0x30000c, 0x30000d) AM_READ(v5_vdp_status_r)
 	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
@@ -1664,23 +1827,23 @@ ADDRESS_MAP_END
 
 
 static ADDRESS_MAP_START( v25_port, AS_IO, 8, toaplan2_state )
-	AM_RANGE(V25_PORT_PT, V25_PORT_PT) AM_READ(v25_dswa_r)
-	AM_RANGE(V25_PORT_P0, V25_PORT_P0) AM_READ(v25_dswb_r)
-	AM_RANGE(V25_PORT_P1, V25_PORT_P1) AM_READ(v25_jmpr_r)
-	AM_RANGE(V25_PORT_P2, V25_PORT_P2) AM_WRITENOP  // bit 0 is FAULT according to kbash schematic
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_PT, SIMPLETOAPLAN_V25_PORT_PT) AM_READ(v25_dswa_r)
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P0, SIMPLETOAPLAN_V25_PORT_P0) AM_READ(v25_dswb_r)
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P1, SIMPLETOAPLAN_V25_PORT_P1) AM_READ(v25_jmpr_r)
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P2, SIMPLETOAPLAN_V25_PORT_P2) AM_WRITENOP  // bit 0 is FAULT according to kbash schematic
 ADDRESS_MAP_END
 
 
 static ADDRESS_MAP_START( dogyuun_v25_port, AS_IO, 8, toaplan2_state )
-	AM_RANGE(V25_PORT_PT, V25_PORT_PT) AM_READ(v25_dswb_r)
-	AM_RANGE(V25_PORT_P0, V25_PORT_P0) AM_READ(v25_dswa_r)
-	AM_RANGE(V25_PORT_P1, V25_PORT_P1) AM_READ(v25_jmpr_r)
-	AM_RANGE(V25_PORT_P2, V25_PORT_P2) AM_WRITENOP  // bit 0 is FAULT according to kbash schematic
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_PT, SIMPLETOAPLAN_V25_PORT_PT) AM_READ(v25_dswb_r)
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P0, SIMPLETOAPLAN_V25_PORT_P0) AM_READ(v25_dswa_r)
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P1, SIMPLETOAPLAN_V25_PORT_P1) AM_READ(v25_jmpr_r)
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P2, SIMPLETOAPLAN_V25_PORT_P2) AM_WRITENOP  // bit 0 is FAULT according to kbash schematic
 ADDRESS_MAP_END
 
 
 static ADDRESS_MAP_START( fixeight_v25_port, AS_IO, 8, toaplan2_state )
-	AM_RANGE(V25_PORT_P0, V25_PORT_P0) AM_READWRITE_PORT("EEPROM")
+	AM_RANGE(SIMPLETOAPLAN_V25_PORT_P0, SIMPLETOAPLAN_V25_PORT_P0) AM_READWRITE_PORT("EEPROM")
 ADDRESS_MAP_END
 
 
@@ -2135,7 +2298,7 @@ static INPUT_PORTS_START( kbash )
 	PORT_DIPSETTING(        0x0000, DEF_STR( Yes ) )
 
 	PORT_START("JMPR")
-	PORT_CONFNAME( 0x00f0,  0x0020, DEF_STR( Region ) ) //PORT_CONFLOCATION("JP:!4,!3,!2,!1")
+	PORT_CONFNAME( 0x00f0,  0x00a0, DEF_STR( Region ) ) //PORT_CONFLOCATION("JP:!4,!3,!2,!1")
 	PORT_CONFSETTING(       0x0020, "Europe, USA (Atari Games)" )   // European coinage
 	PORT_CONFSETTING(       0x0010, "USA, Europe (Atari Games)" )
 	PORT_CONFSETTING(       0x0000, DEF_STR( Japan ) )
@@ -2285,7 +2448,7 @@ static INPUT_PORTS_START( pipibibs )
 	PORT_DIPSETTING(        0x0080, DEF_STR( On ) )
 
 	PORT_START("JMPR")
-	PORT_CONFNAME( 0x0008,  0x0000, "Nudity" )          //PORT_CONFLOCATION("JP:!1")
+	PORT_CONFNAME( 0x0008,  0x0008, "Nudity" )          //PORT_CONFLOCATION("JP:!1")
 	PORT_CONFSETTING(       0x0008, DEF_STR( Low ) )
 	PORT_CONFSETTING(       0x0000, "High, but censored" )
 	PORT_CONFNAME( 0x0007,  0x0006, DEF_STR( Region ) ) //PORT_CONFLOCATION("JP:!4,!3,!2")
@@ -2543,7 +2706,7 @@ static INPUT_PORTS_START( vfive )
 	PORT_MODIFY("JMPR")
 	// Region is forced to Japan in this set.
 	// Code at $9238 tests bit 7.
-	// (Actually bit 3, but the V25 shifts the jumper byte before storing it in shared RAM)
+	// (Actually bit 3, but the SIMPLETOAPLAN_V25 shifts the jumper byte before storing it in shared RAM)
 	// Runs twice near end of stage 1, once when each of the two boss tanks appears. Effect?
 	// Also, if bit 7 is set and bits 6-5 are clear, service mode wrongly shows European coinage
 	// (due to code left in from Grind Stormer: see code at $210A4 and lookup table at $211FA)
@@ -3588,10 +3751,10 @@ static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_25MHz/2)         /*V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", SIMPLETOAPLAN_V25, XTAL_25MHz/2)         /* NEC SIMPLETOAPLAN_V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
 	MCFG_CPU_IO_MAP(dogyuun_v25_port)
-	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_SIMPLETOAPLAN_V25_CONFIG(nitro_decryption_table)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,dogyuun)
 
@@ -3636,10 +3799,10 @@ static MACHINE_CONFIG_START( kbash, toaplan2_state )
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
 	/* ROM based v25 */
-	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", SIMPLETOAPLAN_V25, XTAL_16MHz)           /* NEC SIMPLETOAPLAN_V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(kbash_v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
-	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_SIMPLETOAPLAN_V25_CONFIG(nitro_decryption_table)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,kbash)
 
@@ -3904,10 +4067,10 @@ static MACHINE_CONFIG_START(fixeight, toaplan2_state)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state, toaplan2_vblank_irq4)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_16MHz)           /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", SIMPLETOAPLAN_V25, XTAL_16MHz)           /* NEC SIMPLETOAPLAN_V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(fixeight_v25_mem)
 	MCFG_CPU_IO_MAP(fixeight_v25_port)
-	MCFG_V25_CONFIG(ts001turbo_decryption_table)
+	MCFG_SIMPLETOAPLAN_V25_CONFIG(ts001turbo_decryption_table)
 	MCFG_DEVICE_IRQ_ACKNOWLEDGE_DRIVER(toaplan2_state, irqack)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,fixeight)
@@ -3998,10 +4161,10 @@ static MACHINE_CONFIG_START( vfive, toaplan2_state )
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_20MHz/2) /* Verified on pcb, NEC V25 type Toaplan mark scratched out */
+	MCFG_CPU_ADD("v25audiocpu", SIMPLETOAPLAN_V25, XTAL_20MHz/2) /* Verified on pcb, NEC SIMPLETOAPLAN_V25 type Toaplan mark scratched out */
 	MCFG_CPU_PROGRAM_MAP(vfive_v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
-	MCFG_V25_CONFIG(nitro_decryption_table)
+	MCFG_SIMPLETOAPLAN_V25_CONFIG(nitro_decryption_table)
 	MCFG_DEVICE_IRQ_ACKNOWLEDGE_DRIVER(toaplan2_state, irqack)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,vfive)
@@ -4040,7 +4203,7 @@ static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", toaplan2_state,  toaplan2_vblank_irq4)
 	MCFG_TIMER_DRIVER_ADD_SCANLINE("scantimer", toaplan2_state, toaplan2_scanline, "screen", 0, 1)
 
-	MCFG_CPU_ADD("v25audiocpu", V25, XTAL_32MHz/2)         /* NEC V25 type Toaplan marked CPU ??? */
+	MCFG_CPU_ADD("v25audiocpu", SIMPLETOAPLAN_V25, XTAL_32MHz/2)         /* NEC SIMPLETOAPLAN_V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
 
@@ -4500,7 +4663,7 @@ ROM_START( dogyuun )
 	ROM_LOAD16_WORD_SWAP( "tp022_01.r16", 0x000000, 0x080000, CRC(79eb2429) SHA1(088c5ed0ed77557ab71f52cafe35028e3648ae1e) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-002-MACH  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_WORD_SWAP( "tp022_3.w92", 0x000000, 0x100000, CRC(191b595f) SHA1(89344946daa18087cc83f92027cf5da659b1c7a5) )
@@ -4520,7 +4683,7 @@ ROM_START( dogyuuna )
 	ROM_LOAD16_WORD_SWAP( "01.u64", 0x000000, 0x080000, CRC(fe5bd7f4) SHA1(9c725466112a514c9ed0fb074422d291c175c3f4) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-002-MACH  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_WORD_SWAP( "tp022_3.w92", 0x000000, 0x100000, CRC(191b595f) SHA1(89344946daa18087cc83f92027cf5da659b1c7a5) )
@@ -4540,7 +4703,7 @@ ROM_START( dogyuunt )
 	ROM_LOAD16_WORD_SWAP( "sample10.9.u64.bin", 0x000000, 0x080000, CRC(585f5016) SHA1(18d57843f33a560a3bb4b6aef176f7ef795b742d) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-002-MACH  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD16_WORD_SWAP( "tp022_3.w92", 0x000000, 0x100000, CRC(191b595f) SHA1(89344946daa18087cc83f92027cf5da659b1c7a5) )
@@ -4560,7 +4723,7 @@ ROM_START( kbash )
 	ROM_LOAD16_WORD_SWAP( "tp023_01.bin", 0x000000, 0x080000, CRC(2965f81d) SHA1(46f2df30fa92c80ba5a37f75e756424e15534784) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-004-Dash  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted) */
 
 	ROM_REGION( 0x8000, "audiocpu", 0 )         /* Sound CPU code */
 	ROM_LOAD( "tp023_02.bin", 0x0000, 0x8000, CRC(4cd882a1) SHA1(7199a5c384918f775f0815e09c46b2a58141814a) )
@@ -4580,7 +4743,7 @@ ROM_START( kbashk )
 	ROM_LOAD16_WORD_SWAP( "tp023_01.u52", 0x000000, 0x080000, CRC(099aefbc) SHA1(8daa0deffe221e1bb5a8744ced18c23ad319ffd3) ) // same label as parent?
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-004-Dash  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted) */
 
 	ROM_REGION( 0x8000, "audiocpu", 0 )         /* Sound CPU code */
 	ROM_LOAD( "tp023_02.bin", 0x0000, 0x8000, CRC(4cd882a1) SHA1(7199a5c384918f775f0815e09c46b2a58141814a) )
@@ -4902,7 +5065,7 @@ ROM_START( grindstm )
 	ROM_LOAD16_WORD_SWAP( "01.bin", 0x000000, 0x080000, CRC(4923f790) SHA1(1c2d66b432d190d0fb6ac7ca0ec0687aea3ccbf4) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
@@ -4915,7 +5078,7 @@ ROM_START( grindstma )
 	ROM_LOAD16_WORD_SWAP( "tp027-01.rom", 0x000000, 0x080000, CRC(8d8c0392) SHA1(824dde274c8bef8a87c54d8ccdda7f0feb8d11e1) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
@@ -4928,7 +5091,7 @@ ROM_START( vfive )
 	ROM_LOAD16_WORD_SWAP( "tp027_01.bin", 0x000000, 0x080000, CRC(731d50f4) SHA1(794255d0a809cda9170f5bac473df9d7f0efdac8) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (encrypted program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (encrypted program uploaded by main CPU) */
 
 	ROM_REGION( 0x200000, "gp9001", 0 )
 	ROM_LOAD( "tp027_02.bin", 0x000000, 0x100000, CRC(877b45e8) SHA1(b3ed8d8dbbe51a1919afc55d619d2b6771971493) )
@@ -4941,7 +5104,7 @@ ROM_START( batsugun )
 	ROM_LOAD16_WORD_SWAP( "tp030_1a.bin", 0x000000, 0x080000,  CRC(cb1d4554) SHA1(ef31f24d77e1c13bdf5558a04a6253e2e3e6a790) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (program uploaded by main CPU) */
 
 	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "tp030_3l.bin", 0x000000, 0x100000, CRC(3024b793) SHA1(e161db940f069279356fca2c5bf2753f07773705) )
@@ -4966,7 +5129,7 @@ ROM_START( batsuguna )
 	ROM_LOAD16_WORD_SWAP( "tp030_01.bin", 0x000000, 0x080000, CRC(3873d7dd) SHA1(baf6187d7d554cfcf4a86b63f07fc30df7ef84c9) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (program uploaded by main CPU) */
 
 	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "tp030_3l.bin", 0x000000, 0x100000, CRC(3024b793) SHA1(e161db940f069279356fca2c5bf2753f07773705) )
@@ -4990,7 +5153,7 @@ ROM_START( batsugunb )
 	ROM_LOAD16_WORD_SWAP( "large_rom1.bin", 0x000000, 0x080000,  CRC(c9de8ed8) SHA1(8de9acd26e83c8ea3388137da528704116aa7bdb) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (program uploaded by main CPU) */
 
 	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD16_BYTE( "rom12.bin", 0x000000, 0x080000, CRC(d25affc6) SHA1(00803ae5a2bc06edbfb9ea6e3df51f195bbee8cb) )
@@ -5023,7 +5186,7 @@ ROM_START( batsugunsp )
 	ROM_LOAD16_WORD_SWAP( "tp030-sp.u69", 0x000000, 0x080000, CRC(8072a0cd) SHA1(3a0a9cdf894926a16800c4882a2b00383d981367) )
 
 	/* Secondary CPU is a Toaplan marked chip, (TS-007-Spy  TOA PLAN) */
-	/* It's a NEC V25 (PLCC94) (program uploaded by main CPU) */
+	/* It's a NEC SIMPLETOAPLAN_V25 (PLCC94) (program uploaded by main CPU) */
 
 	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "tp030_3l.bin", 0x000000, 0x100000, CRC(3024b793) SHA1(e161db940f069279356fca2c5bf2753f07773705) )

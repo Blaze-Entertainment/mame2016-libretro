@@ -317,7 +317,7 @@ Stephh's notes (based on the game M68000 code and some tests) :
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "includes/taitoipt.h"
 #include "audio/taitosnd.h"
 #include "includes/taito_x.h"
@@ -797,7 +797,7 @@ MACHINE_START_MEMBER(taitox_state,superman)
 static MACHINE_CONFIG_START( superman, taitox_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz/2)   /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz/2)   /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(superman_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", taitox_state,  irq6_line_hold)
 
@@ -844,7 +844,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( daisenpu, taitox_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_16MHz/2)   /* verified on pcb */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_16MHz/2)   /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(daisenpu_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", taitox_state,  irq2_line_hold)
 
@@ -889,7 +889,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( gigandes, taitox_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 8000000)    /* 8 MHz? */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 8000000)    /* 8 MHz? */
 	MCFG_CPU_PROGRAM_MAP(gigandes_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", taitox_state,  irq2_line_hold)
 
@@ -936,7 +936,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( ballbros, taitox_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 8000000)    /* 8 MHz? */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 8000000)    /* 8 MHz? */
 	MCFG_CPU_PROGRAM_MAP(ballbros_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", taitox_state,  irq2_line_hold)
 

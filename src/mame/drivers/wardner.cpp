@@ -140,19 +140,52 @@ class wardner_state : public twincobr_state
 public:
 	wardner_state(const machine_config &mconfig, device_type type, const char *tag)
 		: twincobr_state(mconfig, type, tag),
-		m_membank(*this, "membank")
+		m_mainz80(*this, "maincpu"),
+		m_membank(*this, "membank"),
+		m_mainram(*this, "mainram"),
+		m_in0(*this, "P1"),
+		m_in1(*this, "P2"),
+		m_system(*this, "SYSTEM")
 	{
 	}
 
+	DECLARE_DRIVER_INIT(wardner);
+	DECLARE_READ8_MEMBER(wardner_skip_r);
+
+	required_device<cpu_device> m_mainz80;
+
 	required_device<address_map_bank_device> m_membank;
+	optional_shared_ptr<UINT8> m_mainram;
 
 	DECLARE_WRITE8_MEMBER(wardner_bank_w);
-	DECLARE_DRIVER_INIT(wardner);
+
+	DECLARE_READ8_MEMBER(in0_r);
+	DECLARE_READ8_MEMBER(in1_r);
+	DECLARE_READ8_MEMBER(system_r);
+
+	required_ioport m_in0;
+	required_ioport m_in1;
+	required_ioport m_system;
 
 protected:
 	virtual void driver_start() override;
 	virtual void machine_reset() override;
 };
+
+
+READ8_MEMBER(wardner_state::wardner_skip_r)
+{
+	int pc = m_mainz80->pc();
+
+	int data = m_mainram[0x110];
+
+	if (pc == 0x063d)
+	{
+		if (data == 0x00)
+			m_mainz80->spin_until_interrupt();
+	}
+	return data;
+}
 
 
 /***************************** Z80 Main Memory Map **************************/
@@ -162,9 +195,11 @@ WRITE8_MEMBER(wardner_state::wardner_bank_w)
 	m_membank->set_bank(data & 7);
 }
 
+
+
 static ADDRESS_MAP_START( main_program_map, AS_PROGRAM, 8, wardner_state )
 	AM_RANGE(0x0000, 0x6fff) AM_ROM
-	AM_RANGE(0x7000, 0x7fff) AM_RAM
+	AM_RANGE(0x7000, 0x7fff) AM_RAM AM_SHARE("mainram")
 	AM_RANGE(0x8000, 0x8fff) AM_WRITE(wardner_sprite_w)                     // AM_SHARE("spriteram8")
 	AM_RANGE(0xa000, 0xafff) AM_DEVWRITE("palette", palette_device, write)  // AM_SHARE("palette")
 	AM_RANGE(0xc000, 0xc7ff) AM_WRITEONLY AM_SHARE("sharedram")
@@ -182,6 +217,40 @@ static ADDRESS_MAP_START( main_bank_map, AS_PROGRAM, 8, wardner_state )
 	AM_RANGE(0x04800, 0x3ffff) AM_ROM AM_REGION("maincpu", 0x4800)
 ADDRESS_MAP_END
 
+READ8_MEMBER(wardner_state::in0_r)
+{
+	int pc = m_mainz80->pc();
+
+//	printf("%04x\n", pc);
+	int data = m_in0->read();
+
+	if (pc == 0x6d27)
+		data |= 0x40;
+
+	return data;
+}
+READ8_MEMBER(wardner_state::in1_r)
+{
+	return m_in1->read();
+}
+
+READ8_MEMBER(wardner_state::system_r)
+{
+	int pc = m_mainz80->pc();
+
+	int data = m_system->read();
+	
+	if ((pc == 0x6e82) || (pc == 0x6ecd))
+		data = 0xff;
+
+	if (pc == 0x6ed2)
+		data = 0x00;
+
+//	printf("%04x %02x\n", pc, data);
+
+	return data;
+}
+
 static ADDRESS_MAP_START( main_io_map, AS_IO, 8, wardner_state )
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 	AM_RANGE(0x00, 0x00) AM_DEVWRITE("crtc", mc6845_device, address_w)
@@ -195,9 +264,9 @@ static ADDRESS_MAP_START( main_io_map, AS_IO, 8, wardner_state )
 	AM_RANGE(0x40, 0x43) AM_WRITE(wardner_exscroll_w)       /* scroll extra layer (not used) */
 	AM_RANGE(0x50, 0x50) AM_READ_PORT("DSWA")
 	AM_RANGE(0x52, 0x52) AM_READ_PORT("DSWB")
-	AM_RANGE(0x54, 0x54) AM_READ_PORT("P1")
-	AM_RANGE(0x56, 0x56) AM_READ_PORT("P2")
-	AM_RANGE(0x58, 0x58) AM_READ_PORT("SYSTEM")
+	AM_RANGE(0x54, 0x54) AM_READ(in0_r)
+	AM_RANGE(0x56, 0x56) AM_READ(in1_r)
+	AM_RANGE(0x58, 0x58) AM_READ(system_r)
 	AM_RANGE(0x5a, 0x5a) AM_WRITE(wardner_coin_dsp_w)       /* Machine system control */
 	AM_RANGE(0x5c, 0x5c) AM_WRITE(wardner_control_w)        /* Machine system control */
 	AM_RANGE(0x60, 0x65) AM_READWRITE(wardner_videoram_r, wardner_videoram_w)
@@ -285,7 +354,7 @@ static INPUT_PORTS_START( wardner )
 	PORT_INCLUDE( wardner_generic )
 
 	PORT_MODIFY("P1")
-	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_OTHER ) PORT_NAME("Skip Video RAM Tests") PORT_CODE(KEYCODE_0)
+	//PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_OTHER ) PORT_NAME("Skip Video RAM Tests") PORT_CODE(KEYCODE_0)
 	/* actually player 1 button 3 - not used in gameplay */
 	/* code at 0x6d25 ('wardner'), 0x6d2f ('wardnerj') or 0x6d2c ('pyros') */
 INPUT_PORTS_END
@@ -349,6 +418,9 @@ void wardner_state::driver_start()
 {
 	/* Save-State stuff in src/machine/twincobr.c */
 	twincobr_driver_savestate();
+
+	m_mainz80->space(AS_PROGRAM).install_read_handler(0x7110, 0x7110, read8_delegate(FUNC(wardner_state::wardner_skip_r), this));
+
 }
 
 void wardner_state::machine_reset()
@@ -364,7 +436,7 @@ void wardner_state::machine_reset()
 static MACHINE_CONFIG_START( wardner, wardner_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", Z80, XTAL_24MHz/4)      /* 6MHz */
+	MCFG_CPU_ADD("maincpu", Z80, XTAL_24MHz)      /* 6MHz */
 	MCFG_CPU_PROGRAM_MAP(main_program_map)
 	MCFG_CPU_IO_MAP(main_io_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", wardner_state,  wardner_interrupt)
@@ -404,7 +476,7 @@ static MACHINE_CONFIG_START( wardner, wardner_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", wardner)
-	MCFG_PALETTE_ADD("palette", 1792)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 1792)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	MCFG_VIDEO_START_OVERRIDE(wardner_state,toaplan0)

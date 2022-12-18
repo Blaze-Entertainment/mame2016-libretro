@@ -125,3 +125,58 @@ void toaplan_scu_device::copy_sprites_from_tempbitmap(bitmap_ind16 &bitmap, cons
 
 	}
 }
+
+
+template<class BitmapClass>
+void toaplan_scu_device::draw_sprites_common(BitmapClass &bitmap, bitmap_ind8 &pribitmap, const rectangle &cliprect, UINT16* spriteram, UINT32 bytes)
+{
+	for (int offs = (bytes / 2) - 4; offs >= 0; offs -= 4)
+	{
+		const UINT16 attribute = spriteram[offs + 1];
+		const int priority  = (attribute & 0x0c00) >> 10;
+
+		// are 0 priority really skipped, or can they still mask?
+		if (!priority) continue;
+
+		const int sy = spriteram[offs + 3] >> 7;
+		if (sy != 0x0100)     /* sx = 0x01a0 or 0x0040*/
+		{
+			const UINT32 sprite = spriteram[offs] & 0x7ff;
+			UINT32 color        = attribute & 0x3f;
+			UINT32 pri_mask     = 0; // priority mask
+	
+			switch (priority)
+			{
+				case 0: pri_mask = GFX_PMASK_1|GFX_PMASK_2|GFX_PMASK_4|GFX_PMASK_8; break; // disable?
+				case 1: pri_mask = GFX_PMASK_2|GFX_PMASK_4|GFX_PMASK_8;             break; // over tilemap priority ~0x4, under tilemap priority 0x5~
+				case 2: pri_mask = GFX_PMASK_4|GFX_PMASK_8;                         break; // over tilemap priority ~0x8, under tilemap priority 0x9~
+				case 3: pri_mask = GFX_PMASK_8;                                     break; // over tilemap priority ~0xc, under tilemap priority 0xd~
+			}
+
+
+			int sx          = spriteram[offs + 2] >> 7;
+			const int flipx = attribute & 0x100;
+			if (flipx) sx  -= m_xoffs_flipped;
+
+			const int flipy = attribute & 0x200;
+			gfx(0)->prio_transpen(bitmap, cliprect,
+				sprite,
+				color,
+				flipx, flipy,
+				sx - m_xoffs, sy - 16, pribitmap, pri_mask, 0);
+		}
+	}
+}
+
+void toaplan_scu_device::draw_sprites(bitmap_ind16 &bitmap, bitmap_ind8 &pribitmap, const rectangle &cliprect, UINT16* spriteram, UINT32 bytes)
+{
+	draw_sprites_common(bitmap, pribitmap, cliprect, spriteram, bytes);
+}
+
+
+void toaplan_scu_device::draw_sprites(bitmap_rgb32 &bitmap, bitmap_ind8 &pribitmap, const rectangle &cliprect, UINT16* spriteram, UINT32 bytes)
+{
+	draw_sprites_common(bitmap, pribitmap, cliprect, spriteram, bytes);
+}
+
+

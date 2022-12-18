@@ -43,6 +43,12 @@ public:
 
 	DECLARE_WRITE_LINE_MEMBER( truxton_soundirq_w );
 	
+	DECLARE_READ8_MEMBER(fireshk_sound_skip_r);
+	DECLARE_READ16_MEMBER(fireshrk_main_skip_r);
+	DECLARE_READ8_MEMBER(vimana_sound_skip_r);
+	DECLARE_READ16_MEMBER(vimana_main_skip_r);
+	DECLARE_READ16_MEMBER(truxton_main_skip_r);
+	DECLARE_READ8_MEMBER(truxton_sound_skip_r);
 
 	int m_coin_count; /* coin count increments on startup ? , so don't count it */
 	int m_intenable;
@@ -142,8 +148,6 @@ public:
 	DECLARE_WRITE16_MEMBER(toaplan1_scroll_regs_w);
 	DECLARE_WRITE16_MEMBER(toaplan1_zerowing_scroll_regs_w);
 
-	DECLARE_READ16_MEMBER(truxton_main_skip_r);
-	DECLARE_READ8_MEMBER(truxton_sound_skip_r);
 
 	DECLARE_DRIVER_INIT(toaplan1);
 	DECLARE_DRIVER_INIT(demonwld);

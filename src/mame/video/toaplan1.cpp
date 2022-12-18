@@ -1150,7 +1150,7 @@ UINT32 toaplan1_rallybik_state::screen_update_rallybik(screen_device &screen, bi
 
 	draw_mixed_tilemap(bitmap, cliprect, screen.priority());
 	
-	//m_spritegen->draw_sprites(bitmap, screen.priority(), cliprect, m_buffered_spriteram.get(), m_spriteram.bytes());
+	m_spritegen->draw_sprites(bitmap, screen.priority(), cliprect, m_buffered_spriteram.get(), m_spriteram.bytes());
 
 #if 0
 
@@ -1321,20 +1321,26 @@ void toaplan1_state::draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle& c
 
 			*dstptr = pixdatpf1 & 0x3ff;
 
-
-
-
-
-
-			UINT8 pixdatpf1flags = (pixdatpf1 >> 11) & 0xf;
-			if (pixdatpf1flags > existingpri)
+			UINT8 pixdatpf4flags = (pixdatpf4 >> 11) & 0xf;
+			if (pixdatpf4flags > existingpri)
 			{
-
-				if (pixdatpf1 & 0xf)
+				if (pixdatpf4 & 0xf)
 				{
 					{
-						*dstptr = pixdatpf1 & 0x3ff;
-						*dstpriptr = existingpri = pixdatpf1flags;
+						*dstptr = pixdatpf4 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf4flags;
+					}
+				}
+			}
+
+			UINT8 pixdatpf3flags = (pixdatpf3 >> 11) & 0xf;
+			if (pixdatpf3flags > existingpri)
+			{
+				if (pixdatpf3 & 0xf)
+				{
+					{
+						*dstptr = pixdatpf3 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf3flags;
 					}
 				}
 			}
@@ -1352,30 +1358,18 @@ void toaplan1_state::draw_mixed_tilemap(bitmap_ind16& bitmap, const rectangle& c
 				}
 			}
 
-			UINT8 pixdatpf3flags = (pixdatpf3 >> 11) & 0xf;
-			if (pixdatpf3flags > existingpri)
+			UINT8 pixdatpf1flags = (pixdatpf1 >> 11) & 0xf;
+			if (pixdatpf1flags > existingpri)
 			{
-				if (pixdatpf3 & 0xf)
+
+				if (pixdatpf1 & 0xf)
 				{
 					{
-						*dstptr = pixdatpf3 & 0x3ff;
-						*dstpriptr = existingpri = pixdatpf3flags;
+						*dstptr = pixdatpf1 & 0x3ff;
+						*dstpriptr = existingpri = pixdatpf1flags;
 					}
 				}
 			}
-
-			UINT8 pixdatpf4flags = (pixdatpf4 >> 11) & 0xf;
-			if (pixdatpf4flags > existingpri)
-			{
-				if (pixdatpf4 & 0xf)
-				{
-					{
-						*dstptr = pixdatpf4 & 0x3ff;
-						*dstpriptr = existingpri = pixdatpf4flags;
-					}
-				}
-			}
-
 
 			dstptr++;
 			dstpriptr++;

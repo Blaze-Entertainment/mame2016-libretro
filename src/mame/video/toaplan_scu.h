@@ -18,6 +18,11 @@ public:
 	void draw_sprites_to_tempbitmap(const rectangle &cliprect, UINT16* spriteram, UINT32 bytes );
 	void copy_sprites_from_tempbitmap(bitmap_ind16 &bitmap, const rectangle &cliprect, int priority);
 	void alloc_sprite_bitmap(screen_device &screen);
+	
+	void draw_sprites(bitmap_ind16 &bitmap, bitmap_ind8 &pribitmap, const rectangle &cliprect, UINT16* spriteram, UINT32 bytes);
+	void draw_sprites(bitmap_rgb32 &bitmap, bitmap_ind8 &pribitmap, const rectangle &cliprect, UINT16* spriteram, UINT32 bytes);
+	
+	template<class BitmapClass> void draw_sprites_common(BitmapClass &bitmap, bitmap_ind8 &pribitmap, const rectangle &cliprect, UINT16* spriteram, UINT32 bytes);
 
 protected:
 	virtual void device_start() override;

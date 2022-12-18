@@ -992,6 +992,10 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( samesame_hd647180_io_map, AS_IO, 8, toaplan1_state )
 	ADDRESS_MAP_GLOBAL_MASK(0xff)
 
+	AM_RANGE(0x63, 0x63) AM_READ( samesame_cmdavailable_r )
+	AM_RANGE(0xa0, 0xa0) AM_READ( samesame_soundlatch_r )
+	AM_RANGE(0xb0, 0xb0) AM_WRITE( samesame_sound_done_w )
+
 	AM_RANGE(0x80, 0x80) AM_DEVREADWRITE("ymsnd", ym3812_device, status_port_r, control_port_w)
 	AM_RANGE(0x81, 0x81) AM_DEVREADWRITE("ymsnd", ym3812_device, read_port_r, write_port_w)
 ADDRESS_MAP_END
@@ -2974,14 +2978,89 @@ DRIVER_INIT_MEMBER(toaplan1_state,demonwld)
 
 
 
+READ16_MEMBER(toaplan1_state::fireshrk_main_skip_r)
+{
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+	int result = m_mainram[0x1ada / 2];
+
+	if (pc == 0x5f0a)
+	{
+		if (result == 0)
+			mcpu->spin_until_interrupt();
+	}
+
+	return result;
+}
+
+
+
+READ8_MEMBER(toaplan1_state::fireshk_sound_skip_r)
+{
+	// doesn't work, loses sound after continue (misses trigger?)
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x447)
+	{
+		space.device().execute().spin_until_trigger(700);
+	}
+
+	return 0xc3;
+}
+
+
 DRIVER_INIT_MEMBER(toaplan1_state,fireshrk)
 {
 	toaplan1_driver_savestate();
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xc1ada, 0xc1adb, read16_delegate(FUNC(toaplan1_state::fireshrk_main_skip_r), this));
+//	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x446, 0x446, read8_delegate(FUNC(toaplan1_state::fireshk_sound_skip_r), this));
+
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+	UINT32 size = memregion("maincpu")->bytes();
+	m_maincpu->set_fastrom(rom,size);
+}
+
+
+READ16_MEMBER(toaplan1_state::vimana_main_skip_r)
+{
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+	int result = m_mainram[0x148 / 2];
+
+	if (pc == 0x17c0a)
+	{
+		if (result == 0)
+			mcpu->spin_until_interrupt();
+	}
+
+	return result;
+}
+
+READ8_MEMBER(toaplan1_state::vimana_sound_skip_r)
+{
+	int pc = m_audiocpu->pc();
+
+	if (pc == 0x476)
+	{
+		m_audiocpu->spin_until_interrupt();
+	}
+
+	return 0xc3;
 }
 
 
 DRIVER_INIT_MEMBER(toaplan1_state,vimana)
 {
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x480148, 0x480149, read16_delegate(FUNC(toaplan1_state::vimana_main_skip_r), this));
+	m_audiocpu->space(AS_PROGRAM).install_read_handler(0x475, 0x475, read8_delegate(FUNC(toaplan1_state::vimana_sound_skip_r), this));
+
+
 	toaplan1_driver_savestate();
 	vimana_driver_savestate();
 }

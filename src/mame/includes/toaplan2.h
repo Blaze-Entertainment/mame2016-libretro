@@ -8,12 +8,12 @@
 #define T2PALETTE_LENGTH 0x10000
 
 #include "cpu/simpletoaplan_m68000/m68000.h"
-#include "cpu/nec/v25.h"
 #include "machine/eepromser.h"
 #include "machine/nmk112.h"
 #include "machine/upd4992.h"
 #include "video/gp9001.h"
 #include "sound/okim6295.h"
+#include "cpu/simpletoaplan_nec/v25.h"
 #include "cpu/z80/z80.h"
 #include "cpu/z180/z180.h"
 #include "sound/2151intf.h"
@@ -110,8 +110,6 @@ public:
 
 
 	void draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect );
-	void gp9001_draw_mixed_tilemap( bitmap_ind16 &bitmap, const rectangle &cliprect );
-	void gp9001_draw_mixed_tilemap_with_tx(bitmap_ind16& bitmap, const rectangle& cliprect);
 	void gp9001_render_vdp( bitmap_ind16 &bitmap, const rectangle &cliprect);
 	void gp9001_screen_eof(void);
 	void create_tilemaps(void);
@@ -184,7 +182,7 @@ public:
 
 	required_device<simpletoaplan_m68000_base_device> m_maincpu;
 	optional_device<cpu_device> m_audiocpu;
-	optional_device<v25_common_device> m_v25audiocpu;
+	optional_device<simpletoaplan_v25_common_device> m_v25audiocpu;
 	//required_device<gp9001vdp_device> m_vdp0;
 	optional_device<gp9001vdp_device> m_vdp1;
 	optional_device<nmk112_device> m_nmk112;
@@ -196,9 +194,14 @@ public:
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
 
+	DECLARE_READ8_MEMBER(vfive_sound_skip_r);
+	DECLARE_READ8_MEMBER(fixeight_alt_sound_skip_r);
 	DECLARE_WRITE16_MEMBER(v5_shared_ram_w);
 	IRQ_CALLBACK_MEMBER(irqack);
 	DECLARE_WRITE8_MEMBER(sound_status_changed);
+	DECLARE_READ16_MEMBER(ghox_vdp_status_r);
+	DECLARE_READ16_MEMBER(kbash_vdp_status_r);
+	DECLARE_READ16_MEMBER(v5_vdp_status_r);
 	DECLARE_WRITE16_MEMBER(toaplan2_palette_w);
 	// Teki Paki sound
 	uint8_t m_cmdavailable;
@@ -209,6 +212,7 @@ public:
 	DECLARE_READ8_MEMBER(tekipaki_cmdavailable_r);
 	DECLARE_READ8_MEMBER(tekipaki_sound_skip_r);
 	DECLARE_READ16_MEMBER(tekipaki_main_skip_r);
+	DECLARE_READ16_MEMBER(truxton2_main_skip_r);
 
 	UINT16 m_mcu_data;
 	INT8 m_old_p1_paddle_h; /* For Ghox */
