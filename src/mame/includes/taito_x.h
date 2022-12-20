@@ -27,4 +27,11 @@ public:
 	DECLARE_WRITE16_MEMBER( cchip1_ctrl_w );
 	DECLARE_WRITE16_MEMBER( cchip1_bank_w );
 	DECLARE_WRITE16_MEMBER( cchip1_ram_w );
+
+	UINT32 screen_update_seta_no_layers_twinhawk(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
+	{
+		m_seta001->set_hackcensornum(1);
+		return screen_update_seta_no_layers(screen, bitmap, cliprect);
+	}
+
 };

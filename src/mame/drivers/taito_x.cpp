@@ -864,7 +864,7 @@ static MACHINE_CONFIG_START( daisenpu, taitox_state )
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
 	MCFG_SCREEN_SIZE(52*8, 32*8)
 	MCFG_SCREEN_VISIBLE_AREA(0*8, 48*8-1, 2*8, 30*8-1)
-	MCFG_SCREEN_UPDATE_DRIVER(taitox_state, screen_update_seta_no_layers)
+	MCFG_SCREEN_UPDATE_DRIVER(taitox_state, screen_update_seta_no_layers_twinhawk)
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", superman)

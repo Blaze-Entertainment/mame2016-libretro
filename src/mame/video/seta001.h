@@ -50,6 +50,8 @@ public:
 	void set_colorbase(int base) { m_colorbase = base; };
 	void set_spritelimit(int limit) { m_spritelimit = limit; };
 	void set_transpen ( int pen ) { m_transpen = pen; };
+	
+	void set_hackcensornum ( int censorhack ) { m_censorhack = censorhack; };
 
 	int is_flipped() { return ((m_spritectrl[ 0 ] & 0x40) >> 6); };
 
@@ -59,8 +61,8 @@ protected:
 
 private:
 
-	void draw_background( bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, int setac_type);
-	void draw_foreground( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size);
+	void draw_background(bitmap_ind16& bitmap, const rectangle& cliprect, int bank_size, int setac_type, uint8_t* lowspr, uint8_t* highspr);
+	void draw_foreground(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, int bank_size, uint8_t* lowspr, uint8_t* highspr);
 	required_device<gfxdecode_device> m_gfxdecode;
 
 	gfxbank_cb_delegate m_gfxbank_cb;
@@ -80,6 +82,12 @@ private:
 	UINT8 m_spriteylow[0x300]; // 0x200 low y + 0x100 bg stuff
 	UINT8 m_spritecodelow[0x2000]; // tnzs.c stuff only uses half?
 	UINT8 m_spritecodehigh[0x2000]; // ^
+
+	UINT8 m_spritecodelow_buffer[0x2000]; // tnzs.c stuff only uses half?
+	UINT8 m_spritecodehigh_buffer[0x2000]; // ^
+
+
+	int m_censorhack;
 };
 
 extern const device_type SETA001_SPRITE;

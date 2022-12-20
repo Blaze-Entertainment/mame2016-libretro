@@ -35,6 +35,7 @@ seta001_device::seta001_device(const machine_config &mconfig, const char *tag, d
 	: device_t(mconfig, SETA001_SPRITE, "Seta SETA001 Sprite", tag, owner, clock, "seta001", __FILE__),
 		m_gfxdecode(*this)
 {
+	m_censorhack = 0;
 }
 
 //-------------------------------------------------
@@ -201,7 +202,7 @@ doraemon:   19 2a 00 03   (always)
 
 
 
-void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, int setac_type)
+void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, int setac_type, uint8_t* lowspr, uint8_t* highspr)
 {
 	int transpen;
 
@@ -267,8 +268,8 @@ void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cli
 			if (setac_type) i = ((col+col0)&0xf) * 32 + offs;
 			else i = 32 * (col ^ 8) + 2 * (offs>>1) + (offs&1);
 
-			int code = ((m_spritecodehigh[i+0x400+bank]) << 8) | m_spritecodelow[i+0x400+bank];
-			int color =((m_spritecodehigh[i+0x600+bank]) << 8) | m_spritecodelow[i+0x600+bank];
+			int code = ((highspr[i+0x400+bank]) << 8) | lowspr[i+0x400+bank];
+			int color =((highspr[i+0x600+bank]) << 8) | lowspr[i+0x600+bank];
 
 			int flipx   =   code & 0x8000;
 			int flipy   =   code & 0x4000;
@@ -321,7 +322,7 @@ void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cli
 }
 
 
-void seta001_device::draw_foreground( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size)
+void seta001_device::draw_foreground( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, uint8_t* lowspr, uint8_t* highspr)
 {
 	int screenflip = (m_spritectrl[0] & 0x40) >> 6;
 	int i;
@@ -330,10 +331,10 @@ void seta001_device::draw_foreground( screen_device &screen, bitmap_ind16 &bitma
 
 	int total_color_codes   =   m_gfxdecode->gfx(0)->colors();
 
-	UINT8 *char_pointer = m_spritecodelow + 0x0000;
-	UINT8 *x_pointer = m_spritecodelow + 0x0200;
-	UINT8 *ctrl_pointer = m_spritecodehigh + 0x0000;
-	UINT8 *color_pointer = m_spritecodehigh + 0x0200;
+	UINT8 *char_pointer = lowspr + 0x0000;
+	UINT8 *x_pointer = lowspr + 0x0200;
+	UINT8 *ctrl_pointer = highspr + 0x0000;
+	UINT8 *color_pointer = highspr + 0x0200;
 
 	xoffs   =   screenflip ? m_fg_flipxoffs : m_fg_noflipxoffs;
 	yoffs   =   screenflip ? m_fg_flipyoffs : m_fg_noflipyoffs;
@@ -461,6 +462,153 @@ void seta001_device::tnzs_eof( void )
 
 void seta001_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, int setac)
 {
-	draw_background(bitmap, cliprect, bank_size, setac);
-	draw_foreground(screen, bitmap, cliprect, bank_size);
+	memcpy(m_spritecodelow_buffer, m_spritecodelow, 0x2000);
+	memcpy(m_spritecodehigh_buffer, m_spritecodehigh, 0x2000);
+
+	if (m_censorhack == 1) // twinhawk
+	{
+		for (int i = 0; i <= 0x1000; i+=0x1000)
+		{
+			if (
+			
+				(m_spritecodelow_buffer[(0x2e / 2) + i] == 0xcb) && // (c) 
+				(m_spritecodelow_buffer[(0x30 / 2) + i] == 0x93) && // T
+				(m_spritecodelow_buffer[(0x32 / 2) + i] == 0x80) && // A
+				(m_spritecodelow_buffer[(0x34 / 2) + i] == 0x88) && // I
+				(m_spritecodelow_buffer[(0x36 / 2) + i] == 0x93) && // T
+				(m_spritecodelow_buffer[(0x38 / 2) + i] == 0x8e) && // O
+				(m_spritecodelow_buffer[(0x3a / 2) + i] == 0x82) && // C  
+				(m_spritecodelow_buffer[(0x3c / 2) + i] == 0x8e) && // O
+				(m_spritecodelow_buffer[(0x3e / 2) + i] == 0x91) && // R 
+				(m_spritecodelow_buffer[(0x40 / 2) + i] == 0x8f) && // P  
+				(m_spritecodelow_buffer[(0x42 / 2) + i] == 0x9a) && // .  
+				(m_spritecodelow_buffer[(0x44 / 2) + i] == 0x65) && // 1
+				(m_spritecodelow_buffer[(0x46 / 2) + i] == 0x6d) && // 9
+				(m_spritecodelow_buffer[(0x48 / 2) + i] == 0x6c) && // 8
+				(m_spritecodelow_buffer[(0x4a / 2) + i] == 0x6d) && // 9		   
+				(m_spritecodelow_buffer[(0x4c / 2) + i] == 0x89) && // J  
+				(m_spritecodelow_buffer[(0x4e / 2) + i] == 0x80) && // A
+				(m_spritecodelow_buffer[(0x50 / 2) + i] == 0x8f) && // P 
+				(m_spritecodelow_buffer[(0x52 / 2) + i] == 0x80) && // A  
+				(m_spritecodelow_buffer[(0x54 / 2) + i] == 0x8d))   // N  
+			{			
+				m_spritecodelow_buffer[(0x2e / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x30 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x32 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x34 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x36 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x38 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x3a / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x3c / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x3e / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x40 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x42 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x44 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x46 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x48 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x4a / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x4c / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x4e / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x50 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x52 / 2) + i] = 0x7f;
+				m_spritecodelow_buffer[(0x54 / 2) + i] = 0x7f;
+			}
+	
+			if ((m_spritecodehigh_buffer[(0xc0 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xc0 / 2) + i] == 0xd4) &&
+				(m_spritecodehigh_buffer[(0xc2 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xc2 / 2) + i] == 0xd5) &&
+				(m_spritecodehigh_buffer[(0xc4 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xc4 / 2) + i] == 0xd6) &&
+				(m_spritecodehigh_buffer[(0xc6 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xc6 / 2) + i] == 0xd7) &&
+				(m_spritecodehigh_buffer[(0xc8 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xc8 / 2) + i] == 0xd8) &&
+				(m_spritecodehigh_buffer[(0xca / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xca / 2) + i] == 0xd9) &&
+				(m_spritecodehigh_buffer[(0xcc / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xcc / 2) + i] == 0xda) &&
+				(m_spritecodehigh_buffer[(0xce / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xce / 2) + i] == 0xdb) &&
+				(m_spritecodehigh_buffer[(0xd0 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xd0 / 2) + i] == 0xdc) &&
+				(m_spritecodehigh_buffer[(0xd2 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xd2 / 2) + i] == 0xdd))
+			{
+				m_spritecodehigh_buffer[((0xc0) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xc0) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xc2) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xc2) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xc4) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xc4) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xc6) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xc6) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xc8) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xc8) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xca) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xca) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xcc) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xcc) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xce) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xce) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xd0) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xd0) / 2)+i] = 0xa0;
+				m_spritecodehigh_buffer[((0xd2) / 2)+i] = 0x00;  m_spritecodelow_buffer[((0xd2) / 2)+i] = 0xa0;
+			}
+
+
+			if ((m_spritecodehigh_buffer[(0xc0 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xc0 / 2) + i] == 0x00) &&
+				(m_spritecodehigh_buffer[(0xc2 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xc2 / 2) + i] == 0x01) &&
+				(m_spritecodehigh_buffer[(0xc4 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xc4 / 2) + i] == 0x02) &&
+				(m_spritecodehigh_buffer[(0xc6 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xc6 / 2) + i] == 0x03) &&
+				(m_spritecodehigh_buffer[(0xc8 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xc8 / 2) + i] == 0x04) &&
+				(m_spritecodehigh_buffer[(0xca / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xca / 2) + i] == 0x05) &&
+				(m_spritecodehigh_buffer[(0xcc / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xcc / 2) + i] == 0x06) &&
+				(m_spritecodehigh_buffer[(0xce / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xce / 2) + i] == 0x07) &&
+				(m_spritecodehigh_buffer[(0xd0 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xd0 / 2) + i] == 0x08) &&
+				(m_spritecodehigh_buffer[(0xd2 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xd2 / 2) + i] == 0x09) &&
+				(m_spritecodehigh_buffer[(0xd4 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xd4 / 2) + i] == 0x0a) &&
+				(m_spritecodehigh_buffer[(0xd6 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xd6 / 2) + i] == 0x0b) &&
+				(m_spritecodehigh_buffer[(0xd8 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xd8 / 2) + i] == 0x0c) &&
+				(m_spritecodehigh_buffer[(0xda / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xda / 2) + i] == 0x0d) &&
+				(m_spritecodehigh_buffer[(0xdc / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xdc / 2) + i] == 0x0e) &&
+				(m_spritecodehigh_buffer[(0xde / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xde / 2) + i] == 0x0f) &&		
+				(m_spritecodehigh_buffer[(0xe0 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xe0 / 2) + i] == 0x10) &&
+				(m_spritecodehigh_buffer[(0xe2 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xe2 / 2) + i] == 0x11) &&
+				(m_spritecodehigh_buffer[(0xe4 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xe4 / 2) + i] == 0x12) &&
+				(m_spritecodehigh_buffer[(0xe6 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xe6 / 2) + i] == 0x13) &&
+				(m_spritecodehigh_buffer[(0xe8 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xe8 / 2) + i] == 0x14) &&
+				(m_spritecodehigh_buffer[(0xea / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xea / 2) + i] == 0x15) &&
+				(m_spritecodehigh_buffer[(0xec / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xec / 2) + i] == 0x16) &&
+				(m_spritecodehigh_buffer[(0xee / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xee / 2) + i] == 0x17) &&
+				(m_spritecodehigh_buffer[(0xf0 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xf0 / 2) + i] == 0x18) &&
+				(m_spritecodehigh_buffer[(0xf2 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xf2 / 2) + i] == 0x19) &&
+				(m_spritecodehigh_buffer[(0xf4 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xf4 / 2) + i] == 0x1a) &&
+				(m_spritecodehigh_buffer[(0xf6 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xf6 / 2) + i] == 0x1b) &&
+				(m_spritecodehigh_buffer[(0xf8 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xf8 / 2) + i] == 0x1c) &&
+				(m_spritecodehigh_buffer[(0xfa / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xfa / 2) + i] == 0x1d) &&
+				(m_spritecodehigh_buffer[(0xfc / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xfc / 2) + i] == 0x1e) &&
+				(m_spritecodehigh_buffer[(0xfe / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0xfe / 2) + i] == 0x1f) &&				
+				(m_spritecodehigh_buffer[(0x100 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x100 / 2) + i] == 0x20) &&
+				(m_spritecodehigh_buffer[(0x102 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x102 / 2) + i] == 0x21) &&
+				(m_spritecodehigh_buffer[(0x104 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x104 / 2) + i] == 0x22) &&
+				(m_spritecodehigh_buffer[(0x106 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x106 / 2) + i] == 0x23) &&
+				(m_spritecodehigh_buffer[(0x108 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x108 / 2) + i] == 0x24) &&
+				(m_spritecodehigh_buffer[(0x10a / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x10a / 2) + i] == 0x25) &&
+				(m_spritecodehigh_buffer[(0x10c / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x10c / 2) + i] == 0x26) &&
+				(m_spritecodehigh_buffer[(0x10e / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x10e / 2) + i] == 0x27) &&
+				(m_spritecodehigh_buffer[(0x110 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x110 / 2) + i] == 0x28) &&
+				(m_spritecodehigh_buffer[(0x112 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x112 / 2) + i] == 0x29) &&
+				(m_spritecodehigh_buffer[(0x114 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x114 / 2) + i] == 0x2a) &&
+				(m_spritecodehigh_buffer[(0x116 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x116 / 2) + i] == 0x2b) &&
+				(m_spritecodehigh_buffer[(0x118 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x118 / 2) + i] == 0x2c) &&
+				(m_spritecodehigh_buffer[(0x11a / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x11a / 2) + i] == 0x2d) &&
+				(m_spritecodehigh_buffer[(0x11c / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x11c / 2) + i] == 0x2e) &&
+				(m_spritecodehigh_buffer[(0x11e / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x11e / 2) + i] == 0x2f) &&
+				(m_spritecodehigh_buffer[(0x120 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x120 / 2) + i] == 0x30) &&
+				(m_spritecodehigh_buffer[(0x122 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x122 / 2) + i] == 0x31) &&
+				(m_spritecodehigh_buffer[(0x124 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x124 / 2) + i] == 0x32) &&
+				(m_spritecodehigh_buffer[(0x126 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x126 / 2) + i] == 0x33) &&
+				(m_spritecodehigh_buffer[(0x128 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x128 / 2) + i] == 0x34) &&
+				(m_spritecodehigh_buffer[(0x12a / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x12a / 2) + i] == 0x35) &&
+				(m_spritecodehigh_buffer[(0x12c / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x12c / 2) + i] == 0x36) &&
+				(m_spritecodehigh_buffer[(0x12e / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x12e / 2) + i] == 0x37) &&
+				(m_spritecodehigh_buffer[(0x130 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x130 / 2) + i] == 0x38) &&
+				(m_spritecodehigh_buffer[(0x132 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x132 / 2) + i] == 0x39) &&
+				(m_spritecodehigh_buffer[(0x134 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x134 / 2) + i] == 0x3a) &&
+				(m_spritecodehigh_buffer[(0x136 / 2) + i] == 0x21) && (m_spritecodelow_buffer[(0x136 / 2) + i] == 0x3b))
+			{
+
+				for (int j = 0; j < 0x3c*2; j+=2)
+				{
+					m_spritecodehigh_buffer[((0xc0 + j) / 2)+i] = 0x00;
+					m_spritecodelow_buffer[((0xc0 + j) / 2)+i] = 0xa0;
+				}
+			}
+		}
+	}
+
+	draw_background(bitmap, cliprect, bank_size, setac, m_spritecodelow_buffer, m_spritecodehigh_buffer);
+	draw_foreground(screen, bitmap, cliprect, bank_size, m_spritecodelow_buffer, m_spritecodehigh_buffer);
 }
