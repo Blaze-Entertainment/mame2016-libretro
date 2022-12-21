@@ -182,9 +182,29 @@ WRITE16_MEMBER(twincobr_state::twincobr_patched_txram_w)
 {
 	int pc = m_maincpu->pc();
 
-	logerror("%08x: twincobr_patched_txram_w offset %04x data %04x\n", pc, offset, data);
-
 	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
+
+	if (pc == 0x242f4)
+	{
+
+		int a0 = m_maincpu->state_int(SIMPLETOAPLAN_M68K_A0);
+
+		//logerror("%08x: twincobr_patched_txram_w offset %04x data %04x a0 is %04x\n", pc, m_txoffs, data, a0);
+
+		// TAITO text
+		if ((a0 >= 0x25018) && (a0 <= 0x25038))
+		{
+			data = 0x002d;
+		}
+
+		// remove Taito logo
+		if ((data >= 0x204c) && (data <= 0x205f))
+		{
+			data = 0x002d;
+		}
+	}
+
+
 	COMBINE_DATA(&m_txvideoram16_copy[m_txoffs]);
 
 	m_tx_tilemap->mark_tile_dirty(m_txoffs);
