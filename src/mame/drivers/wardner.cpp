@@ -167,10 +167,66 @@ public:
 	required_ioport m_in1;
 	required_ioport m_system;
 
+	DECLARE_WRITE16_MEMBER(wardner_patched_txram_w);
+	DECLARE_WRITE8_MEMBER(wardner_videoram_w);
+
+
+
 protected:
 	virtual void driver_start() override;
 	virtual void machine_reset() override;
 };
+
+
+WRITE8_MEMBER(wardner_state::wardner_videoram_w)
+{
+	int shift = 8 * (offset & 1);
+	switch (offset/2) {
+		case 0: wardner_patched_txram_w(space,0,data << shift, 0xff << shift); break;
+		case 1: twincobr_bgram_w(space,0,data << shift, 0xff << shift); break;
+		case 2: twincobr_fgram_w(space,0,data << shift, 0xff << shift); break;
+	}
+}
+
+
+WRITE16_MEMBER(wardner_state::wardner_patched_txram_w)
+{
+	int pc = m_maincpu->pc();
+	int bc = m_maincpu->state_int(Z80_BC);
+
+
+	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
+
+	if (pc == 0x97a)
+	{
+		uint16_t old = m_txvideoram16[m_txoffs];
+
+		// TAITO logo
+		if ((old >= 0x4f40) && (old <= 0x4f53))
+		{
+			data = 0x002d;
+			mem_mask = 0xffff;
+		}
+
+		// TAITO text
+		if ((bc >= 0xb8fa) && (bc <= 0xb917))
+		{
+			int bank = m_membank->get_bank();
+
+			if (bank == 7)
+			{
+				//logerror("%08x: wardner_patched_txram_w offset %04x data %04x bc is %04x bank is %d\n", pc, m_txoffs, data, bc, bank);
+
+				data = 0x002d;
+				mem_mask = 0xffff;
+			}
+		}
+	}
+
+	COMBINE_DATA(&m_txvideoram16_copy[m_txoffs]);
+
+	m_tx_tilemap->mark_tile_dirty(m_txoffs);
+}
 
 
 READ8_MEMBER(wardner_state::wardner_skip_r)

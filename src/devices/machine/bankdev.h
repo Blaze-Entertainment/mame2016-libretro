@@ -49,6 +49,7 @@ public:
 	DECLARE_READ64_MEMBER(read64);
 
 	void set_bank(offs_t offset);
+	int get_bank();
 
 protected:
 	virtual void device_start() override;

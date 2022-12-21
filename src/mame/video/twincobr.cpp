@@ -210,18 +210,6 @@ WRITE16_MEMBER(twincobr_state::twincobr_patched_txram_w)
 	m_tx_tilemap->mark_tile_dirty(m_txoffs);
 }
 
-WRITE16_MEMBER(twincobr_state::wardner_patched_txram_w)
-{
-	int pc = m_maincpu->pc();
-
-	logerror("%08x: wardner_patched_txram_w offset %04x data %04x\n", pc, offset, data);
-
-	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
-	COMBINE_DATA(&m_txvideoram16_copy[m_txoffs]);
-
-	m_tx_tilemap->mark_tile_dirty(m_txoffs);
-}
-
 WRITE16_MEMBER(twincobr_state::twincobr_txram_w)
 {
 	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
@@ -361,15 +349,6 @@ READ8_MEMBER(twincobr_state::wardner_videoram_r)
 	return 0;
 }
 
-WRITE8_MEMBER(twincobr_state::wardner_videoram_w)
-{
-	int shift = 8 * (offset & 1);
-	switch (offset/2) {
-		case 0: wardner_patched_txram_w(space,0,data << shift, 0xff << shift); break;
-		case 1: twincobr_bgram_w(space,0,data << shift, 0xff << shift); break;
-		case 2: twincobr_fgram_w(space,0,data << shift, 0xff << shift); break;
-	}
-}
 
 READ8_MEMBER(twincobr_state::wardner_sprite_r)
 {

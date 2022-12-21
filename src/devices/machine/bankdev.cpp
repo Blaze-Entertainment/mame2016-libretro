@@ -89,3 +89,8 @@ void address_map_bank_device::set_bank(offs_t bank)
 {
 	m_offset = bank * m_stride;
 }
+
+int  address_map_bank_device::get_bank()
+{
+	return m_offset / m_stride;
+}

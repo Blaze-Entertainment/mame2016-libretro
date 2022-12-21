@@ -9,6 +9,7 @@
 #include "video/bufsprite.h"
 #include "video/toaplan_scu.h"
 #include "cpu/simpletoaplan_m68000/m68000.h"
+#include "cpu/z80/z80.h"
 
 class twincobr_state : public driver_device
 {
@@ -85,7 +86,6 @@ public:
 	DECLARE_READ16_MEMBER(twincobr_txram_r);
 	DECLARE_WRITE16_MEMBER(twincobr_txram_w);
 	DECLARE_WRITE16_MEMBER(fshark_patched_txram_w);
-	DECLARE_WRITE16_MEMBER(wardner_patched_txram_w);
 	DECLARE_WRITE16_MEMBER(twincobr_patched_txram_w);
 
 	DECLARE_WRITE16_MEMBER(twincobr_bgoffs_w);
@@ -106,7 +106,6 @@ public:
 	DECLARE_WRITE8_MEMBER(wardner_fgscroll_w);
 	DECLARE_WRITE8_MEMBER(wardner_exscroll_w);
 	DECLARE_READ8_MEMBER(wardner_videoram_r);
-	DECLARE_WRITE8_MEMBER(wardner_videoram_w);
 	DECLARE_READ8_MEMBER(wardner_sprite_r);
 	DECLARE_WRITE8_MEMBER(wardner_sprite_w);
 	DECLARE_DRIVER_INIT(twincobr);
