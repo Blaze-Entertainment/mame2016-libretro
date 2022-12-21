@@ -204,13 +204,13 @@ TILE_GET_INFO_MEMBER(toaplan1_state::get_pf4_tile_info)
 {
 	int color, tile_number, attrib;
 
-	tile_number = m_pf4_tilevram16[2*tile_index+1] & 0x7fff;
-	attrib = m_pf4_tilevram16[2*tile_index];
+	tile_number = m_pf4_tilevram16_alt[2*tile_index+1] & 0x7fff;
+	attrib = m_pf4_tilevram16_alt[2*tile_index];
 	color = attrib & 0x3f;
 
 	// "disabled" tiles are behind everything else
 	int cat;
-	if (m_pf4_tilevram16[2*tile_index+1] & 0x8000) cat = 0;
+	if (m_pf4_tilevram16_alt[2*tile_index+1] & 0x8000) cat = 0;
 		else cat = (attrib & 0xf000) >> 12;
 	
 	color |= cat << 7;
@@ -253,11 +253,13 @@ void toaplan1_state::toaplan1_vram_alloc()
 	m_pf2_tilevram16 = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
 	m_pf3_tilevram16 = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
 	m_pf4_tilevram16 = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
+	m_pf4_tilevram16_alt = make_unique_clear<UINT16[]>(TOAPLAN1_TILEVRAM_SIZE/2);
 
 	save_pointer(NAME(m_pf1_tilevram16.get()), TOAPLAN1_TILEVRAM_SIZE/2);
 	save_pointer(NAME(m_pf2_tilevram16.get()), TOAPLAN1_TILEVRAM_SIZE/2);
 	save_pointer(NAME(m_pf3_tilevram16.get()), TOAPLAN1_TILEVRAM_SIZE/2);
 	save_pointer(NAME(m_pf4_tilevram16.get()), TOAPLAN1_TILEVRAM_SIZE/2);
+	save_pointer(NAME(m_pf4_tilevram16_alt.get()), TOAPLAN1_TILEVRAM_SIZE/2);
 
 #ifdef MAME_DEBUG
 	m_display_pf1 = 1;
@@ -624,6 +626,7 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_tileram16_w)
 			UINT16 old = m_pf4_tilevram16[vram_offset];
 
 			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+			COMBINE_DATA(&m_pf4_tilevram16_alt[vram_offset]);
 
 			if (m_pf4_tilevram16[vram_offset] != old)
 				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
@@ -689,6 +692,7 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_rallybik_tileram16_w)
 			logerror("%08x toaplan1_rallybik_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
 
 			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+			COMBINE_DATA(&m_pf4_tilevram16_alt[vram_offset]);
 
 			if (m_pf4_tilevram16[vram_offset] != old)
 				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
@@ -750,10 +754,26 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_hellfire_tileram16_w)
 			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
 
 			UINT16 old = m_pf4_tilevram16[vram_offset];
-
-			logerror("%08x toaplan1_rallybik_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
-
 			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+
+			//logerror("%08x toaplan1_hellfire_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
+
+			if (pc == 0x731e)
+			{
+				int a0 = m_maincpu->state_int(SIMPLETOAPLAN_M68K_A0);
+				
+				if (vram_offset & 1)
+				{
+					if ((a0 >= 0x1ea2a) && (a0 <= 0x1ea62))
+					{
+						data = 0x002d;
+					}
+				}
+
+			}
+		
+			COMBINE_DATA(&m_pf4_tilevram16_alt[vram_offset]);
+
 
 			if (m_pf4_tilevram16[vram_offset] != old)
 				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
@@ -817,6 +837,9 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_truxton_tileram16_w)
 
 			int pc = mcpu->pc();
 
+			UINT16 old = m_pf4_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
 
 			if (pc == 0x2bec)
 			{
@@ -843,10 +866,8 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_truxton_tileram16_w)
 						return;
 			}
 
+			COMBINE_DATA(&m_pf4_tilevram16_alt[vram_offset]);
 
-			UINT16 old = m_pf4_tilevram16[vram_offset];
-
-			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
 
 			if (m_pf4_tilevram16[vram_offset] != old)
 				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);

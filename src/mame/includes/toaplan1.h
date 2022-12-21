@@ -65,6 +65,8 @@ public:
 	std::unique_ptr<UINT16[]> m_pf3_tilevram16;   /*  ||  */
 	std::unique_ptr<UINT16[]> m_pf2_tilevram16;   /* \||/ */
 	std::unique_ptr<UINT16[]> m_pf1_tilevram16;   /*  \/  */
+	
+	std::unique_ptr<UINT16[]> m_pf4_tilevram16_alt; 
 
 	optional_shared_ptr<UINT16> m_spriteram;
 	std::unique_ptr<UINT16[]> m_buffered_spriteram;
