@@ -15,6 +15,7 @@ public:
 	DECLARE_WRITE16_MEMBER(kyustrkr_input_w);
 	DECLARE_WRITE8_MEMBER(sound_bankswitch_w);
 	DECLARE_DRIVER_INIT(kyustrkr);
+	DECLARE_DRIVER_INIT(twinhawk);
 	DECLARE_MACHINE_START(taitox);
 	DECLARE_MACHINE_START(superman);
 	DECLARE_WRITE_LINE_MEMBER(irqhandler);
@@ -33,5 +34,6 @@ public:
 		m_seta001->set_hackcensornum(1);
 		return screen_update_seta_no_layers(screen, bitmap, cliprect);
 	}
-
+	void print_tile(int tile);
+	void set_tile(int tile, uint8_t* data);
 };
