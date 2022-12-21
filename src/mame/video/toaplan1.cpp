@@ -689,9 +689,31 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_rallybik_tileram16_w)
 
 			UINT16 old = m_pf4_tilevram16[vram_offset];
 
-			logerror("%08x toaplan1_rallybik_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
+			//logerror("%08x toaplan1_rallybik_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
 
 			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+
+
+			if (pc == 0x4c4)
+			{
+				int a0 = m_maincpu->state_int(SIMPLETOAPLAN_M68K_A0);
+				
+				if (vram_offset & 1)
+				{
+					// TAITO string
+					if ((a0 >= 0x2f3d) && (a0 <= 0x2f54))
+					{
+						data = 0x0000;
+					}
+				}
+
+				if ((data >= 0x30ae) && (data <= 0x30c1))
+				{
+					data = 0x0000;
+				}
+				
+			}
+
 			COMBINE_DATA(&m_pf4_tilevram16_alt[vram_offset]);
 
 			if (m_pf4_tilevram16[vram_offset] != old)
