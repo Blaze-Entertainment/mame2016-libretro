@@ -413,6 +413,7 @@ void twincobr_state::twincobr_log_vram()
 UINT32 twincobr_state::screen_update_toaplan0(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 //	twincobr_log_vram();
+	m_bg_tilemap->mark_all_dirty();
 
 	UINT16 *buffered_spriteram16;
 	UINT32 bytes;

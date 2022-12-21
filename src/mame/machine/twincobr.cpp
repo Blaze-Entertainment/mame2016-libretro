@@ -213,7 +213,7 @@ void twincobr_state::toaplan0_control_w(int offset, int data)
 		case 0x0006: twincobr_flipscreen(0); break;
 		case 0x0007: twincobr_flipscreen(1); break;
 		case 0x0008: 
-			if (m_bg_ram_bank != 0x0000)
+		//	if (m_bg_ram_bank != 0x0000)
 			{
 				m_bg_ram_bank = 0x0000;
 				m_bg_tilemap->mark_all_dirty();
@@ -221,7 +221,7 @@ void twincobr_state::toaplan0_control_w(int offset, int data)
 			break;
 
 		case 0x0009:
-			if (m_bg_ram_bank != 0x1000)
+		//	if (m_bg_ram_bank != 0x1000)
 			{
 				m_bg_ram_bank = 0x1000;
 				m_bg_tilemap->mark_all_dirty();
@@ -229,7 +229,7 @@ void twincobr_state::toaplan0_control_w(int offset, int data)
 			break;
 		case 0x000a:
 
-			if (m_fg_rom_bank != 0x0000)
+		//	if (m_fg_rom_bank != 0x0000)
 			{
 				m_fg_rom_bank = 0x0000;
 				m_fg_tilemap->mark_all_dirty();
@@ -237,7 +237,7 @@ void twincobr_state::toaplan0_control_w(int offset, int data)
 			break;
 
 		case 0x000b:
-			if (m_fg_rom_bank != 0x1000)
+		//	if (m_fg_rom_bank != 0x1000)
 			{
 				m_fg_rom_bank = 0x1000;
 				m_fg_tilemap->mark_all_dirty();
@@ -336,6 +336,19 @@ MACHINE_RESET_MEMBER(twincobr_state,twincobr)
 	m_dsp_execute = 0;
 	m_dsp_BIO = CLEAR_LINE;
 	m_fsharkbt_8741 = -1;
+
+	m_fg_rom_bank = 0;
+	m_bg_ram_bank = 0;
+
+	m_txscrollx = 0;
+	m_txscrolly = 0;
+	m_fgscrollx = 0;
+	m_fgscrolly = 0;
+	m_bgscrollx = 0;
+	m_bgscrolly = 0;
+	m_txoffs = 0;
+	m_fgoffs = 0;
+	m_bgoffs = 0;
 }
 
 void twincobr_state::twincobr_driver_savestate()
