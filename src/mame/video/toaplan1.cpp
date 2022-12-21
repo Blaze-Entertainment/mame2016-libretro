@@ -636,6 +636,138 @@ WRITE16_MEMBER(toaplan1_state::toaplan1_tileram16_w)
 }
 
 
+WRITE16_MEMBER(toaplan1_state::toaplan1_rallybik_tileram16_w)
+{
+	offs_t vram_offset;
+
+	switch (m_pf_voffs & 0xf000)    /* Locate Layer (PlayField) */
+	{
+		case 0x0000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf1_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf1_tilevram16[vram_offset]);
+
+			if (m_pf1_tilevram16[vram_offset] != old)
+				m_pf1_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x1000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf2_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf2_tilevram16[vram_offset]);
+
+			if (m_pf2_tilevram16[vram_offset] != old)
+				m_pf2_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x2000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf3_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf3_tilevram16[vram_offset]);
+
+			if (m_pf3_tilevram16[vram_offset] != old)
+				m_pf3_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x3000:
+		{
+			cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+			int pc = mcpu->pc();
+
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf4_tilevram16[vram_offset];
+
+			logerror("%08x toaplan1_rallybik_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
+
+			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+
+			if (m_pf4_tilevram16[vram_offset] != old)
+				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		default:
+				logerror("Hmmm, writing %04x to unknown playfield layer address %06x  Offset:%01x\n", data, m_pf_voffs, offset);
+				break;
+	}
+}
+
+
+WRITE16_MEMBER(toaplan1_state::toaplan1_hellfire_tileram16_w)
+{
+	offs_t vram_offset;
+
+	switch (m_pf_voffs & 0xf000)    /* Locate Layer (PlayField) */
+	{
+		case 0x0000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf1_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf1_tilevram16[vram_offset]);
+
+			if (m_pf1_tilevram16[vram_offset] != old)
+				m_pf1_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x1000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf2_tilevram16[vram_offset];
+			COMBINE_DATA(&m_pf2_tilevram16[vram_offset]);
+
+			if (m_pf2_tilevram16[vram_offset] != old)
+				m_pf2_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x2000:
+		{
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf3_tilevram16[vram_offset];
+
+			COMBINE_DATA(&m_pf3_tilevram16[vram_offset]);
+
+			if (m_pf3_tilevram16[vram_offset] != old)
+				m_pf3_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		case 0x3000:
+		{
+			cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+			int pc = mcpu->pc();
+
+			vram_offset = ((m_pf_voffs * 2) + offset) & ((TOAPLAN1_TILEVRAM_SIZE / 2) - 1);
+
+			UINT16 old = m_pf4_tilevram16[vram_offset];
+
+			logerror("%08x toaplan1_rallybik_tileram16_w writing to vram offset %04x data %04x\n", pc, vram_offset, data);
+
+			COMBINE_DATA(&m_pf4_tilevram16[vram_offset]);
+
+			if (m_pf4_tilevram16[vram_offset] != old)
+				m_pf4_tilemap->mark_tile_dirty(vram_offset / 2);
+			break;
+		}
+		default:
+				logerror("Hmmm, writing %04x to unknown playfield layer address %06x  Offset:%01x\n", data, m_pf_voffs, offset);
+				break;
+	}
+}
+
+
+
+
 WRITE16_MEMBER(toaplan1_state::toaplan1_truxton_tileram16_w)
 {
 	offs_t vram_offset;

@@ -144,6 +144,11 @@ public:
 	DECLARE_READ16_MEMBER(toaplan1_tileram16_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_tileram16_w);
 	DECLARE_WRITE16_MEMBER(toaplan1_truxton_tileram16_w);
+
+	DECLARE_WRITE16_MEMBER(toaplan1_rallybik_tileram16_w);
+	DECLARE_WRITE16_MEMBER(toaplan1_hellfire_tileram16_w);
+
+
 	DECLARE_READ16_MEMBER(toaplan1_scroll_regs_r);
 	DECLARE_WRITE16_MEMBER(toaplan1_scroll_regs_w);
 	DECLARE_WRITE16_MEMBER(toaplan1_zerowing_scroll_regs_w);
@@ -154,6 +159,7 @@ public:
 	DECLARE_DRIVER_INIT(vimana);
 	DECLARE_DRIVER_INIT(truxton);
 	DECLARE_DRIVER_INIT(fireshrk);
+	DECLARE_DRIVER_INIT(hellfire);
 
 	TILE_GET_INFO_MEMBER(get_pf1_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf2_tile_info);

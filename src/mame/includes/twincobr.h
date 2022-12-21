@@ -45,6 +45,8 @@ public:
 	std::unique_ptr<UINT16[]> m_bgvideoram16;
 	std::unique_ptr<UINT16[]> m_fgvideoram16;
 	std::unique_ptr<UINT16[]> m_txvideoram16;
+	std::unique_ptr<UINT16[]> m_txvideoram16_copy;
+
 	size_t m_bgvideoram_size;
 	size_t m_fgvideoram_size;
 	size_t m_txvideoram_size;
@@ -82,6 +84,8 @@ public:
 	DECLARE_WRITE16_MEMBER(twincobr_txoffs_w);
 	DECLARE_READ16_MEMBER(twincobr_txram_r);
 	DECLARE_WRITE16_MEMBER(twincobr_txram_w);
+	DECLARE_WRITE16_MEMBER(fshark_patched_txram_w);
+	DECLARE_WRITE16_MEMBER(wardner_patched_txram_w);
 	DECLARE_WRITE16_MEMBER(twincobr_patched_txram_w);
 
 	DECLARE_WRITE16_MEMBER(twincobr_bgoffs_w);
@@ -107,6 +111,8 @@ public:
 	DECLARE_WRITE8_MEMBER(wardner_sprite_w);
 	DECLARE_DRIVER_INIT(twincobr);
 	DECLARE_DRIVER_INIT(fshark);
+	DECLARE_DRIVER_INIT(twincobr_patch);
+
 	TILE_GET_INFO_MEMBER(get_bg_tile_info);
 	TILE_GET_INFO_MEMBER(get_fg_tile_info);
 	TILE_GET_INFO_MEMBER(get_tx_tile_info);
