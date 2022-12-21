@@ -212,10 +212,39 @@ void twincobr_state::toaplan0_control_w(int offset, int data)
 		case 0x0005: m_intenable = 1; break;
 		case 0x0006: twincobr_flipscreen(0); break;
 		case 0x0007: twincobr_flipscreen(1); break;
-		case 0x0008: m_bg_ram_bank = 0x0000; break;
-		case 0x0009: m_bg_ram_bank = 0x1000; break;
-		case 0x000a: m_fg_rom_bank = 0x0000; break;
-		case 0x000b: m_fg_rom_bank = 0x1000; break;
+		case 0x0008: 
+		{
+			if (m_bg_ram_bank != 0x0000)
+			{
+				m_bg_ram_bank = 0x0000;
+				m_bg_tilemap->mark_all_dirty();
+			}
+			break;
+		}
+
+		case 0x0009: m_bg_ram_bank = 0x1000;
+			if (m_bg_ram_bank != 0x1000)
+			{
+				m_bg_ram_bank = 0x1000;
+				m_bg_tilemap->mark_all_dirty();
+			}
+			break;
+		case 0x000a:
+
+			if (m_fg_rom_bank != 0x0000)
+			{
+				m_fg_rom_bank = 0x0000;
+				m_fg_tilemap->mark_all_dirty();
+			}
+			break;
+
+		case 0x000b:
+			if (m_fg_rom_bank != 0x1000)
+			{
+				m_fg_rom_bank = 0x1000;
+				m_fg_tilemap->mark_all_dirty();
+			}
+			break;
 		case 0x000c: twincobr_dsp(1); break;    /* Enable the INT line to the DSP */
 		case 0x000d: twincobr_dsp(0); break;    /* Inhibit the INT line to the DSP */
 		case 0x000e: twincobr_display(0); break; /* Turn display off */

@@ -191,11 +191,10 @@ WRITE8_MEMBER(wardner_state::wardner_videoram_w)
 
 WRITE16_MEMBER(wardner_state::wardner_patched_txram_w)
 {
+	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
+
 	int pc = m_maincpu->pc();
 	int bc = m_maincpu->state_int(Z80_BC);
-
-
-	COMBINE_DATA(&m_txvideoram16[m_txoffs]);
 
 	if (pc == 0x97a)
 	{
