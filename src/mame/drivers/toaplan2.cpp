@@ -394,6 +394,7 @@ static const gfx_layout vdp_spritelayout =
 
 MACHINE_START_MEMBER(toaplan2_state, vfive)
 {
+#if 0
 	if (m_v25audiocpu)
 		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0xa0189); // v5
 	             
@@ -402,12 +403,13 @@ MACHINE_START_MEMBER(toaplan2_state, vfive)
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
 MACHINE_START_MEMBER(toaplan2_state, fixeight)
 {
+#if 0
 	if (m_v25audiocpu)
 		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0xa02fc); // fixeight
 
@@ -416,12 +418,13 @@ MACHINE_START_MEMBER(toaplan2_state, fixeight)
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
 MACHINE_START_MEMBER(toaplan2_state, kbash)
 {
+#if 0
 	UINT8* kbashrom = memregion("audiocpu")->base();
 
 	m_v25audiocpu->set_shareram(kbashrom, 0x80000, 0xf8000, 0x7fff, 0);
@@ -431,34 +434,37 @@ MACHINE_START_MEMBER(toaplan2_state, kbash)
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
 MACHINE_START_MEMBER(toaplan2_state, dogyuun)
 {
+#if 0
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
 MACHINE_START_MEMBER(toaplan2_state, batsugun)
 {
+#if 0
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
 MACHINE_START_MEMBER(toaplan2_state, ghox)
 {
+#if 0
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif 
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
@@ -473,10 +479,11 @@ MACHINE_START_MEMBER(toaplan2_state, tekipaki)
 
 MACHINE_START_MEMBER(toaplan2_state, truxton2)
 {
+#if 0
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-
+#endif 
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
 
@@ -626,8 +633,9 @@ READ8_MEMBER(toaplan2_state::fixeight_alt_sound_skip_r)
 DRIVER_INIT_MEMBER(toaplan2_state,fixeight)
 {
 	m_v25_reset_line = 0x08;
+#if 0
 	m_v25audiocpu->space(AS_PROGRAM).install_read_handler(0xa02fc, 0xa02fc, read8_delegate(FUNC(toaplan2_state::fixeight_alt_sound_skip_r), this));
-
+#endif
 }
 
 
@@ -661,8 +669,9 @@ READ8_MEMBER(toaplan2_state::vfive_sound_skip_r)
 DRIVER_INIT_MEMBER(toaplan2_state,vfive)
 {
 	m_v25_reset_line = 0x10;
-
+#if 0
 	m_v25audiocpu->space(AS_PROGRAM).install_read_handler(0xa0189, 0xa0189, read8_delegate(FUNC(toaplan2_state::vfive_sound_skip_r), this));
+#endif
 }
 
 

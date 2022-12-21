@@ -213,16 +213,14 @@ void twincobr_state::toaplan0_control_w(int offset, int data)
 		case 0x0006: twincobr_flipscreen(0); break;
 		case 0x0007: twincobr_flipscreen(1); break;
 		case 0x0008: 
-		{
 			if (m_bg_ram_bank != 0x0000)
 			{
 				m_bg_ram_bank = 0x0000;
 				m_bg_tilemap->mark_all_dirty();
 			}
 			break;
-		}
 
-		case 0x0009: m_bg_ram_bank = 0x1000;
+		case 0x0009:
 			if (m_bg_ram_bank != 0x1000)
 			{
 				m_bg_ram_bank = 0x1000;
