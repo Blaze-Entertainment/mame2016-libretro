@@ -202,7 +202,7 @@ doraemon:   19 2a 00 03   (always)
 
 
 
-void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, int setac_type, uint8_t* lowspr, uint8_t* highspr)
+void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, int setac_type, uint8_t* lowspr, uint8_t* highspr, uint8_t* ylow )
 {
 	int transpen;
 
@@ -221,7 +221,7 @@ void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cli
 
 	UINT32 upper;
 
-	UINT8* scrollram = m_spriteylow+0x200;
+	UINT8* scrollram = ylow+0x200;
 
 	/* Sprites Banking and/or Sprites Buffering */
 	UINT16 bank = ( ((ctrl2 ^ (~ctrl2<<1)) & 0x40) ? bank_size : 0 );
@@ -322,7 +322,7 @@ void seta001_device::draw_background( bitmap_ind16 &bitmap, const rectangle &cli
 }
 
 
-void seta001_device::draw_foreground( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, uint8_t* lowspr, uint8_t* highspr)
+void seta001_device::draw_foreground( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int bank_size, uint8_t* lowspr, uint8_t* highspr, uint8_t* ylow )
 {
 	int screenflip = (m_spritectrl[0] & 0x40) >> 6;
 	int i;
@@ -360,7 +360,7 @@ void seta001_device::draw_foreground( screen_device &screen, bitmap_ind16 &bitma
 
 
 		sx = x_pointer[i] - ((color_pointer[i] & 1) << 8);
-		sy =  (m_spriteylow[i] & 0xff);
+		sy =  (ylow[i] & 0xff);
 		flipx = ctrl_pointer[i] & 0x80;
 		flipy = ctrl_pointer[i] & 0x40;
 
@@ -464,6 +464,7 @@ void seta001_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 {
 	memcpy(m_spritecodelow_buffer, m_spritecodelow, 0x2000);
 	memcpy(m_spritecodehigh_buffer, m_spritecodehigh, 0x2000);
+	memcpy(m_spriteylow_buffer, m_spriteylow, 0x300);
 
 	if (m_censorhack == 1) // twinhawk
 	{
@@ -512,6 +513,28 @@ void seta001_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 				m_spritecodelow_buffer[(0x50 / 2) + i] = 0x7f;
 				m_spritecodelow_buffer[(0x52 / 2) + i] = 0x7f;
 				m_spritecodelow_buffer[(0x54 / 2) + i] = 0x7f;
+
+				m_spritecodelow_buffer[(0x2e / 2) + i] = 0xcb; // (c)
+				m_spritecodelow_buffer[(0x30 / 2) + i] = 0x65; // 1
+				m_spritecodelow_buffer[(0x32 / 2) + i] = 0x6d; // 9
+				m_spritecodelow_buffer[(0x34 / 2) + i] = 0x6c; // 8
+				m_spritecodelow_buffer[(0x36 / 2) + i] = 0x6d; // 9
+				m_spritecodelow_buffer[(0x38 / 2) + i] = 0x7f; //  
+				m_spritecodelow_buffer[(0x3a / 2) + i] = 0x93; // T
+				m_spritecodelow_buffer[(0x3c / 2) + i] = 0x8e; // O
+				m_spritecodelow_buffer[(0x3e / 2) + i] = 0x80; // A
+				m_spritecodelow_buffer[(0x40 / 2) + i] = 0x8f; // P
+				m_spritecodelow_buffer[(0x42 / 2) + i] = 0x8b; // L
+				m_spritecodelow_buffer[(0x44 / 2) + i] = 0x80; // A
+				m_spritecodelow_buffer[(0x46 / 2) + i] = 0x8d; // N
+
+				int m = 0xb0;
+				for (int l = 0x2e/2; l < 0x48/2; l++)
+				{
+					m_spriteylow_buffer[l] = m;
+					m -= 8;
+				}
+
 			}
 	
 			if ((m_spritecodehigh_buffer[(0xc0 / 2) + i] == 0x20) && (m_spritecodelow_buffer[(0xc0 / 2) + i] == 0xd4) &&
@@ -609,6 +632,6 @@ void seta001_device::draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, c
 		}
 	}
 
-	draw_background(bitmap, cliprect, bank_size, setac, m_spritecodelow_buffer, m_spritecodehigh_buffer);
-	draw_foreground(screen, bitmap, cliprect, bank_size, m_spritecodelow_buffer, m_spritecodehigh_buffer);
+	draw_background(bitmap, cliprect, bank_size, setac, m_spritecodelow_buffer, m_spritecodehigh_buffer, m_spriteylow_buffer);
+	draw_foreground(screen, bitmap, cliprect, bank_size, m_spritecodelow_buffer, m_spritecodehigh_buffer, m_spriteylow_buffer);
 }

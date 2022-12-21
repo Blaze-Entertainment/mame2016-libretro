@@ -61,8 +61,8 @@ protected:
 
 private:
 
-	void draw_background(bitmap_ind16& bitmap, const rectangle& cliprect, int bank_size, int setac_type, uint8_t* lowspr, uint8_t* highspr);
-	void draw_foreground(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, int bank_size, uint8_t* lowspr, uint8_t* highspr);
+	void draw_background(bitmap_ind16& bitmap, const rectangle& cliprect, int bank_size, int setac_type, uint8_t* lowspr, uint8_t* highspr, uint8_t* ylow);
+	void draw_foreground(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect, int bank_size, uint8_t* lowspr, uint8_t* highspr, uint8_t* ylow);
 	required_device<gfxdecode_device> m_gfxdecode;
 
 	gfxbank_cb_delegate m_gfxbank_cb;
@@ -85,7 +85,7 @@ private:
 
 	UINT8 m_spritecodelow_buffer[0x2000]; // tnzs.c stuff only uses half?
 	UINT8 m_spritecodehigh_buffer[0x2000]; // ^
-
+	UINT8 m_spriteylow_buffer[0x300];
 
 	int m_censorhack;
 };
