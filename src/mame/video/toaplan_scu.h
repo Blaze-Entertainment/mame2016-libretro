@@ -15,6 +15,8 @@ public:
 	// static configuration
 	static void static_set_xoffsets(device_t &device, int xoffs, int xoffs_flipped);
 
+	void set_alt_pri() { m_prischeme = 1; }
+
 	void draw_sprites_to_tempbitmap(const rectangle &cliprect, UINT16* spriteram, UINT32 bytes );
 	void copy_sprites_from_tempbitmap(bitmap_ind16 &bitmap, const rectangle &cliprect, int priority);
 	void alloc_sprite_bitmap(screen_device &screen);
@@ -32,6 +34,7 @@ private:
 	bitmap_ind16 m_temp_spritebitmap;
 	int m_xoffs;
 	int m_xoffs_flipped;
+	int m_prischeme;
 };
 
 extern const device_type TOAPLAN_SCU;

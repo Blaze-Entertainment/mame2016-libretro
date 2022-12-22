@@ -32,6 +32,7 @@ toaplan_scu_device::toaplan_scu_device(const machine_config &mconfig, const char
 	: device_t(mconfig, TOAPLAN_SCU, "Toaplan SCU", tag, owner, clock, "toaplan_scu", __FILE__),
 	device_gfx_interface(mconfig, *this, gfxinfo )
 {
+	m_prischeme = 0;
 }
 
 void toaplan_scu_device::static_set_xoffsets(device_t &device, int xoffs, int xoffs_flipped)
@@ -144,15 +145,27 @@ void toaplan_scu_device::draw_sprites_common(BitmapClass &bitmap, bitmap_ind8 &p
 			const UINT32 sprite = spriteram[offs] & 0x7ff;
 			UINT32 color        = attribute & 0x3f;
 			UINT32 pri_mask     = 0; // priority mask
-	
-			switch (priority)
+			
+			if (m_prischeme == 0)
 			{
-				case 0: pri_mask = GFX_PMASK_1|GFX_PMASK_2|GFX_PMASK_4|GFX_PMASK_8; break; // disable?
-				case 1: pri_mask = GFX_PMASK_2|GFX_PMASK_4|GFX_PMASK_8;             break; // over tilemap priority ~0x4, under tilemap priority 0x5~
-				case 2: pri_mask = GFX_PMASK_4|GFX_PMASK_8;                         break; // over tilemap priority ~0x8, under tilemap priority 0x9~
+				switch (priority)
+				{
+				case 0: pri_mask = GFX_PMASK_1 | GFX_PMASK_2 | GFX_PMASK_4 | GFX_PMASK_8; break; // disable?
+				case 1: pri_mask = GFX_PMASK_2 | GFX_PMASK_4 | GFX_PMASK_8;             break; // over tilemap priority ~0x4, under tilemap priority 0x5~
+				case 2: pri_mask = GFX_PMASK_4 | GFX_PMASK_8;                         break; // over tilemap priority ~0x8, under tilemap priority 0x9~
 				case 3: pri_mask = GFX_PMASK_8;                                     break; // over tilemap priority ~0xc, under tilemap priority 0xd~
+				}
 			}
-
+			else
+			{
+				switch (priority)
+				{
+				case 0: pri_mask = GFX_PMASK_2 | GFX_PMASK_4 | GFX_PMASK_8; break; // disable?
+				case 1: pri_mask = GFX_PMASK_4 | GFX_PMASK_8;             break; // over tilemap priority ~0x4, under tilemap priority 0x5~
+				case 2: pri_mask = GFX_PMASK_8;                         break; // over tilemap priority ~0x8, under tilemap priority 0x9~
+				case 3: pri_mask = 0;                                     break; // over tilemap priority ~0xc, under tilemap priority 0xd~
+				}
+			}
 
 			int sx          = spriteram[offs + 2] >> 7;
 			const int flipx = attribute & 0x100;
