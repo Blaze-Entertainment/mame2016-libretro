@@ -1342,9 +1342,45 @@ DRIVER_INIT_MEMBER(twincobr_state,fshark)
 
 }
 
+READ16_MEMBER(twincobr_state::twincobr_boot_speed1_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0x25b5c)
+		{
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_PC, 0x25bc6);
+			for (int i = 0; i < 0x4000 / 2; i++)
+				m_mainram[i] = 0x00;
+		}
+
+	}
+
+	return 0x323c;
+}
+
+READ16_MEMBER(twincobr_state::twincobr_boot_speed2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0x25BD4)
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_PC, 0x25c02);
+
+	}
+
+	return 0x43f9;
+}
+
+
 DRIVER_INIT_MEMBER(twincobr_state, twincobr_patch)
 {
 	twincobr_driver_savestate();
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x25b5c, 0x25b5d, read16_delegate(FUNC(twincobr_state::twincobr_boot_speed1_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x25BD4, 0x25BD5, read16_delegate(FUNC(twincobr_state::twincobr_boot_speed2_r),this));
+
+
 	m_maincpu->space(AS_PROGRAM).install_write_handler(0x07e000, 0x07e001, write16_delegate(FUNC(twincobr_state::twincobr_patched_txram_w),this));
 
 }
