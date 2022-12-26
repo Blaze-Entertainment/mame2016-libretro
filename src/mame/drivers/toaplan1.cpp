@@ -627,7 +627,7 @@ To Do:
 static ADDRESS_MAP_START( rallybik_main_map, AS_PROGRAM, 16, toaplan1_rallybik_state )
 	AM_RANGE(0x000000, 0x00ffff) AM_ROM
 	AM_RANGE(0x040000, 0x07ffff) AM_ROM
-	AM_RANGE(0x080000, 0x083fff) AM_RAM
+	AM_RANGE(0x080000, 0x083fff) AM_RAM AM_SHARE("mainram")
 	AM_RANGE(0x0c0000, 0x0c0fff) AM_RAM AM_SHARE("spriteram")
 	AM_RANGE(0x100000, 0x100001) AM_WRITE(toaplan1_bcu_flipscreen_w)
 	AM_RANGE(0x100002, 0x100003) AM_READWRITE(toaplan1_tileram_offs_r, toaplan1_tileram_offs_w)
@@ -3115,8 +3115,49 @@ DRIVER_INIT_MEMBER(toaplan1_state,hellfire)
 	}
 }
 
+READ16_MEMBER(toaplan1_state::rallybik_boot_speed1_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0x17AE)
+		{
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_PC, 0x1818);
+			for (int i = 0; i < 0x4000 / 2; i++)
+				m_mainram[i] = 0x00;
+		}
 
-GAME(1988, rallybik, 0, rallybik, rallybik, toaplan1_state, toaplan1, ROT270, "Toaplan / Taito Corporation", "Rally Bike / Dash Yarou", MACHINE_SUPPORTS_SAVE)
+	}
+
+	return 0x323c;
+}
+
+READ16_MEMBER(toaplan1_state::rallybik_boot_speed2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0x1838)
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_PC, 0x1866);
+
+	}
+
+	return 0x43f9;
+}
+
+
+DRIVER_INIT_MEMBER(toaplan1_state,rallybik)
+{
+	toaplan1_driver_savestate();
+
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x17AE, 0x17Af, read16_delegate(FUNC(toaplan1_state::rallybik_boot_speed1_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0x1838, 0x1839, read16_delegate(FUNC(toaplan1_state::rallybik_boot_speed2_r),this));
+
+}
+
+
+
+GAME(1988, rallybik, 0, rallybik, rallybik, toaplan1_state, rallybik, ROT270, "Toaplan / Taito Corporation", "Rally Bike / Dash Yarou", MACHINE_SUPPORTS_SAVE)
 
 GAME(1988, truxton, 0, truxton, truxton, toaplan1_state, truxton, ROT270, "Toaplan / Taito Corporation", "Truxton / Tatsujin", MACHINE_SUPPORTS_SAVE)
 

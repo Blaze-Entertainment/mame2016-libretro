@@ -162,6 +162,10 @@ public:
 	DECLARE_DRIVER_INIT(truxton);
 	DECLARE_DRIVER_INIT(fireshrk);
 	DECLARE_DRIVER_INIT(hellfire);
+	DECLARE_DRIVER_INIT(rallybik);
+	
+	DECLARE_READ16_MEMBER(rallybik_boot_speed1_r);
+	DECLARE_READ16_MEMBER(rallybik_boot_speed2_r);
 
 	TILE_GET_INFO_MEMBER(get_pf1_tile_info);
 	TILE_GET_INFO_MEMBER(get_pf2_tile_info);
