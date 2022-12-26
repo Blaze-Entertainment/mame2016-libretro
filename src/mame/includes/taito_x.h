@@ -7,7 +7,9 @@ class taitox_state : public seta_state
 {
 public:
 	taitox_state(const machine_config &mconfig, device_type type, const char *tag)
-		: seta_state(mconfig, type, tag) { }
+		: seta_state(mconfig, type, tag)
+		, m_mainram(*this, "mainram")	
+	{ }
 
 	DECLARE_READ16_MEMBER(superman_dsw_input_r);
 	DECLARE_READ16_MEMBER(daisenpu_input_r);
@@ -29,6 +31,9 @@ public:
 	DECLARE_WRITE16_MEMBER( cchip1_bank_w );
 	DECLARE_WRITE16_MEMBER( cchip1_ram_w );
 
+	DECLARE_READ16_MEMBER(twinhawk_boot_speed1_r);
+	DECLARE_READ16_MEMBER(twinhawk_boot_speed2_r);
+
 	UINT32 screen_update_seta_no_layers_twinhawk(screen_device& screen, bitmap_ind16& bitmap, const rectangle& cliprect)
 	{
 		m_seta001->set_hackcensornum(1);
@@ -36,4 +41,7 @@ public:
 	}
 	void print_tile(int tile);
 	void set_tile(int tile, uint8_t* data);
+
+	optional_shared_ptr<UINT16> m_mainram;
+
 };

@@ -421,7 +421,7 @@ static ADDRESS_MAP_START( superman_map, AS_PROGRAM, 16, taitox_state )
 	AM_RANGE(0xd00000, 0xd005ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r16, spriteylow_w16) // Sprites Y
 	AM_RANGE(0xd00600, 0xd00607) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritectrl_r16, spritectrl_w16)
 	AM_RANGE(0xe00000, 0xe03fff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecode_r16, spritecode_w16) // Sprites Code + X + Attr
-	AM_RANGE(0xf00000, 0xf03fff) AM_RAM         /* Main RAM */
+	AM_RANGE(0xf00000, 0xf03fff) AM_RAM AM_SHARE("mainram")          /* Main RAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( daisenpu_map, AS_PROGRAM, 16, taitox_state )
@@ -436,7 +436,7 @@ static ADDRESS_MAP_START( daisenpu_map, AS_PROGRAM, 16, taitox_state )
 	AM_RANGE(0xd00000, 0xd005ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r16, spriteylow_w16) // Sprites Y
 	AM_RANGE(0xd00600, 0xd00607) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritectrl_r16, spritectrl_w16)
 	AM_RANGE(0xe00000, 0xe03fff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecode_r16, spritecode_w16) // Sprites Code + X + Attr
-	AM_RANGE(0xf00000, 0xf03fff) AM_RAM         /* Main RAM */
+	AM_RANGE(0xf00000, 0xf03fff) AM_RAM AM_SHARE("mainram")          /* Main RAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( gigandes_map, AS_PROGRAM, 16, taitox_state )
@@ -451,7 +451,7 @@ static ADDRESS_MAP_START( gigandes_map, AS_PROGRAM, 16, taitox_state )
 	AM_RANGE(0xd00000, 0xd005ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r16, spriteylow_w16) // Sprites Y
 	AM_RANGE(0xd00600, 0xd00607) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritectrl_r16, spritectrl_w16)
 	AM_RANGE(0xe00000, 0xe03fff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecode_r16, spritecode_w16) // Sprites Code + X + Attr
-	AM_RANGE(0xf00000, 0xf03fff) AM_RAM         /* Main RAM */
+	AM_RANGE(0xf00000, 0xf03fff) AM_RAM AM_SHARE("mainram")          /* Main RAM */
 ADDRESS_MAP_END
 
 static ADDRESS_MAP_START( ballbros_map, AS_PROGRAM, 16, taitox_state )
@@ -466,7 +466,7 @@ static ADDRESS_MAP_START( ballbros_map, AS_PROGRAM, 16, taitox_state )
 	AM_RANGE(0xd00000, 0xd005ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r16, spriteylow_w16) // Sprites Y
 	AM_RANGE(0xd00600, 0xd00607) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritectrl_r16, spritectrl_w16)
 	AM_RANGE(0xe00000, 0xe03fff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecode_r16, spritecode_w16) // Sprites Code + X + Attr
-	AM_RANGE(0xf00000, 0xf03fff) AM_RAM         /* Main RAM */
+	AM_RANGE(0xf00000, 0xf03fff) AM_RAM AM_SHARE("mainram")         /* Main RAM */
 ADDRESS_MAP_END
 
 
@@ -1489,6 +1489,39 @@ uint8_t tile_2665[16 * 16] = {
 };
 
 
+READ16_MEMBER(taitox_state::twinhawk_boot_speed1_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0xd26a)
+		{
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_D4, 0x0);
+			for (int i = 0; i < 0x4000 / 2; i++)
+				m_mainram[i] = 0x00;
+		}
+
+	}
+
+	return 0x7e08;
+}
+
+READ16_MEMBER(taitox_state::twinhawk_boot_speed2_r)
+{
+	if (!space.debugger_access())
+	{
+		int pc = space.device().safe_pc();
+		if (pc == 0xd2f8)
+		{
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_D4, 0x0);
+		}
+
+	}
+
+	return 0x701c;
+}
+
+
 DRIVER_INIT_MEMBER(taitox_state,twinhawk)
 {
 	//int tile = 0x2662;
@@ -1508,6 +1541,8 @@ DRIVER_INIT_MEMBER(taitox_state,twinhawk)
 	set_tile(0x2665, tile_2665);
 
 
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xd26a, 0xd26b, read16_delegate(FUNC(taitox_state::twinhawk_boot_speed1_r),this));
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xd2f8, 0xd2f9, read16_delegate(FUNC(taitox_state::twinhawk_boot_speed2_r),this));
 	
 
 	//set_tile(0x3882, tile_3882);
