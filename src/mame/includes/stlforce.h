@@ -46,7 +46,11 @@ public:
 	tilemap_t *m_mhigh_tilemap;
 	tilemap_t *m_tx_tilemap;
 
-	int m_sprxoffs;
+	int m_spritexoffs;
+	int m_which = 0;
+
+	uint16_t m_sprites_buffer[0x400];
+	DECLARE_WRITE16_MEMBER(sprites_commands_w);
 
 	DECLARE_READ16_MEMBER(twinbrat_censor_r);
 
@@ -66,8 +70,10 @@ public:
 	TILE_GET_INFO_MEMBER(get_stlforce_tx_tile_info);
 	
 	void erase_tile(uint8_t* ptr, int tileno);
+	
+	int get_priority(const uint16_t *source);
 
 	virtual void video_start() override;
 	UINT32 screen_update_stlforce(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
-	void draw_sprites(bitmap_ind16 &bitmap, const rectangle &cliprect );
+	void draw_sprites(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 };

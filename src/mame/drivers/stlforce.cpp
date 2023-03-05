@@ -111,7 +111,7 @@ static ADDRESS_MAP_START( stlforce_map, AS_PROGRAM, 16, stlforce_state )
 	AM_RANGE(0x400002, 0x400003) AM_READ_PORT("SYSTEM")
 	AM_RANGE(0x400010, 0x400011) AM_WRITE(eeprom_w)
 	AM_RANGE(0x400012, 0x400013) AM_WRITE(oki_bank_w)
-	AM_RANGE(0x40001e, 0x40001f) AM_WRITENOP // sprites buffer commands
+	AM_RANGE(0x40001e, 0x40001f) AM_WRITE(sprites_commands_w)
 	AM_RANGE(0x410000, 0x410001) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
 ADDRESS_MAP_END
 
@@ -149,7 +149,7 @@ INPUT_PORTS_END
 static const gfx_layout stlforce_bglayout =
 {
 	16,16,
-	RGN_FRAC(1,1),
+	RGN_FRAC(1,4),
 	4,
 	{0,1,2,3},
 	{12,8,4,0,28,24,20,16,16*32+12,16*32+8,16*32+4,16*32+0,16*32+28,16*32+24,16*32+20,16*32+16},
@@ -160,7 +160,7 @@ static const gfx_layout stlforce_bglayout =
 static const gfx_layout stlforce_txlayout =
 {
 	8,8,
-	RGN_FRAC(1,1),
+	RGN_FRAC(1,4),
 	4,
 	{0,1,2,3},
 	{12,8,4,0,28,24,20,16},
@@ -179,10 +179,12 @@ static const gfx_layout stlforce_splayout =
 	32*8
 };
 
-static GFXDECODE_START( stlforce )
-	GFXDECODE_ENTRY( "gfx1", 0, stlforce_bglayout, 0, 256  )
-	GFXDECODE_ENTRY( "gfx1", 0, stlforce_txlayout, 0, 256  )
-	GFXDECODE_ENTRY( "gfx2", 0, stlforce_splayout, 0, 256  )
+static GFXDECODE_START( gfx_stlforce )
+	GFXDECODE_ENTRY( "sprites",      0, stlforce_splayout, 1024, 16  )
+	GFXDECODE_ENTRY( "tiles", 0x180000, stlforce_txlayout, 384,   8  )
+	GFXDECODE_ENTRY( "tiles", 0x100000, stlforce_bglayout, 256,   8  )
+	GFXDECODE_ENTRY( "tiles", 0x080000, stlforce_bglayout, 128,   8  )
+	GFXDECODE_ENTRY( "tiles", 0x000000, stlforce_bglayout, 0,     8  )
 GFXDECODE_END
 
 
@@ -200,18 +202,18 @@ static MACHINE_CONFIG_START( stlforce, stlforce_state )
 	MCFG_SCREEN_REFRESH_RATE(58)
 	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(2500) /* not accurate */)
 	MCFG_SCREEN_SIZE(64*8, 32*8)
-	MCFG_SCREEN_VISIBLE_AREA(1*8, 47*8-1, 0*8, 30*8-1)
+	MCFG_SCREEN_VISIBLE_AREA(8, 48*8-1-8-2, 0, 30*8-1)
 	MCFG_SCREEN_UPDATE_DRIVER(stlforce_state, screen_update_stlforce)
 	MCFG_SCREEN_PALETTE("palette")
 
-	MCFG_GFXDECODE_ADD("gfxdecode", "palette", stlforce)
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", gfx_stlforce)
 	MCFG_PALETTE_ADD("palette", 0x800)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_MONO("mono")
 
-	MCFG_OKIM6295_ADD("oki", 937500 , OKIM6295_PIN7_HIGH)
+	MCFG_OKIM6295_ADD("oki", 1000000 , OKIM6295_PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
 MACHINE_CONFIG_END
 
@@ -230,13 +232,13 @@ ROM_START( stlforce )
 	ROM_LOAD16_BYTE( "stlforce.105", 0x00000, 0x20000, CRC(3ec804ca) SHA1(4efcf3321b7111644ac3ee0a83ad95d0571a4021) )
 	ROM_LOAD16_BYTE( "stlforce.104", 0x00001, 0x20000, CRC(69b5f429) SHA1(5bd20fad91a22f4d62f85a5190d72dd824ee26a5) )
 
-	ROM_REGION( 0x200000, "gfx1", 0 ) /* 16x16 bg tiles & 8x8 tx tiles merged */
+	ROM_REGION( 0x200000, "tiles", 0 ) /* 16x16 bg tiles & 8x8 tx tiles merged */
 	ROM_LOAD16_BYTE( "stlforce.u27", 0x000001, 0x080000, CRC(c42ef365) SHA1(40e9ee29ea14b3bc2fbfa4e6acb7d680cf72f01a) )
 	ROM_LOAD16_BYTE( "stlforce.u28", 0x000000, 0x080000, CRC(6a4b7c98) SHA1(004d7f3c703c6abc79286fa58a4c6793d66fca39) )
 	ROM_LOAD16_BYTE( "stlforce.u29", 0x100001, 0x080000, CRC(30488f44) SHA1(af0d92d8952ce3cd893ab9569afdda12e17795e7) )
 	ROM_LOAD16_BYTE( "stlforce.u30", 0x100000, 0x080000, CRC(cf19d43a) SHA1(dc04930548ac5b7e2b74c6041325eac06e773ed5) )
 
-	ROM_REGION( 0x100000, "gfx2", 0 ) /* 16x16 sprites */
+	ROM_REGION( 0x100000, "sprites", 0 ) /* 16x16 sprites */
 	ROM_LOAD( "stlforce.u36", 0x00000, 0x40000, CRC(037dfa9f) SHA1(224f5cd1a95d55b065aef5c0bd03b50cabcb619b) )
 	ROM_LOAD( "stlforce.u31", 0x40000, 0x40000, CRC(305a8eb5) SHA1(3a8d26f8bc4ec2e8246d1c59115e21cad876630d) )
 	ROM_LOAD( "stlforce.u32", 0x80000, 0x40000, CRC(760e8601) SHA1(a61f1d8566e09ce811382c6e23f3881e6c438f15) )
@@ -295,10 +297,10 @@ ROM_START( twinbrat )
 	ROM_LOAD16_BYTE( "2.u105", 0x00000, 0x20000, CRC(33a9bb82) SHA1(0f54239397c93e264b9b211f67bf626acf1246a9) )
 	ROM_LOAD16_BYTE( "3.u104", 0x00001, 0x20000, CRC(b1186a67) SHA1(502074063101885874db76ae707db1082313efcf) )
 
-	ROM_REGION( 0x200000, "gfx1", 0 )
+	ROM_REGION( 0x200000, "tiles", 0 )
 	ROM_LOAD( "gfx11", 0x000000, 0x200000, CRC(6980a261) SHA1(8dce56b2315e25ff1694c99dcb1aad88f9a29e07) )
 
-	ROM_REGION( 0x100000, "gfx2", 0 )
+	ROM_REGION( 0x100000, "sprites", 0 )
 	ROM_LOAD( "11.bin", 0x000000, 0x40000, CRC(00eecb03) SHA1(5913da4d2ad97c1ce5e8e601a22b499cd93af744) )
 	ROM_LOAD( "10.bin", 0x040000, 0x40000, CRC(7556bee9) SHA1(3fe99c7e9378791b79c43b04f5d0a36404448beb) )
 	ROM_LOAD( "9.bin",  0x080000, 0x40000, CRC(13194d89) SHA1(95c35b6012f98a64630abb40fd55b24ff8a5e031) )
@@ -328,10 +330,10 @@ ROM_START( twinbrata )
 	ROM_LOAD16_BYTE( "2.bin", 0x00000, 0x20000, CRC(5e75f568) SHA1(f42d2a73d737e6b01dd049eea2a10fc8c8096d8f) )
 	ROM_LOAD16_BYTE( "3.bin", 0x00001, 0x20000, CRC(0e3fa9b0) SHA1(0148cc616eac84dc16415e1557ec6040d14392d4) )
 
-	ROM_REGION( 0x200000, "gfx1", 0 )
+	ROM_REGION( 0x200000, "tiles", 0 )
 	ROM_LOAD( "gfx11", 0x000000, 0x200000, CRC(6980a261) SHA1(8dce56b2315e25ff1694c99dcb1aad88f9a29e07) )
 
-	ROM_REGION( 0x100000, "gfx2", 0 )
+	ROM_REGION( 0x100000, "sprites", 0 )
 	ROM_LOAD( "11.bin", 0x000000, 0x40000, CRC(00eecb03) SHA1(5913da4d2ad97c1ce5e8e601a22b499cd93af744) )
 	ROM_LOAD( "10.bin", 0x040000, 0x40000, CRC(7556bee9) SHA1(3fe99c7e9378791b79c43b04f5d0a36404448beb) )
 	ROM_LOAD( "9.bin",  0x080000, 0x40000, CRC(13194d89) SHA1(95c35b6012f98a64630abb40fd55b24ff8a5e031) )
@@ -358,7 +360,7 @@ ROM_END
 
 DRIVER_INIT_MEMBER(stlforce_state,stlforce)
 {
-	m_sprxoffs = 0;
+	m_spritexoffs = 0;
 }
 
 
@@ -386,7 +388,7 @@ void stlforce_state::erase_tile(uint8_t* ptr, int tileno)
 
 DRIVER_INIT_MEMBER(stlforce_state,twinbrat)
 {
-	m_sprxoffs = 9;
+	m_spritexoffs = 9;
 	m_maincpu->space(AS_PROGRAM).install_read_handler(0x11241e, 0x11241f, read16_delegate(FUNC(stlforce_state::twinbrat_censor_r), this));
 
 	// not strictly neccessary since we load the censored ROM but..
