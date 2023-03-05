@@ -191,8 +191,7 @@ static ADDRESS_MAP_START( drgnmst_main_map, AS_PROGRAM, 16, drgnmst_state )
 	AM_RANGE(0x80001a, 0x80001b) AM_READ_PORT("DSW1")
 	AM_RANGE(0x80001c, 0x80001d) AM_READ_PORT("DSW2")
 	AM_RANGE(0x800030, 0x800031) AM_WRITE(drgnmst_coin_w)
-	AM_RANGE(0x800100, 0x80011f) AM_WRITEONLY AM_SHARE("vidregs")
-	AM_RANGE(0x800120, 0x800121) AM_WRITENOP
+	AM_RANGE(0x800100, 0x800121) AM_WRITEONLY AM_SHARE("vidregs")
 	AM_RANGE(0x80014a, 0x80014b) AM_WRITENOP
 	AM_RANGE(0x800154, 0x800155) AM_WRITEONLY AM_SHARE("vidregs2") // seems to be priority control
 	AM_RANGE(0x800176, 0x800177) AM_READ_PORT("EXTRA")
@@ -207,6 +206,33 @@ static ADDRESS_MAP_START( drgnmst_main_map, AS_PROGRAM, 16, drgnmst_state )
 	AM_RANGE(0x930000, 0x9307ff) AM_RAM AM_SHARE("spriteram")   // Sprites
 	AM_RANGE(0xff0000, 0xffffff) AM_RAM
 ADDRESS_MAP_END
+
+
+static ADDRESS_MAP_START( mstfury_main_map, AS_PROGRAM, 16, drgnmst_state )
+	AM_RANGE(0x000000, 0x0fffff) AM_ROM
+	AM_RANGE(0x800000, 0x800001) AM_READ_PORT("P1_P2")
+	AM_RANGE(0x800018, 0x800019) AM_READ_PORT("SYSTEM")
+	AM_RANGE(0x80001a, 0x80001b) AM_READ_PORT("DSW1")
+	AM_RANGE(0x80001c, 0x80001d) AM_READ_PORT("DSW2")
+	AM_RANGE(0x800030, 0x800031) AM_WRITE(drgnmst_coin_w)
+	AM_RANGE(0x800100, 0x800121) AM_WRITEONLY AM_SHARE("vidregs")
+	AM_RANGE(0x80014a, 0x80014b) AM_WRITENOP
+	AM_RANGE(0x800154, 0x800155) AM_WRITEONLY AM_SHARE("vidregs2") // seems to be priority control
+	AM_RANGE(0x800176, 0x800177) AM_READ_PORT("EXTRA")
+
+	AM_RANGE(0x800180, 0x800183) AM_DEVREADWRITE8("ymsnd", ym2151_device, read, write, 0x00ff)
+	AM_RANGE(0x800188, 0x800189) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
+
+	AM_RANGE(0x8001e0, 0x8001e1) AM_WRITENOP
+	AM_RANGE(0x900000, 0x903fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x904000, 0x907fff) AM_RAM_WRITE(drgnmst_md_videoram_w) AM_SHARE("md_videoram")
+	AM_RANGE(0x908000, 0x90bfff) AM_RAM_WRITE(drgnmst_bg_videoram_w) AM_SHARE("bg_videoram")
+	AM_RANGE(0x90c000, 0x90ffff) AM_RAM_WRITE(drgnmst_fg_videoram_w) AM_SHARE("fg_videoram")
+	AM_RANGE(0x920000, 0x923fff) AM_RAM AM_SHARE("rowscrollram") // rowscroll ram
+	AM_RANGE(0x930000, 0x9307ff) AM_RAM AM_SHARE("spriteram")   // Sprites
+	AM_RANGE(0xff0000, 0xffffff) AM_RAM
+ADDRESS_MAP_END
+
 
 
 static INPUT_PORTS_START( drgnmst )
@@ -289,14 +315,14 @@ static INPUT_PORTS_START( drgnmst )
 	PORT_SERVICE_DIPLOC(  0x8000, IP_ACTIVE_LOW, "SW2:8" )
 
 	PORT_START("EXTRA")
-	PORT_BIT( 0x0100, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_PLAYER(1)
-	PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_PLAYER(1)
-	PORT_BIT( 0x0400, IP_ACTIVE_LOW, IPT_BUTTON7 ) PORT_PLAYER(1)
-	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_UNKNOWN )
-	PORT_BIT( 0x1000, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_PLAYER(2)
-	PORT_BIT( 0x2000, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_PLAYER(2)
-	PORT_BIT( 0x4000, IP_ACTIVE_LOW, IPT_BUTTON7 ) PORT_PLAYER(2)
-	PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	//PORT_BIT( 0x0100, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_PLAYER(1)
+	//PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_PLAYER(1)
+	//PORT_BIT( 0x0400, IP_ACTIVE_LOW, IPT_BUTTON7 ) PORT_PLAYER(1)
+	//PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	//PORT_BIT( 0x1000, IP_ACTIVE_LOW, IPT_BUTTON5 ) PORT_PLAYER(2)
+	//PORT_BIT( 0x2000, IP_ACTIVE_LOW, IPT_BUTTON6 ) PORT_PLAYER(2)
+	//PORT_BIT( 0x4000, IP_ACTIVE_LOW, IPT_BUTTON7 ) PORT_PLAYER(2)
+	//PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_UNKNOWN )
 INPUT_PORTS_END
 
 
@@ -400,13 +426,14 @@ static MACHINE_CONFIG_START( drgnmst, drgnmst_state )
 	MCFG_SCREEN_VISIBLE_AREA(8*8, 56*8-1, 2*8, 30*8-1)
 	MCFG_SCREEN_UPDATE_DRIVER(drgnmst_state, screen_update_drgnmst)
 	MCFG_SCREEN_PALETTE("palette")
-
+	MCFG_SCREEN_VBLANK_DEVICE("spriteram", buffered_spriteram16_device, vblank_copy_rising)
+	MCFG_BUFFERED_SPRITERAM16_ADD("spriteram")
 	MCFG_PALETTE_ADD("palette", 0x2000)
-	MCFG_PALETTE_FORMAT(xxxxRRRRGGGGBBBB)
+	MCFG_PALETTE_FORMAT_CLASS(2, drgnmst_state, drgnmst_IIIIRRRRGGGGBBBB)
 
 	/* sound hardware */
 	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
-
+	
 	MCFG_OKIM6295_ADD("oki1", 32000000/32, OKIM6295_PIN7_HIGH)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 0.50)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 0.50)
@@ -415,6 +442,72 @@ static MACHINE_CONFIG_START( drgnmst, drgnmst_state )
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 0.50)
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 0.50)
 MACHINE_CONFIG_END
+
+static MACHINE_CONFIG_START( mstfury, drgnmst_state )
+
+	MCFG_CPU_ADD("maincpu", M68000, 12000000) /* Confirmed */
+	MCFG_CPU_PROGRAM_MAP(mstfury_main_map)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", drgnmst_state,  irq2_line_hold)
+
+
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", drgnmst)
+
+	MCFG_SCREEN_ADD("screen", RASTER)
+	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(0))
+	MCFG_SCREEN_SIZE(64*8, 32*8)
+	MCFG_SCREEN_VISIBLE_AREA(8*8, 56*8-1, 2*8, 30*8-1)
+	MCFG_SCREEN_UPDATE_DRIVER(drgnmst_state, screen_update_drgnmst)
+	MCFG_SCREEN_PALETTE("palette")
+	MCFG_SCREEN_VBLANK_DEVICE("spriteram", buffered_spriteram16_device, vblank_copy_rising)
+	MCFG_BUFFERED_SPRITERAM16_ADD("spriteram")
+
+	MCFG_PALETTE_ADD("palette", 0x2000)
+	MCFG_PALETTE_FORMAT_CLASS(2, drgnmst_state, drgnmst_IIIIRRRRGGGGBBBB)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
+
+	MCFG_YM2151_ADD("ymsnd", 32220000/9)
+	MCFG_SOUND_ROUTE(0, "lspeaker", 0.20)
+	MCFG_SOUND_ROUTE(1, "rspeaker", 0.20)
+
+	MCFG_OKIM6295_ADD("oki", 1023924, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 1.0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 1.0)
+MACHINE_CONFIG_END
+
+
+ROM_START( mastfury )
+	ROM_REGION( 0x100000, "maincpu", 0 )        /* 68000 Code */
+	ROM_LOAD16_BYTE( "master012.4m", 0x000000, 0x080000, CRC(020a3c50) SHA1(d6762b66f06fe91f3bff8cdcbff42c247df64671) )
+	ROM_LOAD16_BYTE( "master013.4m", 0x000001, 0x080000, CRC(1e7dd287) SHA1(67764aa054731a0548f6c7d3b898597792d96eec) )
+
+	ROM_REGION( 0x40000, "oki", 0 ) /* Samples */
+	ROM_LOAD( "dmast96_voi1x", 0x00000, 0x40000, CRC(fc5161a1) SHA1(999e73e36df317aabefebf94444690f439d64559) )
+
+	ROM_REGION( 0x800000, "gfx1", 0 ) /* Sprites (16x16x4) */
+	// Some versions of the game use 2x32MBit ROMs instead.
+	// This set comes from a PCB marked "Dragon Master 96" but the PCB was missing program ROMs, was Dragon Master 96
+	// an alt title for the Chinese market?
+	ROM_LOAD16_BYTE( "dmast96_mvo1x", 0x000000, 0x080000, CRC(9a597497) SHA1(4f63e17629a00fa505e2165f7fa46f0c5ef2bc60) )
+	ROM_CONTINUE(0x400000, 0x080000)
+	ROM_CONTINUE(0x100000, 0x080000)
+	ROM_CONTINUE(0x500000, 0x080000)
+	ROM_LOAD16_BYTE( "dmast96_mvo3x", 0x000001, 0x080000, CRC(be01b829) SHA1(ab9858aadb0bba8415c674e27f9ea905de27871c) )
+	ROM_CONTINUE(0x400001, 0x080000)
+	ROM_CONTINUE(0x100001, 0x080000)
+	ROM_CONTINUE(0x500001, 0x080000)
+	ROM_LOAD16_BYTE( "dmast96_mvo2x", 0x200000, 0x080000, CRC(3eab296c) SHA1(d2add71e01aa6bd1b6539e72ed373bb71f65c437) )
+	ROM_CONTINUE(0x600000, 0x080000)
+	ROM_LOAD16_BYTE( "dmast96_mvo4x", 0x200001, 0x080000, CRC(d870b6ce) SHA1(e81c24eeaa5b857910436bfb6cac2b9fa05839e8) )
+	ROM_CONTINUE(0x600001, 0x080000)
+
+	ROM_REGION( 0x400000, "gfx2", 0 ) /* BG Tiles (8x8x4, 16x16x4 and 32x32x4) */
+	ROM_LOAD16_BYTE( "mf0016-3", 0x000000, 0x200000, CRC(0946bc61) SHA1(8b10c7f76daf21afb2aa6961100d83b1f6ca89bb) )
+	ROM_LOAD16_BYTE( "mf0016-4", 0x000001, 0x200000, CRC(8f5b7c82) SHA1(5947c015c8a13539a3125c7ffe07cca0691b4348) )
+ROM_END
+
 
 
 ROM_START( drgnmst )
@@ -543,7 +636,15 @@ DRIVER_INIT_MEMBER(drgnmst_state,drgnmst)
 		}
 		src_pos += 1;
 	} while (src_pos < 0x0b7b);     /* 0x0b7b is the size of the HEX rom loaded */
+
+	m_alt_scrolling = false;
 }
 
 
+DRIVER_INIT_MEMBER(drgnmst_state, mstfury)
+{
+	m_alt_scrolling = true;
+}
+
 GAME( 1994, drgnmst, 0, drgnmst,  drgnmst, drgnmst_state, drgnmst, ROT0, "Unico", "Dragon Master", MACHINE_SUPPORTS_SAVE )
+GAME( 1994, mastfury, 0, mstfury,  drgnmst, drgnmst_state, mstfury, ROT0, "Unico", "Master's Fury", MACHINE_SUPPORTS_SAVE )

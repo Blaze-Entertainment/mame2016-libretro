@@ -3,6 +3,8 @@
 
 #include "sound/okim6295.h"
 #include "cpu/pic16c5x/pic16c5x.h"
+#include "sound/2151intf.h"
+#include "video/bufsprite.h"
 
 class drgnmst_state : public driver_device
 {
@@ -18,6 +20,7 @@ public:
 		m_spriteram(*this, "spriteram"),
 			m_oki_1(*this, "oki1"),
 			m_oki_2(*this, "oki2") ,
+			m_oki(*this, "oki") ,
 		m_maincpu(*this, "maincpu"),
 		m_audiocpu(*this, "audiocpu"),
 		m_gfxdecode(*this, "gfxdecode"),
@@ -30,7 +33,7 @@ public:
 	required_shared_ptr<UINT16> m_md_videoram;
 	required_shared_ptr<UINT16> m_rowscrollram;
 	required_shared_ptr<UINT16> m_vidregs2;
-	required_shared_ptr<UINT16> m_spriteram;
+	required_device<buffered_spriteram16_device> m_spriteram;
 
 	/* video-related */
 	tilemap_t     *m_bg_tilemap;
@@ -47,8 +50,10 @@ public:
 	UINT8       m_oki1_bank;
 
 	/* devices */
-	required_device<okim6295_device> m_oki_1;
-	required_device<okim6295_device> m_oki_2;
+	optional_device<okim6295_device> m_oki_1;
+	optional_device<okim6295_device> m_oki_2;
+	optional_device<okim6295_device> m_oki;
+
 	DECLARE_WRITE16_MEMBER(drgnmst_coin_w);
 	DECLARE_WRITE16_MEMBER(drgnmst_snd_command_w);
 	DECLARE_WRITE16_MEMBER(drgnmst_snd_flag_w);
@@ -63,6 +68,8 @@ public:
 	DECLARE_WRITE16_MEMBER(drgnmst_bg_videoram_w);
 	DECLARE_WRITE16_MEMBER(drgnmst_md_videoram_w);
 	DECLARE_DRIVER_INIT(drgnmst);
+	DECLARE_DRIVER_INIT(mstfury);
+
 	TILE_GET_INFO_MEMBER(get_drgnmst_fg_tile_info);
 	TILE_GET_INFO_MEMBER(get_drgnmst_bg_tile_info);
 	TILE_GET_INFO_MEMBER(get_drgnmst_md_tile_info);
@@ -76,7 +83,11 @@ public:
 	void draw_sprites( bitmap_ind16 &bitmap,const rectangle &cliprect );
 	UINT8 drgnmst_asciitohex( UINT8 data );
 	required_device<cpu_device> m_maincpu;
-	required_device<pic16c55_device> m_audiocpu;
+	optional_device<pic16c55_device> m_audiocpu;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+
+	bool m_alt_scrolling;
+	DECLARE_PALETTE_DECODER(drgnmst_IIIIRRRRGGGGBBBB);
+
 };

@@ -25,7 +25,7 @@
 ***************************************************************************/
 
 #include "emu.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "cpu/tms34010/tms34010.h"
 #include "cpu/mcs51/mcs51.h"
 #include "video/tlc34076.h"
@@ -804,7 +804,7 @@ INPUT_PORTS_END
 static MACHINE_CONFIG_START( artmagic, artmagic_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, MASTER_CLOCK_25MHz/2)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, MASTER_CLOCK_25MHz/2)
 	MCFG_CPU_PROGRAM_MAP(main_map)
 
 	MCFG_CPU_ADD("tms", TMS34010, MASTER_CLOCK_40MHz)
@@ -817,7 +817,7 @@ static MACHINE_CONFIG_START( artmagic, artmagic_state )
 	MCFG_TMS340X0_TO_SHIFTREG_CB(artmagic_state, to_shiftreg)           /* write to shiftreg function */
 	MCFG_TMS340X0_FROM_SHIFTREG_CB(artmagic_state, from_shiftreg)          /* read from shiftreg function */
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
+	MCFG_QUANTUM_TIME(attotime::from_hz(2000))
 	MCFG_NVRAM_ADD_1FILL("nvram")
 
 	/* video hardware */
@@ -863,7 +863,7 @@ static MACHINE_CONFIG_DERIVED( shtstar, artmagic )
 	MCFG_CPU_PROGRAM_MAP(shtstar_map)
 
 	/* sub cpu*/
-	MCFG_CPU_ADD("subcpu", M68000, MASTER_CLOCK_25MHz/2)
+	MCFG_CPU_ADD("subcpu", SIMPLETOAPLAN_M68000, MASTER_CLOCK_25MHz/2)
 	MCFG_CPU_PROGRAM_MAP(shtstar_subcpu_map)
 
 	/*gun board cpu*/

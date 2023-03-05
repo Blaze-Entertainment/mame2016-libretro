@@ -727,27 +727,16 @@ void tms340x0_device::execute_run()
 	/* check interrupts first */
 	m_executing = TRUE;
 	check_interrupt();
-	if ((machine().debug_flags & DEBUG_FLAG_ENABLED) == 0)
+
+	do
 	{
-		do
-		{
-			UINT16 op;
-			m_ppc = m_pc;
-			op = ROPCODE();
-			(this->*s_opcode_table[op >> 4])(op);
-		} while (m_icount > 0);
-	}
-	else
-	{
-		do
-		{
-			UINT16 op;
-			debugger_instruction_hook(this, m_pc);
-			m_ppc = m_pc;
-			op = ROPCODE();
-			(this->*s_opcode_table[op >> 4])(op);
-		} while (m_icount > 0);
-	}
+		UINT16 op;
+		m_ppc = m_pc;
+		op = ROPCODE();
+		(this->*s_opcode_table[op >> 4])(op);
+	} while (m_icount > 0);
+	
+
 	m_executing = FALSE;
 }
 

@@ -673,6 +673,26 @@ static ADDRESS_MAP_START( fncywld_main_map, AS_PROGRAM, 16, tumbleb_state )
 ADDRESS_MAP_END
 
 
+static ADDRESS_MAP_START( magipur_main_map, AS_PROGRAM, 16, tumbleb_state )
+	AM_RANGE(0x000000, 0x00ffff) AM_RAM AM_SHARE("mainram")
+	AM_RANGE(0x100000, 0x100003) AM_DEVREADWRITE8("ymsnd", ym2151_device, read, write, 0x00ff)
+	AM_RANGE(0x100004, 0x100005) AM_DEVREADWRITE8("oki", okim6295_device, read, write, 0x00ff)
+	AM_RANGE(0x140000, 0x140fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0x160000, 0x1607ff) AM_RAM AM_SHARE("spriteram") /* sprites */
+	AM_RANGE(0x160800, 0x16080f) AM_WRITEONLY /* goes slightly past the end of spriteram? */
+	AM_RANGE(0x180000, 0x18000f) AM_READ(tumblepopb_controls_r)
+	AM_RANGE(0x18000c, 0x18000d) AM_WRITENOP
+	AM_RANGE(0x1a0000, 0x1a07ff) AM_RAM
+	AM_RANGE(0x300000, 0x30000f) AM_WRITE(tumblepb_control_0_w)
+	AM_RANGE(0x320000, 0x321fff) AM_RAM_WRITE(fncywld_pf1_data_w) AM_SHARE("pf1_data")
+	AM_RANGE(0x322000, 0x323fff) AM_RAM_WRITE(fncywld_pf2_data_w) AM_SHARE("pf2_data")
+	AM_RANGE(0x340000, 0x3401ff) AM_WRITENOP /* Unused row scroll */
+	AM_RANGE(0x340400, 0x34047f) AM_WRITENOP /* Unused col scroll */
+	AM_RANGE(0x342000, 0x3421ff) AM_WRITENOP
+	AM_RANGE(0x342400, 0x34247f) AM_WRITENOP
+	AM_RANGE(0xf00000, 0xffffff) AM_ROM AM_REGION("maincpu", 0x00000)
+ADDRESS_MAP_END
+
 READ16_MEMBER(tumbleb_state::semibase_unknown_r)
 {
 	return machine().rand();
@@ -1121,6 +1141,95 @@ static INPUT_PORTS_START( fncywld )
 	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Language ) )     // only seems to the title screen
 	PORT_DIPSETTING(      0x0004, DEF_STR( English ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( Korean ) )
+	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Flip_Screen ) )
+	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0001, 0x0001, "2 Coins to Start, 1 to Continue" )
+	PORT_DIPSETTING(      0x0001, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+
+	PORT_DIPNAME( 0xc000, 0xc000, DEF_STR( Lives ) )
+	PORT_DIPSETTING(      0x8000, "1" )
+	PORT_DIPSETTING(      0x0000, "2" )
+	PORT_DIPSETTING(      0xc000, "3" )
+	PORT_DIPSETTING(      0x4000, "4" )
+	PORT_DIPNAME( 0x3000, 0x3000, DEF_STR( Difficulty ) )   // to be confirmed
+	PORT_DIPSETTING(      0x3000, DEF_STR( Easy ) )
+	PORT_DIPSETTING(      0x2000, DEF_STR( Normal ) )
+	PORT_DIPSETTING(      0x1000, DEF_STR( Hard ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( Hardest ) )
+
+#if FNCYWLD_HACK
+	PORT_DIPNAME( 0x0800, 0x0800, "Remove Monsters" )
+#else
+	PORT_DIPNAME( 0x0800, 0x0800, DEF_STR( Unused ) )       // See notes
+#endif
+	PORT_DIPSETTING(      0x0800, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+#if FNCYWLD_HACK
+	PORT_DIPNAME( 0x0400, 0x0400, "Edit Levels" )
+#else
+	PORT_DIPNAME( 0x0400, 0x0400, DEF_STR( Unused ) )       // See notes
+#endif
+	PORT_DIPSETTING(      0x0400, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0200, 0x0200, DEF_STR( Unused ) )
+	PORT_DIPSETTING(      0x0200, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0100, 0x0100, "Freeze" )
+	PORT_DIPSETTING(      0x0100, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+INPUT_PORTS_END
+
+
+static INPUT_PORTS_START( magipur )
+	PORT_START("PLAYERS")
+	PORT_BIT( 0x0001, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0002, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0008, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_PLAYER(1)
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_PLAYER(1)
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_PLAYER(1)
+	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_PLAYER(1)
+	PORT_BIT( 0x0080, IP_ACTIVE_LOW, IPT_START1 )
+	PORT_BIT( 0x0100, IP_ACTIVE_LOW, IPT_JOYSTICK_UP ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x0200, IP_ACTIVE_LOW, IPT_JOYSTICK_DOWN ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x0400, IP_ACTIVE_LOW, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x0800, IP_ACTIVE_LOW, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_PLAYER(2)
+	PORT_BIT( 0x1000, IP_ACTIVE_LOW, IPT_BUTTON1 ) PORT_PLAYER(2)
+	PORT_BIT( 0x2000, IP_ACTIVE_LOW, IPT_BUTTON2 ) PORT_PLAYER(2)
+	PORT_BIT( 0x4000, IP_ACTIVE_LOW, IPT_BUTTON3 ) PORT_PLAYER(2)
+	PORT_BIT( 0x8000, IP_ACTIVE_LOW, IPT_START2 )
+
+	PORT_START("SYSTEM")
+	PORT_BIT( 0x0001, IP_ACTIVE_LOW, IPT_COIN1 )
+	PORT_BIT( 0x0002, IP_ACTIVE_LOW, IPT_COIN2 )
+	PORT_BIT( 0x0004, IP_ACTIVE_LOW, IPT_SERVICE1 )
+	PORT_BIT( 0x0008, IP_ACTIVE_HIGH, IPT_CUSTOM ) PORT_VBLANK("screen")
+	PORT_BIT( 0x0010, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x0020, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x0040, IP_ACTIVE_LOW, IPT_UNKNOWN )
+	PORT_BIT( 0x0080, IP_ACTIVE_LOW, IPT_UNKNOWN )
+
+	PORT_START("DSW")
+	PORT_DIPNAME( 0x00e0, 0x00e0, DEF_STR( Coinage ) )
+	PORT_DIPSETTING(      0x0020, DEF_STR( 4C_1C ) )
+	PORT_DIPSETTING(      0x0040, DEF_STR( 3C_1C ) )
+	PORT_DIPSETTING(      0x0060, DEF_STR( 2C_1C ) )
+//  PORT_DIPSETTING(      0x0000, DEF_STR( 2C_1C ) )        // duplicated setting
+	PORT_DIPSETTING(      0x00e0, DEF_STR( 1C_1C ) )
+	PORT_DIPSETTING(      0x00c0, DEF_STR( 1C_2C ) )
+	PORT_DIPSETTING(      0x00a0, DEF_STR( 1C_3C ) )
+	PORT_DIPSETTING(      0x0080, DEF_STR( 1C_4C ) )
+	PORT_DIPNAME( 0x0010, 0x0010, DEF_STR( Allow_Continue ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( No ) )
+	PORT_DIPSETTING(      0x0010, DEF_STR( Yes ) )
+	PORT_DIPNAME( 0x0008, 0x0000, DEF_STR( Demo_Sounds ) )
+	PORT_DIPSETTING(      0x0008, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
+	PORT_DIPNAME( 0x0004, 0x0004, DEF_STR( Unused ) )
+	PORT_DIPSETTING(      0x0004, DEF_STR( Off ) )
+	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
 	PORT_DIPNAME( 0x0002, 0x0002, DEF_STR( Flip_Screen ) )
 	PORT_DIPSETTING(      0x0002, DEF_STR( Off ) )
 	PORT_DIPSETTING(      0x0000, DEF_STR( On ) )
@@ -2201,6 +2310,49 @@ static MACHINE_CONFIG_START( fncywld, tumbleb_state )
 	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 1.0)
 MACHINE_CONFIG_END
 
+static MACHINE_CONFIG_START( magipur, tumbleb_state )
+
+	/* basic machine hardware */
+	MCFG_CPU_ADD("maincpu", M68000, 12000000)
+	MCFG_CPU_PROGRAM_MAP(magipur_main_map)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", tumbleb_state,  irq6_line_hold)
+
+	MCFG_MACHINE_START_OVERRIDE(tumbleb_state,tumbleb)
+	MCFG_MACHINE_RESET_OVERRIDE(tumbleb_state,tumbleb)
+
+	/* video hardware */
+	MCFG_SCREEN_ADD("screen", RASTER)
+	MCFG_SCREEN_REFRESH_RATE(60)
+	MCFG_SCREEN_VBLANK_TIME(ATTOSECONDS_IN_USEC(529))
+	MCFG_SCREEN_SIZE(40*8, 32*8)
+	MCFG_SCREEN_VISIBLE_AREA(0*8, 40*8-1, 1*8, 31*8-1)
+	MCFG_SCREEN_UPDATE_DRIVER(tumbleb_state, screen_update_fncywld)
+	MCFG_SCREEN_PALETTE("palette")
+
+	MCFG_DEVICE_ADD("spritegen", DECO_SPRITE, 0)
+	MCFG_DECO_SPRITE_GFX_REGION(3)
+	MCFG_DECO_SPRITE_ISBOOTLEG(true)
+	MCFG_DECO_SPRITE_TRANSPEN(15)
+	MCFG_DECO_SPRITE_GFXDECODE("gfxdecode")
+
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", fncywld)
+	MCFG_PALETTE_ADD("palette", 0x800)
+	MCFG_PALETTE_FORMAT(xxxxRRRRGGGGBBBB)
+
+	MCFG_VIDEO_START_OVERRIDE(tumbleb_state,fncywld)
+
+	/* sound hardware */
+	MCFG_SPEAKER_STANDARD_STEREO("lspeaker", "rspeaker")
+
+	MCFG_YM2151_ADD("ymsnd", 32220000/9)
+	MCFG_SOUND_ROUTE(0, "lspeaker", 0.20)
+	MCFG_SOUND_ROUTE(1, "rspeaker", 0.20)
+
+	MCFG_OKIM6295_ADD("oki", 1023924, OKIM6295_PIN7_HIGH) // clock frequency & pin 7 not verified
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "lspeaker", 1.0)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "rspeaker", 1.0)
+MACHINE_CONFIG_END
+
 
 
 MACHINE_RESET_MEMBER(tumbleb_state,htchctch)
@@ -2541,6 +2693,28 @@ ROM_START( fncywld )
 	ROM_REGION( 0x40000, "oki", 0 ) /* Samples */
 	ROM_LOAD( "00_fw01.bin", 0x000000, 0x040000, CRC(b395fe01) SHA1(ac7f2e21413658f8d2a1abf3a76b7817a4e050c9) )
 ROM_END
+
+ROM_START( magipur )
+	ROM_REGION( 0x100000, "maincpu", 0 )        /* 68000 Code */
+	ROM_LOAD16_BYTE( "unico_2-27c040.bin", 0x000000, 0x080000, CRC(135c5de7) SHA1(95c75e9e69793f67df9378391ae45915ef9bbb89) )
+	ROM_LOAD16_BYTE( "unico_3-27c040.bin", 0x000001, 0x080000, CRC(ee4b16da) SHA1(82391ed4d21d3944ca482be00ab7c0838cf190ff) )
+
+	ROM_REGION( 0x100000, "sprgfx", 0  )
+	ROM_LOAD16_BYTE( "unico_4-27c040.bin",  0x80000, 0x40000, CRC(e460a77d) SHA1(bde15705750e002bd576098700161b0944984401) )
+	ROM_CONTINUE(0x80001, 0x40000)
+	ROM_LOAD16_BYTE( "unico_5-27c040.bin",  0x00000, 0x40000, CRC(79c53627) SHA1(9e2673b3becf0508f630f3bd8ff5fc30520b120b) )
+	ROM_CONTINUE(0x00001, 0x40000)
+
+	ROM_REGION( 0x100000, "tilegfx", 0 )
+	ROM_LOAD16_BYTE( "unico_6-27c040.bin", 0x00001, 0x40000, CRC(b25b5872) SHA1(88a6a110073060c3b7b2987cc41d23c4ca412b43) )
+	ROM_CONTINUE(0x00000, 0x40000)
+	ROM_LOAD16_BYTE( "unico_7-27c040.bin", 0x80001, 0x40000, CRC(d3c3a672) SHA1(5bbd67a953e1d47d05006a4ef4aa7a23e807f11b) )
+	ROM_CONTINUE(0x80000, 0x40000)
+
+	ROM_REGION( 0x40000, "oki", 0 ) /* Samples */
+	ROM_LOAD( "unico_1-27c020.bin", 0x000000, 0x040000, CRC(84dcf771) SHA1(f8a693a11b14608a582a90b7fd7d3be92e46a0e1) )
+ROM_END
+
 
 ROM_START( suprtrio )
 	ROM_REGION( 0x80000, "maincpu", 0 ) /* 68k */
@@ -3505,6 +3679,16 @@ DRIVER_INIT_MEMBER(tumbleb_state,fncywld)
 	#endif
 }
 
+DRIVER_INIT_MEMBER(tumbleb_state,magipur)
+{
+	tumblepb_gfx_rearrange(1);
+
+	UINT16 *src = (UINT16*)memregion( "maincpu" )->base();
+	// copy vector table? game expects RAM at 0, and ROM at f00000?!
+	memcpy(m_mainram, src, 0x80);
+}
+
+
 
 READ16_MEMBER(tumbleb_state::bcstory_1a0_read)
 {
@@ -3632,7 +3816,7 @@ GAME( 1994, suprtrio, 0,       suprtrio,    suprtrio, tumbleb_state, suprtrio, R
 
 GAME( 1996, fncywld,  0,       fncywld,     fncywld, tumbleb_state,  fncywld,  ROT0, "Unico",   "Fancy World - Earth of Crisis" , MACHINE_SUPPORTS_SAVE ) // game says 1996, testmode 1995?
 
-// Unico - Magic Purple almost certainly goes here
+GAME( 1996, magipur,  0,       magipur,     magipur, tumbleb_state,  magipur,  ROT0, "Unico",   "Magic Purple" , MACHINE_SUPPORTS_SAVE )
 
 /* First Amusement / Mijin / SemiCom hardware (MCU protected) */
 GAME( 1994, metlsavr, 0,       metlsavr,    metlsavr, tumbleb_state, chokchok, ROT0, "First Amusement", "Metal Saver", MACHINE_SUPPORTS_SAVE )
