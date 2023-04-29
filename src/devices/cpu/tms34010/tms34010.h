@@ -331,15 +331,15 @@ protected:
 	UINT8            m_is_34020;
 	bool             m_reset_deferred; // saved
 	bool             m_halt_on_reset; /* /HCS pin, which determines HALT state after reset */
-	UINT8            m_hblank_stable;
-	UINT8            m_external_host_access;
-	UINT8            m_executing;
+	UINT8            m_hblank_stable; // saved
+	UINT8            m_external_host_access; // saved
+	UINT8            m_executing; // saved
 	address_space *m_program;
 	direct_read_data *m_direct;
 	UINT32  m_pixclock;                           /* the pixel clock (0 means don't adjust screen size) */
 	int     m_pixperclock;                        /* pixels per clock */
 	emu_timer *m_scantimer;
-	int m_icount;
+	int m_icount; // saved
 
 	scanline_ind16_cb_delegate m_scanline_ind16_cb;
 	scanline_rgb32_cb_delegate m_scanline_rgb32_cb;
