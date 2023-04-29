@@ -97,9 +97,13 @@ WRITE16_MEMBER(artmagic_state::control_w)
 	COMBINE_DATA(&m_control[offset]);
 
 	/* OKI banking here */
-	if (offset == 0)
+
+	if (m_oki_region->bytes() > 0x40000)
 	{
-		m_oki->set_bank_base((((data >> 4) & 1) * 0x40000) % m_oki_region->bytes());
+		if (offset == 0)
+		{
+			m_oki->set_bank_base((((data >> 4) & 1) * 0x40000) % m_oki_region->bytes());
+		}
 	}
 
 	logerror("%06X:control_w(%d) = %04X\n", space.device().safe_pc(), offset, data);
@@ -113,6 +117,7 @@ WRITE16_MEMBER(artmagic_state::control_w)
  *
  *************************************/
 
+#if 0
 void artmagic_state::device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr)
 {
 	switch (id)
@@ -125,7 +130,7 @@ void artmagic_state::device_timer(emu_timer &timer, device_timer_id id, int para
 		assert_always(FALSE, "Unknown id in artmagic_state::device_timer");
 	}
 }
-
+#endif
 
 READ16_MEMBER(artmagic_state::ultennis_hack_r)
 {
@@ -135,7 +140,11 @@ READ16_MEMBER(artmagic_state::ultennis_hack_r)
 	{
 		m_hack_irq = 1;
 		update_irq_state();
-		timer_set(attotime::from_usec(1), TIMER_IRQ_OFF);
+	//	timer_set(attotime::from_usec(1), TIMER_IRQ_OFF);
+
+		timer_device *scan_timer = machine().device<timer_device>("hack_timer");
+		scan_timer->adjust(attotime::from_usec(1));
+
 	}
 	return ioport("300000")->read();
 }
@@ -801,6 +810,13 @@ INPUT_PORTS_END
  *
  *************************************/
 
+TIMER_DEVICE_CALLBACK_MEMBER(artmagic_state::hack_update_timer)
+{
+	m_hack_irq = 0;
+	update_irq_state();
+}
+
+
 static MACHINE_CONFIG_START( artmagic, artmagic_state )
 
 	/* basic machine hardware */
@@ -822,6 +838,8 @@ static MACHINE_CONFIG_START( artmagic, artmagic_state )
 
 	/* video hardware */
 	MCFG_TLC34076_ADD("tlc34076", TLC34076_6_BIT)
+	
+	MCFG_TIMER_DRIVER_ADD("hack_timer", artmagic_state, hack_update_timer)
 
 
 	MCFG_SCREEN_ADD("screen", RASTER)

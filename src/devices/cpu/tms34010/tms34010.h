@@ -315,21 +315,21 @@ protected:
 
 	address_space_config m_program_config;
 
-	UINT32           m_pc;
+	UINT32           m_pc; // saved
 	UINT32           m_ppc;
-	UINT32           m_st;
+	UINT32           m_st; // saved
 	pixel_write_func m_pixel_write;
 	pixel_read_func  m_pixel_read;
 	raster_op_func   m_raster_op;
-	pixel_op_func    m_pixel_op;
-	UINT32           m_pixel_op_timing;
-	UINT32           m_convsp;
-	UINT32           m_convdp;
-	UINT32           m_convmp;
-	INT32            m_gfxcycles;
-	UINT8            m_pixelshift;
+	pixel_op_func    m_pixel_op; // set during execute, doesn't need to save
+	UINT32           m_pixel_op_timing;  // set during execute, doesn't need to save
+	UINT32           m_convsp; // saved
+	UINT32           m_convdp; // saved
+	UINT32           m_convmp; // saved
+	INT32            m_gfxcycles; // saved
+	UINT8            m_pixelshift; // saved
 	UINT8            m_is_34020;
-	bool             m_reset_deferred;
+	bool             m_reset_deferred; // saved
 	bool             m_halt_on_reset; /* /HCS pin, which determines HALT state after reset */
 	UINT8            m_hblank_stable;
 	UINT8            m_external_host_access;
@@ -364,10 +364,10 @@ protected:
 	{
 		INT32 reg;
 		XY xy;
-	} m_regs[31];
+	} m_regs[31]; // saved (?)
 
-	UINT16 m_IOregs[64];
-	UINT16              m_shiftreg[(8 * 512 * sizeof(UINT16))/2];
+	UINT16 m_IOregs[64]; // saved
+	UINT16              m_shiftreg[(8 * 512 * sizeof(UINT16))/2]; // saved
 
 	UINT32 TMS34010_RDMEM_DWORD(offs_t A);
 	void TMS34010_WRMEM_DWORD(offs_t A, UINT32 V);

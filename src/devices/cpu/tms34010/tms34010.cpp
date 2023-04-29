@@ -619,6 +619,8 @@ void tms340x0_device::device_start()
 	save_pointer(NAME(&m_regs[0].reg), ARRAY_LENGTH(m_regs));
 	machine().save().register_postload(save_prepost_delegate(FUNC(tms340x0_device::tms34010_state_postload), this));
 
+	save_item(NAME(m_icount));
+
 	m_icountptr = &m_icount;
 }
 

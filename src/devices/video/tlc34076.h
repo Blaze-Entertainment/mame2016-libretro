@@ -51,13 +51,13 @@ protected:
 
 private:
 	// internal state
-	UINT8 m_local_paletteram[0x300];
-	UINT8 m_regs[0x10];
+	UINT8 m_local_paletteram[0x300]; // saved
+	UINT8 m_regs[0x10]; // saved
 	UINT8 m_palettedata[3];
-	UINT8 m_writeindex;
-	UINT8 m_readindex;
-	UINT8 m_dacbits;
-	rgb_t m_pens[0x100];
+	UINT8 m_writeindex; // saved
+	UINT8 m_readindex; // saved
+	UINT8 m_dacbits; // set on startup
+	rgb_t m_pens[0x100]; // saved
 };
 
 
