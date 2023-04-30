@@ -36,8 +36,14 @@ const device_type TMS34020 = &device_creator<tms34020_device>;
 tms340x0_device::tms340x0_device(const machine_config &mconfig, device_type type, const char *name, const char *tag, device_t *owner, UINT32 clock, const char *shortname)
 	: cpu_device(mconfig, type, name, tag, owner, clock, shortname, __FILE__)
 	, device_video_interface(mconfig, *this)
+
+	, m_timerhi(*this, "timer0")
+	, m_timerlo(*this, "timer1")
+
 	, m_program_config("program", ENDIANNESS_LITTLE, 16, 32, 3), m_pc(0), m_ppc(0), m_st(0), m_pixel_write(nullptr), m_pixel_read(nullptr), m_raster_op(nullptr), m_pixel_op(nullptr), m_pixel_op_timing(0), m_convsp(0), m_convdp(0), m_convmp(0), m_gfxcycles(0), m_pixelshift(0), m_is_34020(0), m_reset_deferred(false)
-		, m_halt_on_reset(FALSE), m_hblank_stable(0), m_external_host_access(0), m_executing(0), m_program(nullptr), m_direct(nullptr)
+		
+	
+	, m_halt_on_reset(FALSE), m_hblank_stable(0), m_external_host_access(0), m_executing(0), m_program(nullptr), m_direct(nullptr)
 		, m_pixclock(0)
 	, m_pixperclock(0), m_scantimer(nullptr), m_icount(0)
 		, m_output_int_cb(*this)
@@ -60,6 +66,38 @@ tms34020_device::tms34020_device(const machine_config &mconfig, const char *tag,
 
 
 #include "34010ops.h"
+
+TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::timer0_update_timer)
+{
+	/* call through to the CPU to generate the int */
+	IOREG(REG_INTPEND) |= TMS34010_HI;
+	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
+
+	/* generate triggers so that spin loops can key off them */
+	signal_interrupt_trigger();
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::timer1_update_timer)
+{
+	/* call through to the CPU to generate the int */
+	//IOREG(REG_INTPEND) |= 0;
+	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
+
+	/* generate triggers so that spin loops can key off them */
+	signal_interrupt_trigger();
+}
+
+
+static MACHINE_CONFIG_FRAGMENT( tmsx )
+	MCFG_TIMER_DRIVER_ADD("timer0", tms340x0_device, timer0_update_timer)
+	MCFG_TIMER_DRIVER_ADD("timer1", tms340x0_device, timer1_update_timer)
+
+MACHINE_CONFIG_END
+
+machine_config_constructor tms340x0_device::device_mconfig_additions() const
+{
+	return MACHINE_CONFIG_NAME( tmsx );
+}
 
 
 /***************************************************************************
@@ -697,6 +735,7 @@ void tms340x0_device::execute_set_input(int inputnum, int state)
     Generate internal interrupt
 ***************************************************************************/
 
+#if 0
 TIMER_CALLBACK_MEMBER( tms340x0_device::internal_interrupt_callback )
 {
 	int type = param;
@@ -708,7 +747,7 @@ TIMER_CALLBACK_MEMBER( tms340x0_device::internal_interrupt_callback )
 	/* generate triggers so that spin loops can key off them */
 	signal_interrupt_trigger();
 }
-
+#endif 
 
 
 /***************************************************************************
@@ -854,8 +893,12 @@ TIMER_CALLBACK_MEMBER( tms340x0_device::scanline_callback )
 	/* if we match the display interrupt scanline, signal an interrupt */
 	if (enabled && vcount == SMART_IOREG(DPYINT))
 	{
-		/* generate the display interrupt signal */
-		internal_interrupt_callback(nullptr, TMS34010_DI);
+		/* call through to the CPU to generate the int */
+		IOREG(REG_INTPEND) |= TMS34010_DI;
+		LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
+
+		/* generate triggers so that spin loops can key off them */
+		signal_interrupt_trigger();
 	}
 
 	/* at the start of VBLANK, load the starting display address */
@@ -1126,7 +1169,7 @@ WRITE16_MEMBER( tms34010_device::io_register_w )
 
 				/* NMI issued? */
 				if (data & 0x0100)
-					machine().scheduler().synchronize(timer_expired_delegate(FUNC(tms340x0_device::internal_interrupt_callback), this), 0);
+					m_timerlo->adjust(attotime::from_usec(1));
 			}
 			break;
 
@@ -1164,7 +1207,9 @@ WRITE16_MEMBER( tms34010_device::io_register_w )
 
 				/* input interrupt? (should really be state-based, but the functions don't exist!) */
 				if (!(oldreg & 0x0008) && (newreg & 0x0008))
-					machine().scheduler().synchronize(timer_expired_delegate(FUNC(tms340x0_device::internal_interrupt_callback), this), TMS34010_HI);
+				{
+					m_timerhi->adjust(attotime::from_usec(1));
+				}
 				else if ((oldreg & 0x0008) && !(newreg & 0x0008))
 					IOREG(REG_INTPEND) &= ~TMS34010_HI;
 			}
@@ -1282,7 +1327,7 @@ WRITE16_MEMBER( tms34020_device::io_register_w )
 
 			/* NMI issued? */
 			if (data & 0x0100)
-				machine().scheduler().synchronize(timer_expired_delegate(FUNC(tms340x0_device::internal_interrupt_callback), this), 0);
+				m_timerlo->adjust(attotime::from_usec(1));
 			break;
 
 		case REG020_HSTCTLL:
@@ -1317,7 +1362,7 @@ WRITE16_MEMBER( tms34020_device::io_register_w )
 
 			/* input interrupt? (should really be state-based, but the functions don't exist!) */
 			if (!(oldreg & 0x0008) && (newreg & 0x0008))
-				machine().scheduler().synchronize(timer_expired_delegate(FUNC(tms340x0_device::internal_interrupt_callback), this), TMS34010_HI);
+				m_timerhi->adjust(attotime::from_usec(1));
 			else if ((oldreg & 0x0008) && !(newreg & 0x0008))
 				IOREG(REG020_INTPEND) &= ~TMS34010_HI;
 			break;
