@@ -265,7 +265,7 @@ public:
 	DECLARE_READ16_MEMBER(host_r);
 
 	//TIMER_CALLBACK_MEMBER(internal_interrupt_callback);
-	TIMER_CALLBACK_MEMBER(scanline_callback);
+	TIMER_DEVICE_CALLBACK_MEMBER(scanline_callback);
 	
 	TIMER_DEVICE_CALLBACK_MEMBER(timer0_update_timer);
 	TIMER_DEVICE_CALLBACK_MEMBER(timer1_update_timer);
@@ -279,6 +279,7 @@ protected:
 
 	required_device<timer_device> m_timerhi;
 	required_device<timer_device> m_timerlo;
+	required_device<timer_device> m_scantimer;
 
 
 	// device_execute_interface overrides
@@ -348,7 +349,7 @@ protected:
 	direct_read_data *m_direct;
 	UINT32  m_pixclock;                           /* the pixel clock (0 means don't adjust screen size) */
 	int     m_pixperclock;                        /* pixels per clock */
-	emu_timer *m_scantimer;
+	//emu_timer *m_scantimer;
 	int m_icount; // saved
 
 	scanline_ind16_cb_delegate m_scanline_ind16_cb;

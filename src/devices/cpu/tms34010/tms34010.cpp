@@ -39,13 +39,14 @@ tms340x0_device::tms340x0_device(const machine_config &mconfig, device_type type
 
 	, m_timerhi(*this, "timer0")
 	, m_timerlo(*this, "timer1")
+	, m_scantimer(*this, "scantimer")
 
 	, m_program_config("program", ENDIANNESS_LITTLE, 16, 32, 3), m_pc(0), m_ppc(0), m_st(0), m_pixel_write(nullptr), m_pixel_read(nullptr), m_raster_op(nullptr), m_pixel_op(nullptr), m_pixel_op_timing(0), m_convsp(0), m_convdp(0), m_convmp(0), m_gfxcycles(0), m_pixelshift(0), m_is_34020(0), m_reset_deferred(false)
 		
 	
 	, m_halt_on_reset(FALSE), m_hblank_stable(0), m_external_host_access(0), m_executing(0), m_program(nullptr), m_direct(nullptr)
 		, m_pixclock(0)
-	, m_pixperclock(0), m_scantimer(nullptr), m_icount(0)
+	, m_pixperclock(0), m_icount(0)
 		, m_output_int_cb(*this)
 {
 }
@@ -91,6 +92,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::timer1_update_timer)
 static MACHINE_CONFIG_FRAGMENT( tmsx )
 	MCFG_TIMER_DRIVER_ADD("timer0", tms340x0_device, timer0_update_timer)
 	MCFG_TIMER_DRIVER_ADD("timer1", tms340x0_device, timer1_update_timer)
+	MCFG_TIMER_DRIVER_ADD("scantimer", tms340x0_device, scanline_callback)
 
 MACHINE_CONFIG_END
 
@@ -641,7 +643,7 @@ void tms340x0_device::device_start()
 	}
 
 	/* allocate a scanline timer and set it to go off at the start */
-	m_scantimer = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(tms340x0_device::scanline_callback), this));
+//	m_scantimer = machine().scheduler().timer_alloc(timer_expired_delegate(FUNC(tms340x0_device::scanline_callback), this));
 	m_scantimer->adjust(attotime::zero);
 
 	save_item(NAME(m_pc));
@@ -867,7 +869,7 @@ void tms340x0_device::set_raster_op()
     VIDEO TIMING HELPERS
 ***************************************************************************/
 
-TIMER_CALLBACK_MEMBER( tms340x0_device::scanline_callback )
+TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::scanline_callback)
 {
 	int vsblnk, veblnk, vtotal;
 	int vcount = param;
@@ -1469,7 +1471,7 @@ READ16_MEMBER( tms34010_device::io_register_r )
 			/* have an IRQ handler. For this reason, we return it signalled a bit early in order */
 			/* to make it past these loops. */
 			if (SMART_IOREG(VCOUNT) + 1 == SMART_IOREG(DPYINT) &&
-				m_scantimer->remaining() < attotime::from_hz(40000000/8/3))
+				m_scantimer->time_left() < attotime::from_hz(40000000/8/3))
 				result |= TMS34010_DI;
 			return result;
 	}
