@@ -15,6 +15,7 @@ public:
 		m_videoram(*this, "videoram"),
 		m_objectram(*this, "objectram"),
 		m_mcu_sharedram(*this, "mcu_sharedram"),
+		m_share1(*this, "share1"),
 		m_maincpu(*this, "maincpu"),
 		m_mcu(*this, "mcu"),
 		m_audiocpu(*this, "audiocpu"),
@@ -26,6 +27,11 @@ public:
 	required_shared_ptr<UINT8> m_videoram;
 	required_shared_ptr<UINT8> m_objectram;
 	optional_shared_ptr<UINT8> m_mcu_sharedram;
+	optional_shared_ptr<UINT8> m_share1;
+
+	DECLARE_READ8_MEMBER(bublbobl_credit_mode_r);
+	DECLARE_READ8_MEMBER(bublbobl_super_mode_r);
+	DECLARE_READ8_MEMBER(bublbobl_2p_mode_r);
 
 	/* video-related */
 	int      m_video_enable;

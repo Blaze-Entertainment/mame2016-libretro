@@ -292,12 +292,77 @@ TODO:
  *
  *************************************/
 
+
+
+READ8_MEMBER(bublbobl_state::bublbobl_super_mode_r)
+{
+	int pc = m_maincpu->pc();
+
+	//printf("bublbobl_super_mode_r pc is %04x\n", pc);
+
+	if (pc == 0xaba8)
+		m_share1[0x05db] = 0x01;
+
+	return m_share1[0x05db];
+}
+
+READ8_MEMBER(bublbobl_state::bublbobl_2p_mode_r)
+{
+	int pc = m_maincpu->pc();
+
+	//printf("bublbobl_2p_mode_r pc is %04x\n", pc);
+
+	if (pc == 0xabae)
+		m_share1[0x05d7] = 0x03;
+
+	return m_share1[0x05d7];
+}
+
+
+READ8_MEMBER(bublbobl_state::bublbobl_credit_mode_r)
+{
+	int pc = m_maincpu->pc();
+
+	
+	if (pc == 0x0c52)
+		return m_share1[0x0366];
+
+	if (pc == 0x0c5d)
+		return m_share1[0x0366];
+	
+	if (pc == 0xb281)
+		return m_share1[0x0366];
+
+	if (pc == 0xaf82)
+		return 0x00;// m_share1[0x0366]; // hide bub ingame 'push start' prompt
+
+	if (pc == 0x0c5d)
+		return m_share1[0x0366];
+
+	if (pc == 0x1d52)
+		return m_share1[0x0366];
+
+//	printf("bublbobl_credit_mode_r pc is %04x\n", pc);
+
+	return m_share1[0x0366];
+}
+
 static ADDRESS_MAP_START( master_map, AS_PROGRAM, 8, bublbobl_state )
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0xbfff) AM_ROMBANK("bank1")
 	AM_RANGE(0xc000, 0xdcff) AM_RAM AM_SHARE("videoram")
 	AM_RANGE(0xdd00, 0xdfff) AM_RAM AM_SHARE("objectram")
+
+
+	
+	AM_RANGE(0xe366, 0xe366) AM_READ(bublbobl_credit_mode_r)
+
+	AM_RANGE(0xe5d7, 0xe5d7) AM_READ(bublbobl_2p_mode_r)
+	AM_RANGE(0xe5db, 0xe5db) AM_READ(bublbobl_super_mode_r)
+
 	AM_RANGE(0xe000, 0xf7ff) AM_RAM AM_SHARE("share1")
+
+
 	AM_RANGE(0xf800, 0xf9ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 	AM_RANGE(0xfa00, 0xfa00) AM_READWRITE(bublbobl_sound_status_r, bublbobl_sound_command_w)
 	AM_RANGE(0xfa03, 0xfa03) AM_WRITE(bublbobl_soundcpu_reset_w)
