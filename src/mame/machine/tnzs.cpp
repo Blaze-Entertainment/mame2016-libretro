@@ -467,17 +467,17 @@ interleave.
 
 *********************************/
 
-/*
+
 TIMER_CALLBACK_MEMBER(tnzs_state::kludge_callback)
 {
-    tnzs_sharedram[0x0f10] = param;
+    m_share1[0x0f10] = param;
 }
 
 WRITE8_MEMBER(tnzs_state::tnzs_sync_kludge_w)
 {
     machine().scheduler().synchronize(timer_expired_delegate(FUNC(tnzs_state::kludge_callback),this), data);
 }
-*/
+
 
 
 
@@ -513,7 +513,7 @@ DRIVER_INIT_MEMBER(tnzs_state,tnzs)
 {
 	m_mcu_type = MCU_TNZS;
 	/* we need to install a kludge to avoid problems with a bug in the original code */
-//  m_maincpu->space(AS_PROGRAM).install_write_handler(0xef10, 0xef10, write8_delegate(FUNC(tnzs_state::tnzs_sync_kludge_w), this));
+  m_maincpu->space(AS_PROGRAM).install_write_handler(0xef10, 0xef10, write8_delegate(FUNC(tnzs_state::tnzs_sync_kludge_w), this));
 }
 
 DRIVER_INIT_MEMBER(tnzs_state,tnzsb)
@@ -521,7 +521,7 @@ DRIVER_INIT_MEMBER(tnzs_state,tnzsb)
 	m_mcu_type = MCU_NONE_TNZSB;
 
 	/* we need to install a kludge to avoid problems with a bug in the original code */
-//  m_maincpu->space(AS_PROGRAM).install_write_handler(0xef10, 0xef10, write8_delegate(FUNC(tnzs_state::tnzs_sync_kludge_w), this));
+  m_maincpu->space(AS_PROGRAM).install_write_handler(0xef10, 0xef10, write8_delegate(FUNC(tnzs_state::tnzs_sync_kludge_w), this));
 }
 
 DRIVER_INIT_MEMBER(tnzs_state,kabukiz)
@@ -667,6 +667,7 @@ MACHINE_START_MEMBER(tnzs_state,tnzs)
 	save_item(NAME(m_mcu_credits));
 	save_item(NAME(m_mcu_reportcoin));
 	save_item(NAME(m_mcu_command));
+	save_item(NAME(m_share1));
 
 }
 

@@ -741,12 +741,24 @@ WRITE8_MEMBER(tnzs_state::kabukiz_sample_w)
 		m_dac->write_unsigned8(data);
 }
 
+
+READ8_MEMBER(tnzs_state::tnzs_share1_r)
+{
+	return m_share1[offset];
+}
+
+WRITE8_MEMBER(tnzs_state::tnzs_share1_w)
+{
+	m_share1[offset] = data;
+}
+
+
 static ADDRESS_MAP_START( main_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0xbfff) AM_DEVICE("mainbank", address_map_bank_device, amap8)
 	AM_RANGE(0xc000, 0xcfff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecodelow_r8, spritecodelow_w8)
 	AM_RANGE(0xd000, 0xdfff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecodehigh_r8, spritecodehigh_w8)
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 	AM_RANGE(0xf000, 0xf2ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r8, spriteylow_w8)
 	AM_RANGE(0xf300, 0xf303) AM_MIRROR(0xfc) AM_DEVWRITE("spritegen", seta001_device, spritectrl_w8)  /* control registers (0x80 mirror used by Arkanoid 2) */
 	AM_RANGE(0xf400, 0xf400) AM_DEVWRITE("spritegen", seta001_device, spritebgflag_w8)   /* enable / disable background transparency */
@@ -762,7 +774,7 @@ static ADDRESS_MAP_START( cpu0_type2, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0x8000, 0xbfff) AM_DEVICE("mainbank", address_map_bank_device, amap8)
 	AM_RANGE(0xc000, 0xcfff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecodelow_r8, spritecodelow_w8)
 	AM_RANGE(0xd000, 0xdfff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecodehigh_r8, spritecodehigh_w8)
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 	AM_RANGE(0xf000, 0xf2ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r8, spriteylow_w8)
 	AM_RANGE(0xf300, 0xf303) AM_MIRROR(0xfc) AM_DEVWRITE("spritegen", seta001_device, spritectrl_w8) /* control registers (0x80 mirror used by Arkanoid 2) */
 	AM_RANGE(0xf400, 0xf400) AM_DEVWRITE("spritegen", seta001_device, spritebgflag_w8)   /* enable / disable background transparency */
@@ -779,7 +791,7 @@ static ADDRESS_MAP_START( sub_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0xb000, 0xb001) AM_DEVREADWRITE("ymsnd", ym2203_device, read, write)
 	AM_RANGE(0xc000, 0xc001) AM_READWRITE(tnzs_mcu_r, tnzs_mcu_w)   /* not present in insectx */
 	AM_RANGE(0xd000, 0xdfff) AM_RAM
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 	AM_RANGE(0xf000, 0xf003) AM_READ(arknoid2_sh_f000_r)    /* paddles in arkanoid2/plumppop. The ports are */
 						/* read but not used by the other games, and are not read at */
 						/* all by insectx. */
@@ -794,7 +806,7 @@ static ADDRESS_MAP_START( kageki_sub_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0xc001, 0xc001) AM_READ_PORT("IN1")
 	AM_RANGE(0xc002, 0xc002) AM_READ_PORT("IN2")
 	AM_RANGE(0xd000, 0xdfff) AM_RAM
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 ADDRESS_MAP_END
 
 /* the later board is different, it has a third CPU (and of course no mcu) */
@@ -816,7 +828,7 @@ static ADDRESS_MAP_START( tnzsb_cpu1_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0xc001, 0xc001) AM_READ_PORT("IN1")
 	AM_RANGE(0xc002, 0xc002) AM_READ_PORT("IN2")
 	AM_RANGE(0xd000, 0xdfff) AM_RAM
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 	AM_RANGE(0xf000, 0xf003) AM_READONLY
 	AM_RANGE(0xf000, 0xf3ff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 ADDRESS_MAP_END
@@ -832,7 +844,7 @@ static ADDRESS_MAP_START( kabukiz_cpu1_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0xc001, 0xc001) AM_READ_PORT("IN1")
 	AM_RANGE(0xc002, 0xc002) AM_READ_PORT("IN2")
 	AM_RANGE(0xd000, 0xdfff) AM_RAM
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 	AM_RANGE(0xf800, 0xfbff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 ADDRESS_MAP_END
 
@@ -866,7 +878,7 @@ static ADDRESS_MAP_START( jpopnics_main_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0x8000, 0xbfff) AM_DEVICE("mainbank", address_map_bank_device, amap8)
 	AM_RANGE(0xc000, 0xcfff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecodelow_r8, spritecodelow_w8)
 	AM_RANGE(0xd000, 0xdfff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spritecodehigh_r8, spritecodehigh_w8)
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1") /* WORK RAM (shared by the 2 z80's) */
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w) /* WORK RAM (shared by the 2 z80's) */
 	AM_RANGE(0xf000, 0xf2ff) AM_RAM AM_DEVREADWRITE("spritegen", seta001_device, spriteylow_r8, spriteylow_w8)
 	AM_RANGE(0xf300, 0xf303) AM_MIRROR(0xfc) AM_DEVWRITE("spritegen", seta001_device, spritectrl_w8) /* control registers (0x80 mirror used by Arkanoid 2) */
 	AM_RANGE(0xf400, 0xf400) AM_DEVWRITE("spritegen", seta001_device, spritebgflag_w8)   /* enable / disable background transparency */
@@ -892,7 +904,7 @@ static ADDRESS_MAP_START( jpopnics_sub_map, AS_PROGRAM, 8, tnzs_state )
 	AM_RANGE(0xc601, 0xc601) AM_READ_PORT("DSWB")
 
 	AM_RANGE(0xd000, 0xdfff) AM_RAM
-	AM_RANGE(0xe000, 0xefff) AM_RAM AM_SHARE("share1")
+	AM_RANGE(0xe000, 0xefff) AM_RAM AM_READWRITE(tnzs_share1_r, tnzs_share1_w)
 
 	AM_RANGE(0xf000, 0xf003) AM_READ(arknoid2_sh_f000_r)
 ADDRESS_MAP_END
@@ -1558,7 +1570,7 @@ static MACHINE_CONFIG_START( arknoid2, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,tnzs)
@@ -1605,7 +1617,7 @@ static MACHINE_CONFIG_START( drtoppel, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,tnzs)
@@ -1654,7 +1666,7 @@ static MACHINE_CONFIG_START( tnzs, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,tnzs)
@@ -1699,7 +1711,7 @@ static MACHINE_CONFIG_START( insectx, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,tnzs)
@@ -1744,7 +1756,7 @@ static MACHINE_CONFIG_START( kageki, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,tnzs)
@@ -1801,7 +1813,7 @@ static MACHINE_CONFIG_START( tnzsb, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,tnzs)
@@ -1866,7 +1878,7 @@ static MACHINE_CONFIG_START( jpopnics, tnzs_state )
 
 	MCFG_FRAGMENT_ADD(tnzs_mainbank)
 
-	MCFG_QUANTUM_PERFECT_CPU("maincpu")
+	MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_MACHINE_START_OVERRIDE(tnzs_state,tnzs_common)
 	MCFG_MACHINE_RESET_OVERRIDE(tnzs_state,jpopnics)

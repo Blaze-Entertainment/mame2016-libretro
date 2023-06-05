@@ -91,6 +91,8 @@ public:
 	UINT8    m_mcu_credits;
 	int      m_bank2;
 
+	uint8_t m_share1[0x1000];
+
 	DECLARE_WRITE8_MEMBER(tnzsb_sound_command_w);
 	DECLARE_WRITE8_MEMBER(jpopnics_subbankswitch_w);
 	DECLARE_READ8_MEMBER(tnzs_port1_r);
@@ -112,6 +114,14 @@ public:
 	DECLARE_WRITE8_MEMBER(kabukiz_sound_bank_w);
 	DECLARE_WRITE8_MEMBER(kabukiz_sample_w);
 	DECLARE_WRITE_LINE_MEMBER(irqhandler);
+	TIMER_CALLBACK_MEMBER(kludge_callback);
+
+	DECLARE_WRITE8_MEMBER(tnzs_sync_kludge_w);
+
+	
+	DECLARE_READ8_MEMBER(tnzs_share1_r);
+	DECLARE_WRITE8_MEMBER(tnzs_share1_w);
+
 
 	SAMPLES_START_CB_MEMBER(kageki_init_samples);
 
