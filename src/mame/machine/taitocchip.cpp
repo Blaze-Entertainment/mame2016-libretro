@@ -218,7 +218,7 @@ WRITE8_MEMBER( taito_cchip_device::pc_w ){ m_out_pc_cb(data); }
 WRITE8_MEMBER( taito_cchip_device::pf_w ){ /*logerror("%s port F written %.2x\n", machine().describe_context(), data);*/ }
 
 static MACHINE_CONFIG_FRAGMENT(taitocchip)
-    MCFG_CPU_ADD("upd7810", UPD7810, 6000000)
+    MCFG_CPU_ADD("upd7810", UPD7810, 4000000)
     MCFG_CPU_PROGRAM_MAP(cchip_map)
     MCFG_CPU_IO_MAP(cchip_io_map)
     MCFG_UPD7810_AN0(READLINE(taito_cchip_device, an0_r));

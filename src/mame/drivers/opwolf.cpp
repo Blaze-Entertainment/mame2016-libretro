@@ -345,10 +345,31 @@ WRITE8_MEMBER(opwolf_state::sound_bankswitch_w)
              MEMORY STRUCTURES
 ***********************************************************/
 
+READ16_MEMBER(opwolf_state::opwolf_no_flash_r)
+{
+	UINT16* rom = (UINT16*)memregion("maincpu")->base();
+
+	if (rom[0x1130 / 2] == 0x0001)
+	{
+		int pc = m_maincpu->pc();
+
+		//printf("pc is %06x\n", pc);
+
+		if (pc == 0x1130)
+		{
+			return 0x0002;
+		}
+
+	}
+	return rom[0x1130 / 2];
+}
+
 
 static ADDRESS_MAP_START( opwolf_map, AS_PROGRAM, 16, opwolf_state )
+	AM_RANGE(0x001130, 0x001131) AM_READ(opwolf_no_flash_r) 
+
 	AM_RANGE(0x000000, 0x03ffff) AM_ROM
-	
+
 	AM_RANGE(0x0f0000, 0x0f07ff) AM_MIRROR(0xf000) AM_DEVREADWRITE8("cchip", taito_cchip_device, mem68_r, mem68_w, 0x00ff)
 	AM_RANGE(0x0f0800, 0x0f0fff) AM_MIRROR(0xf000) AM_DEVREADWRITE8("cchip", taito_cchip_device, asic_r, asic68_w, 0x00ff)
 

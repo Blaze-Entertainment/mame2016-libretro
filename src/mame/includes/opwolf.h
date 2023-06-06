@@ -97,6 +97,7 @@ public:
 	DECLARE_DRIVER_INIT(opwolf);
 	DECLARE_DRIVER_INIT(opwolfb);
 	DECLARE_DRIVER_INIT(opwolfp);
+	DECLARE_READ16_MEMBER(opwolf_no_flash_r);
 
 	DECLARE_WRITE8_MEMBER(counters_w);
 
