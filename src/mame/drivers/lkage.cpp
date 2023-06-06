@@ -132,10 +132,72 @@ READ8_MEMBER(lkage_state::sound_status_r)
 	return 0xff;
 }
 
+
+
+WRITE8_MEMBER(lkage_state::lkage_palette_w)
+{
+	//int pc = m_maincpu->pc();
+
+	if (offset == 0x320 * 2)
+	{
+	//	printf("write to 0x300 at pc %04x data %02x\n", pc, data);
+	}
+
+	m_palette->write(space, offset, data);
+}
+
+
+READ8_MEMBER(lkage_state::lkage_flash_col1_r)
+{
+	UINT8* rom = memregion("maincpu")->base();
+
+	if ((rom[0x3d4] == 0x21) && (rom[0x3d5] == 0xff) && (rom[0x3d6] == 0x0f))
+	{
+		int pc = m_maincpu->pc();
+
+		//printf("pc is %04x\n", pc);
+
+		if (pc == 0x03d7)
+		{
+			return 0x28;
+		}
+
+	}
+
+	return rom[0x3d5];
+}
+
+
+READ8_MEMBER(lkage_state::lkage_flash_col2_r)
+{
+	UINT8* rom = memregion("maincpu")->base();
+
+	if ((rom[0x3d4] == 0x21) && (rom[0x3d5] == 0xff) && (rom[0x3d6] == 0x0f))
+	{
+		int pc = m_maincpu->pc();
+
+		//printf("pc is %04x\n", pc);
+
+		if (pc == 0x03d7)
+		{
+			return 0x00;
+		}
+
+	}
+	return rom[0x3d6];
+}
+
+
+
 static ADDRESS_MAP_START( lkage_map, AS_PROGRAM, 8, lkage_state )
+
+	AM_RANGE(0x03d5, 0x03d5) AM_READ(lkage_flash_col1_r)
+	AM_RANGE(0x03d6, 0x03d6) AM_READ(lkage_flash_col2_r)
+
+
 	AM_RANGE(0x0000, 0xdfff) AM_ROM
 	AM_RANGE(0xe000, 0xe7ff) AM_RAM /* work ram */
-	AM_RANGE(0xe800, 0xefff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
+	AM_RANGE(0xe800, 0xefff) AM_RAM_WRITE(lkage_palette_w) AM_SHARE("palette")
 	AM_RANGE(0xf000, 0xf003) AM_RAM AM_SHARE("vreg") /* video registers */
 	AM_RANGE(0xf060, 0xf060) AM_WRITE(lkage_sound_command_w)
 	AM_RANGE(0xf061, 0xf061) AM_WRITENOP AM_READ(sound_status_r)

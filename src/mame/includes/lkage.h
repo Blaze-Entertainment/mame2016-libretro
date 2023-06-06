@@ -82,6 +82,14 @@ public:
 	DECLARE_READ8_MEMBER(lkage_mcu_r);
 	DECLARE_READ8_MEMBER(lkage_mcu_status_r);
 	DECLARE_WRITE8_MEMBER(lkage_videoram_w);
+	DECLARE_WRITE8_MEMBER(lkage_palette_w);
+
+	DECLARE_READ8_MEMBER(lkage_flash_col1_r);
+	DECLARE_READ8_MEMBER(lkage_flash_col2_r);
+
+
+	
+
 	DECLARE_DRIVER_INIT(bygone);
 	DECLARE_DRIVER_INIT(lkage);
 	DECLARE_DRIVER_INIT(lkageb);
