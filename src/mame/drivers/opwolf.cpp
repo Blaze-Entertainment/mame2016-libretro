@@ -354,7 +354,7 @@ READ16_MEMBER(opwolf_state::opwolf_no_flash_r)
 		int pc = m_maincpu->pc();
 
 		//printf("pc is %06x\n", pc);
-
+		
 		if (pc == 0x1130)
 		{
 			return 0x0002;
@@ -976,10 +976,10 @@ ROM_START( opwolf )
 	ROM_LOAD( "b20-07.10",  0x00000, 0x10000, CRC(45c7ace3) SHA1(06f7393f6b973b7735c27e8380cb4148650cfc16) )
 
 	ROM_REGION( 0x80000, "gfx1", 0 )
-	ROM_LOAD( "b20-13.13",  0x00000, 0x80000, CRC(f6acdab1) SHA1(716b94ab3fa330ecf22df576f6a9f47a49c7554a) )    /* SCR tiles (8 x 8) */
+	ROM_LOAD( "blaze_censored_b20-13.13",  0x00000, 0x80000, CRC(321f7ece) SHA1(cfa86db8cfa3da982b6bcb5aa84f0819dabf8166) )    /* SCR tiles (8 x 8) */
 
 	ROM_REGION( 0x80000, "gfx2", 0 )
-	ROM_LOAD( "b20-14.72",  0x00000, 0x80000, CRC(89f889e5) SHA1(1592f6ce4fbb75e33d6ab957e5b90242a7a7a8c4) )    /* Sprites (16 x 16) */
+	ROM_LOAD( "blaze_censored_b20-14.72",  0x00000, 0x80000, CRC(3d69cca8) SHA1(489b9145e09f4760aaf5d8edc607637f8a9db4ac) )    /* Sprites (16 x 16) */
 
 	ROM_REGION( 0x80000, "adpcm", 0 )   /* ADPCM samples */
 	ROM_LOAD( "b20-08.21",  0x00000, 0x80000, CRC(f3e19c64) SHA1(39d48645f776c9c2ade537d959ecc6f9dc6dfa1b) )
