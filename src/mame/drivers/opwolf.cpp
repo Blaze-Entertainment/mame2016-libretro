@@ -979,7 +979,7 @@ ROM_START( opwolf )
 	ROM_LOAD( "blaze_censored_b20-13.13",  0x00000, 0x80000, CRC(321f7ece) SHA1(cfa86db8cfa3da982b6bcb5aa84f0819dabf8166) )    /* SCR tiles (8 x 8) */
 
 	ROM_REGION( 0x80000, "gfx2", 0 )
-	ROM_LOAD( "blaze_censored_b20-14.72",  0x00000, 0x80000, CRC(3d69cca8) SHA1(489b9145e09f4760aaf5d8edc607637f8a9db4ac) )    /* Sprites (16 x 16) */
+	ROM_LOAD( "blaze_censored_b20-14.72",  0x00000, 0x80000, CRC(0b384d5f) SHA1(72a0856843091ebbd7a5afa2180133a6bacfed72) )    /* Sprites (16 x 16) */
 
 	ROM_REGION( 0x80000, "adpcm", 0 )   /* ADPCM samples */
 	ROM_LOAD( "b20-08.21",  0x00000, 0x80000, CRC(f3e19c64) SHA1(39d48645f776c9c2ade537d959ecc6f9dc6dfa1b) )
