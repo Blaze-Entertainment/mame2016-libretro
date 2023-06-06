@@ -37,7 +37,9 @@ public:
 		m_mb87078(*this, "mb87078"),
 		m_gfxdecode(*this, "gfxdecode"),
 		m_screen(*this, "screen"),
-		m_palette(*this, "palette") { }
+		m_palette(*this, "palette"),
+		m_mainram(*this, "mainram")
+	{ }
 
 	/* memory pointers */
 	required_shared_ptr<UINT16> m_spriteram;
@@ -73,6 +75,10 @@ public:
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<screen_device> m_screen;
 	required_device<palette_device> m_palette;
+	optional_shared_ptr<UINT16> m_mainram;
+
+
+	DECLARE_READ16_MEMBER(pbobble_coin_r);
 
 	DECLARE_WRITE8_MEMBER(bankswitch_w);
 	DECLARE_READ16_MEMBER(tracky1_hi_r);

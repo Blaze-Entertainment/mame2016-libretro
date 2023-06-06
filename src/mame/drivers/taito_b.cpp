@@ -548,6 +548,20 @@ static ADDRESS_MAP_START( rambo3_map, AS_PROGRAM, 16, taitob_state )
 	AM_RANGE(0xa00000, 0xa01fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 ADDRESS_MAP_END
 
+READ16_MEMBER(taitob_state::pbobble_coin_r)
+{
+	int pc = m_maincpu->pc();
+	
+	// disable 2p game option
+
+	if (pc == 0x000d404)
+		return 0x01;
+
+	if (pc == 0x000d1f8)
+		return 0x01;
+
+	return m_mainram[0xf2 / 2];
+}
 
 static ADDRESS_MAP_START( pbobble_map, AS_PROGRAM, 16, taitob_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
@@ -561,7 +575,11 @@ static ADDRESS_MAP_START( pbobble_map, AS_PROGRAM, 16, taitob_state )
 	AM_RANGE(0x700000, 0x700001) AM_READNOP AM_DEVWRITE8("tc0140syt", tc0140syt_device, master_port_w, 0xff00)
 	AM_RANGE(0x700002, 0x700003) AM_DEVREADWRITE8("tc0140syt", tc0140syt_device, master_comm_r, master_comm_w, 0xff00)
 	AM_RANGE(0x800000, 0x801fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
-	AM_RANGE(0x900000, 0x90ffff) AM_RAM /* Main RAM */
+
+	
+	AM_RANGE(0x9000f2, 0x9000f3) AM_READ(pbobble_coin_r) /* Main RAM */
+
+	AM_RANGE(0x900000, 0x90ffff) AM_RAM AM_SHARE("mainram")/* Main RAM */
 ADDRESS_MAP_END
 
 /* identical to pbobble, above??? */
