@@ -279,7 +279,7 @@ register. So what is controlling priority.
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "includes/taitoipt.h"
 #include "audio/taitosnd.h"
 #include "sound/2151intf.h"
@@ -348,11 +348,10 @@ WRITE8_MEMBER(opwolf_state::sound_bankswitch_w)
 
 static ADDRESS_MAP_START( opwolf_map, AS_PROGRAM, 16, opwolf_state )
 	AM_RANGE(0x000000, 0x03ffff) AM_ROM
-	AM_RANGE(0x0f0000, 0x0f07ff) AM_MIRROR(0xf000) AM_READ(opwolf_cchip_data_r)
-	AM_RANGE(0x0f0802, 0x0f0803) AM_MIRROR(0xf000) AM_READ(opwolf_cchip_status_r)
-	AM_RANGE(0x0ff000, 0x0ff7ff) AM_WRITE(opwolf_cchip_data_w)
-	AM_RANGE(0x0ff802, 0x0ff803) AM_WRITE(opwolf_cchip_status_w)
-	AM_RANGE(0x0ffc00, 0x0ffc01) AM_WRITE(opwolf_cchip_bank_w)
+	
+	AM_RANGE(0x0f0000, 0x0f07ff) AM_MIRROR(0xf000) AM_DEVREADWRITE8("cchip", taito_cchip_device, mem68_r, mem68_w, 0x00ff)
+	AM_RANGE(0x0f0800, 0x0f0fff) AM_MIRROR(0xf000) AM_DEVREADWRITE8("cchip", taito_cchip_device, asic_r, asic68_w, 0x00ff)
+
 	AM_RANGE(0x100000, 0x107fff) AM_RAM
 	AM_RANGE(0x200000, 0x200fff) AM_RAM_DEVWRITE("palette", palette_device, write) AM_SHARE("palette")
 	AM_RANGE(0x380000, 0x380003) AM_READ(opwolf_dsw_r)          /* dip switches */
@@ -606,8 +605,8 @@ static INPUT_PORTS_START( opwolf )
 	PORT_DIPSETTING(    0x00, DEF_STR( English ) )
 
 	PORT_START("IN0")
-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN1 )
-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_COIN2 )
+	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_COIN1 ) PORT_IMPULSE(5)
+	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_COIN2 ) PORT_IMPULSE(5)
 	PORT_BIT( 0x04, IP_ACTIVE_LOW,  IPT_UNKNOWN )
 	PORT_BIT( 0x08, IP_ACTIVE_LOW,  IPT_UNKNOWN )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW,  IPT_UNKNOWN )
@@ -618,8 +617,8 @@ static INPUT_PORTS_START( opwolf )
 	PORT_START("IN1")
 	PORT_BIT( 0x01, IP_ACTIVE_LOW,  IPT_BUTTON1 )
 	PORT_BIT( 0x02, IP_ACTIVE_LOW,  IPT_BUTTON2 )
-	PORT_BIT( 0x04, IP_ACTIVE_LOW,  IPT_SERVICE1 )
-	PORT_BIT( 0x08, IP_ACTIVE_LOW,  IPT_TILT )
+	PORT_BIT( 0x04, IP_ACTIVE_LOW,  IPT_SERVICE1 ) PORT_IMPULSE(5)
+	PORT_BIT( 0x08, IP_ACTIVE_LOW,  IPT_UNKNOWN )
 	PORT_BIT( 0x10, IP_ACTIVE_LOW,  IPT_START1 )
 	PORT_BIT( 0x20, IP_ACTIVE_LOW,  IPT_UNKNOWN )
 	PORT_BIT( 0x40, IP_ACTIVE_LOW,  IPT_UNKNOWN )
@@ -766,12 +765,29 @@ GFXDECODE_END
                  MACHINE DRIVERS
 ***********************************************************/
 
-static MACHINE_CONFIG_START( opwolf, opwolf_state )
+
+INTERRUPT_GEN_MEMBER(opwolf_state::interrupt)
+{
+	m_maincpu->set_input_line(5, HOLD_LINE);
+	if (m_cchip)
+		m_cchip->ext_interrupt(ASSERT_LINE);
+	if (m_cchip_irq_clear)
+		m_cchip_irq_clear->adjust(attotime::zero);
+}
+
+TIMER_DEVICE_CALLBACK_MEMBER(opwolf_state::cchip_irq_clear_cb)
+{
+	m_cchip->ext_interrupt(CLEAR_LINE);
+}
+
+
+
+static MACHINE_CONFIG_START( opwolf_base, opwolf_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, CPU_CLOCK ) /* 8 MHz */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, CPU_CLOCK ) /* 8 MHz */
 	MCFG_CPU_PROGRAM_MAP(opwolf_map)
-	MCFG_CPU_VBLANK_INT_DRIVER("screen", opwolf_state,  irq5_line_hold)
+	MCFG_CPU_VBLANK_INT_DRIVER("screen", opwolf_state,  interrupt)
 
 	MCFG_CPU_ADD("audiocpu", Z80, SOUND_CPU_CLOCK ) /* 4 MHz */
 	MCFG_CPU_PROGRAM_MAP(opwolf_sound_z80_map)
@@ -779,6 +795,7 @@ static MACHINE_CONFIG_START( opwolf, opwolf_state )
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))   /* 10 CPU slices per frame - enough for the sound CPU to read all commands */
 
 	MCFG_MACHINE_RESET_OVERRIDE(opwolf_state,opwolf)
+	
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -828,7 +845,25 @@ static MACHINE_CONFIG_START( opwolf, opwolf_state )
 MACHINE_CONFIG_END
 
 
-static MACHINE_CONFIG_DERIVED( opwolfp, opwolf )
+WRITE8_MEMBER(opwolf_state::counters_w)
+{
+	machine().bookkeeping().coin_lockout_w(1, data & 0x80);
+	machine().bookkeeping().coin_lockout_w(0, data & 0x40);
+	machine().bookkeeping().coin_counter_w(1, ~data & 0x20);
+	machine().bookkeeping().coin_counter_w(0, ~data & 0x10);
+}
+
+static MACHINE_CONFIG_DERIVED( opwolf, opwolf_base )
+	MCFG_DEVICE_ADD("cchip", TAITO_CCHIP, 0)
+	MCFG_CCHIP_IN_PORTB_CB(IOPORT("IN0"))
+	MCFG_CCHIP_IN_PORTC_CB(IOPORT("IN1"))
+	MCFG_CCHIP_OUT_PORTB_CB(WRITE8(opwolf_state, counters_w))
+
+	MCFG_TIMER_DRIVER_ADD("cchip_irq_clear", opwolf_state, cchip_irq_clear_cb);
+MACHINE_CONFIG_END
+
+
+static MACHINE_CONFIG_DERIVED( opwolfp, opwolf_base )
 
 	/* basic machine hardware */
 	MCFG_CPU_MODIFY("maincpu") /* 8 MHz */
@@ -840,7 +875,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( opwolfb, opwolf_state ) /* OSC clocks unknown for the bootleg, but changed to match original sets */
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, CPU_CLOCK ) /* 8 MHz ??? */
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, CPU_CLOCK ) /* 8 MHz ??? */
 	MCFG_CPU_PROGRAM_MAP(opwolfb_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", opwolf_state,  irq5_line_hold)
 
@@ -852,7 +887,7 @@ static MACHINE_CONFIG_START( opwolfb, opwolf_state ) /* OSC clocks unknown for t
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", opwolf_state,  irq0_line_hold)
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))   /* 10 CPU slices per frame - enough for the sound CPU to read all commands */
-
+	
 
 	/* video hardware */
 	MCFG_SCREEN_ADD("screen", RASTER)
@@ -913,6 +948,9 @@ ROM_START( opwolf )
 	ROM_LOAD16_BYTE( "b20-04.39",     0x20000, 0x10000, CRC(216b4838) SHA1(2851cae00bb3e32e20f35fdab8ed6f149e658363) )
 	ROM_LOAD16_BYTE( "b20-20.29",     0x20001, 0x10000, CRC(d244431a) SHA1(cb6c1d330a526f05c205f68247328161b8d4a1ba) )
 
+	ROM_REGION( 0x2000, "cchip_eprom", 0 )
+	ROM_LOAD( "b20-18.73", 0x0000, 0x2000, CRC(5987b4e9) SHA1(d4b3d1c35a6eac86c86bd4ea49f1f157a2c05b2a) )
+
 	ROM_REGION( 0x10000, "audiocpu", 0 )      /* sound cpu */
 	ROM_LOAD( "b20-07.10",  0x00000, 0x10000, CRC(45c7ace3) SHA1(06f7393f6b973b7735c27e8380cb4148650cfc16) )
 
@@ -938,6 +976,9 @@ ROM_START( opwolfa )
 	ROM_LOAD16_BYTE( "b20-04.39",     0x20000, 0x10000, CRC(216b4838) SHA1(2851cae00bb3e32e20f35fdab8ed6f149e658363) )
 	ROM_LOAD16_BYTE( "b20-17.29",     0x20001, 0x10000, CRC(6043188e) SHA1(3a6f4836b1c19d37713f5714a947276baf1df50c) )
 
+	ROM_REGION( 0x2000, "cchip_eprom", 0 )
+	ROM_LOAD( "b20-18.73", 0x0000, 0x2000, CRC(5987b4e9) SHA1(d4b3d1c35a6eac86c86bd4ea49f1f157a2c05b2a) )
+
 	ROM_REGION( 0x10000, "audiocpu", 0 )      /* sound cpu */
 	ROM_LOAD( "b20-07.10",  0x00000, 0x10000, CRC(45c7ace3) SHA1(06f7393f6b973b7735c27e8380cb4148650cfc16) )
 
@@ -958,6 +999,9 @@ ROM_START( opwolfj )
 	ROM_LOAD16_BYTE( "b20-04.39",     0x20000, 0x10000, CRC(216b4838) SHA1(2851cae00bb3e32e20f35fdab8ed6f149e658363) )
 	ROM_LOAD16_BYTE( "b20-18.29",     0x20001, 0x10000, CRC(fd202470) SHA1(3108c14953d2f50d861946e9f646813b7050b58a) )
 
+	ROM_REGION( 0x2000, "cchip_eprom", 0 )
+	ROM_LOAD( "b20-18.73", 0x0000, 0x2000, CRC(5987b4e9) SHA1(d4b3d1c35a6eac86c86bd4ea49f1f157a2c05b2a) )
+
 	ROM_REGION( 0x10000, "audiocpu", 0 )      /* sound cpu */
 	ROM_LOAD( "b20-07.10",  0x00000, 0x10000, CRC(45c7ace3) SHA1(06f7393f6b973b7735c27e8380cb4148650cfc16) )
 
@@ -977,6 +1021,9 @@ ROM_START( opwolfu ) /* Taito TC0030 C-Chip labeled B20-18 (yes, it has a specif
 	ROM_LOAD16_BYTE( "b20-03-02.30",  0x00001, 0x10000, CRC(fdabd8a5) SHA1(866ec6168489024b8d157f2d5b1553d7f6e3d9b7) )
 	ROM_LOAD16_BYTE( "b20-04.39",     0x20000, 0x10000, CRC(216b4838) SHA1(2851cae00bb3e32e20f35fdab8ed6f149e658363) )
 	ROM_LOAD16_BYTE( "b20-19.29",     0x20001, 0x10000, CRC(b71bc44c) SHA1(5b404bd7630f01517ab98bda40ca43c11268035a) )
+
+	ROM_REGION( 0x2000, "cchip_eprom", 0 )
+	ROM_LOAD( "b20-18.73", 0x0000, 0x2000, CRC(5987b4e9) SHA1(d4b3d1c35a6eac86c86bd4ea49f1f157a2c05b2a) )
 
 	ROM_REGION( 0x10000, "audiocpu", 0 )      /* sound cpu */
 	ROM_LOAD( "b20-07.10",  0x00000, 0x10000, CRC(45c7ace3) SHA1(06f7393f6b973b7735c27e8380cb4148650cfc16) )

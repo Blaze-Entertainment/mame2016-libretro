@@ -1827,7 +1827,7 @@ void upd7810_device::execute_run()
 	{
 		int cc;
 
-		debugger_instruction_hook(this, PC);
+		//debugger_instruction_hook(this, PC);
 
 		PPC = PC;
 		RDOP(OP);

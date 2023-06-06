@@ -3594,6 +3594,8 @@ files {
 	MAME_DIR .. "src/mame/includes/opwolf.h",
 	MAME_DIR .. "src/mame/machine/opwolf.cpp",
 	MAME_DIR .. "src/mame/video/opwolf.cpp",
+	MAME_DIR .. "src/mame/machine/taitocchip.cpp",
+	MAME_DIR .. "src/mame/machine/taitocchip.h",
 	MAME_DIR .. "src/mame/drivers/othunder.cpp",
 	MAME_DIR .. "src/mame/includes/othunder.h",
 	MAME_DIR .. "src/mame/video/othunder.cpp",

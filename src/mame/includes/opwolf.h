@@ -8,6 +8,8 @@
 #include "sound/msm5205.h"
 #include "video/pc080sn.h"
 #include "video/pc090oj.h"
+#include "machine/taitocchip.h"
+//#include "machine/timer.h"
 
 class opwolf_state : public driver_device
 {
@@ -23,6 +25,8 @@ public:
 		m_cchip_ram(*this, "cchip_ram"),
 		m_maincpu(*this, "maincpu"),
 		m_audiocpu(*this, "audiocpu"),
+		m_cchip(*this, "cchip"),
+		m_cchip_irq_clear(*this, "cchip_irq_clear"),
 		m_pc080sn(*this, "pc080sn"),
 		m_pc090oj(*this, "pc090oj"),
 		m_msm1(*this, "msm1"),
@@ -65,6 +69,9 @@ public:
 	/* devices */
 	required_device<cpu_device> m_maincpu;
 	required_device<cpu_device> m_audiocpu;
+	optional_device<taito_cchip_device> m_cchip;
+	optional_device<timer_device> m_cchip_irq_clear;
+
 	required_device<pc080sn_device> m_pc080sn;
 	required_device<pc090oj_device> m_pc090oj;
 	required_device<msm5205_device> m_msm1;
@@ -91,6 +98,7 @@ public:
 	DECLARE_DRIVER_INIT(opwolfb);
 	DECLARE_DRIVER_INIT(opwolfp);
 
+	DECLARE_WRITE8_MEMBER(counters_w);
 
 	DECLARE_CUSTOM_INPUT_MEMBER(opwolf_gun_x_r);
 	DECLARE_CUSTOM_INPUT_MEMBER(opwolf_gun_y_r);
@@ -106,6 +114,11 @@ public:
 	void opwolf_msm5205_vck(msm5205_device *device, int chip);
 	DECLARE_WRITE_LINE_MEMBER(opwolf_msm5205_vck_1);
 	DECLARE_WRITE_LINE_MEMBER(opwolf_msm5205_vck_2);
+
+
+	INTERRUPT_GEN_MEMBER(interrupt);
+	TIMER_DEVICE_CALLBACK_MEMBER(cchip_irq_clear_cb);
+
 
 protected:
 	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
