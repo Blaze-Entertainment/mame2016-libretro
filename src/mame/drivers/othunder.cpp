@@ -714,7 +714,7 @@ static MACHINE_CONFIG_START( othunder, othunder_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", othunder)
-	MCFG_PALETTE_ADD("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
 
 	MCFG_DEVICE_ADD("tc0100scn", TC0100SCN, 0)
 	MCFG_TC0100SCN_GFX_REGION(1)

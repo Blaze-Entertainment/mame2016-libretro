@@ -851,7 +851,7 @@ static MACHINE_CONFIG_START( bonzeadv, asuka_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", asuka)
-	MCFG_PALETTE_ADD("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
 
 	MCFG_DEVICE_ADD("pc090oj", PC090OJ, 0)
 	MCFG_PC090OJ_OFFSETS(0, 8)
@@ -912,7 +912,7 @@ static MACHINE_CONFIG_START( asuka, asuka_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", asuka)
-	MCFG_PALETTE_ADD("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
 
 	MCFG_DEVICE_ADD("pc090oj", PC090OJ, 0)
 	MCFG_PC090OJ_OFFSETS(0, 8)
@@ -963,7 +963,7 @@ static MACHINE_CONFIG_START( cadash, asuka_state )
 //	MCFG_CPU_IO_MAP(cadash_sub_io)
 
 
-	MCFG_QUANTUM_TIME(attotime::from_hz(600))
+	//MCFG_QUANTUM_TIME(attotime::from_hz(6000))
 
 	MCFG_DEVICE_ADD("tc0220ioc", TC0220IOC, 0)
 	MCFG_TC0220IOC_READ_0_CB(IOPORT("DSWA"))
@@ -983,7 +983,7 @@ static MACHINE_CONFIG_START( cadash, asuka_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", asuka)
-	MCFG_PALETTE_ADD("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
 
 	MCFG_DEVICE_ADD("pc090oj", PC090OJ, 0)
 	MCFG_PC090OJ_OFFSETS(0, 8)
@@ -1046,7 +1046,7 @@ static MACHINE_CONFIG_START( mofflott, asuka_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", asuka)
-	MCFG_PALETTE_ADD("palette", 4096)   /* only Mofflott uses full palette space */
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)   /* only Mofflott uses full palette space */
 
 	MCFG_DEVICE_ADD("pc090oj", PC090OJ, 0)
 	MCFG_PC090OJ_OFFSETS(0, 8)
@@ -1113,7 +1113,7 @@ static MACHINE_CONFIG_START( galmedes, asuka_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", asuka)
-	MCFG_PALETTE_ADD("palette", 4096)   /* only Mofflott uses full palette space */
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)   /* only Mofflott uses full palette space */
 
 	MCFG_DEVICE_ADD("pc090oj", PC090OJ, 0)
 	MCFG_PC090OJ_OFFSETS(0, 8)
@@ -1175,7 +1175,7 @@ static MACHINE_CONFIG_START( eto, asuka_state )
 	MCFG_SCREEN_PALETTE("palette")
 
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", asuka)
-	MCFG_PALETTE_ADD("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
 
 	MCFG_DEVICE_ADD("pc090oj", PC090OJ, 0)
 	MCFG_PC090OJ_OFFSETS(0, 8)

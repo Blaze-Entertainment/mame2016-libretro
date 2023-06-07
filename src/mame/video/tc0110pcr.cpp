@@ -132,9 +132,13 @@ WRITE16_MEMBER(tc0110pcr_device::word_w )
 			break;
 
 		case 1:
+		{
+			UINT16 old = m_ram[m_addr];
 			m_ram[m_addr] = data & 0xffff;
-			m_palette->set_pen_color(m_addr, pal5bit(data >> 0), pal5bit(data >> 5), pal5bit(data >> 10));
-			break;
+			if (old != m_ram[m_addr])
+				m_palette->set_pen_color(m_addr, pal5bit(data >> 0), pal5bit(data >> 5), pal5bit(data >> 10));
+		}
+		break;
 
 		default:
 //logerror("PC %06x: warning - write %04x to TC0110PCR address %02x\n",space.device().safe_pc(),data,offset);
@@ -153,9 +157,13 @@ WRITE16_MEMBER(tc0110pcr_device::step1_word_w )
 			break;
 
 		case 1:
+		{
+			UINT16 old = m_ram[m_addr];
 			m_ram[m_addr] = data & 0xffff;
-			m_palette->set_pen_color(m_addr, pal5bit(data >> 0), pal5bit(data >> 5), pal5bit(data >> 10));
-			break;
+			if (old != m_ram[m_addr])
+				m_palette->set_pen_color(m_addr, pal5bit(data >> 0), pal5bit(data >> 5), pal5bit(data >> 10));
+		}
+		break;
 
 		default:
 //logerror("PC %06x: warning - write %04x to TC0110PCR address %02x\n",space.device().safe_pc(),data,offset);
@@ -176,9 +184,14 @@ WRITE16_MEMBER(tc0110pcr_device::step1_rbswap_word_w )
 			break;
 
 		case 1:
+		{
+			UINT16 old = m_ram[m_addr];
 			m_ram[m_addr] = data & 0xffff;
-			m_palette->set_pen_color(m_addr, pal5bit(data >> 10), pal5bit(data >> 5), pal5bit(data >> 0));
-			break;
+			if (old != m_ram[m_addr])
+				m_palette->set_pen_color(m_addr, pal5bit(data >> 10), pal5bit(data >> 5), pal5bit(data >> 0));
+		}
+		break;
+		
 
 		default:
 //logerror("PC %06x: warning - write %04x to TC0110PCR offset %02x\n",space.device().safe_pc(),data,offset);
@@ -199,9 +212,13 @@ WRITE16_MEMBER(tc0110pcr_device::step1_4bpg_word_w )
 			break;
 
 		case 1:
+		{
+			UINT16 old = m_ram[m_addr];
 			m_ram[m_addr] = data & 0xffff;
-			m_palette->set_pen_color(m_addr, pal4bit(data >> 0), pal4bit(data >> 4), pal4bit(data >> 8));
-			break;
+			if (old != m_ram[m_addr])
+				m_palette->set_pen_color(m_addr, pal4bit(data >> 0), pal4bit(data >> 4), pal4bit(data >> 8));
+		}
+		break;
 
 		default:
 //logerror("PC %06x: warning - write %04x to TC0110PCR address %02x\n",space.device().safe_pc(),data,offset);

@@ -745,9 +745,9 @@ static MACHINE_CONFIG_START( ninjaw, ninjaw_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", ninjaw)
-	MCFG_PALETTE_ADD("palette", 4096)
-	MCFG_PALETTE_ADD("palette2", 4096)
-	MCFG_PALETTE_ADD("palette3", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette2", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette3", 4096)
 
 	MCFG_DEFAULT_LAYOUT(layout_ninjaw)
 
@@ -865,9 +865,9 @@ static MACHINE_CONFIG_START( darius2, ninjaw_state )
 
 	/* video hardware */
 	MCFG_GFXDECODE_ADD("gfxdecode", "palette", ninjaw)
-	MCFG_PALETTE_ADD("palette", 4096)
-	MCFG_PALETTE_ADD("palette2", 4096)
-	MCFG_PALETTE_ADD("palette3", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette2", 4096)
+	MCFG_PALETTE_ADD_INIT_BLACK("palette3", 4096)
 
 	MCFG_DEFAULT_LAYOUT(layout_ninjaw)
 
