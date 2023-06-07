@@ -706,9 +706,8 @@ void tc0480scp_device::bg01_draw( screen_device &screen, bitmap_ind16 &bitmap, c
 	}
 	else    /* zoom */
 	{
-		UINT16 *dst16, *src16;
+		UINT16 *src16;
 		UINT8 *tsrc;
-		UINT16 scanline[512];
 		UINT32 sx;
 		bitmap_ind16 &srcbitmap = m_tilemap[layer][m_dblwidth]->pixmap();
 		bitmap_ind8 &flagsbitmap = m_tilemap[layer][m_dblwidth]->flagsmap();
@@ -716,7 +715,7 @@ void tc0480scp_device::bg01_draw( screen_device &screen, bitmap_ind16 &bitmap, c
 		int y_index, src_y_index, row_index;
 		int x_index, x_step;
 
-		UINT16 screen_width = 512; //cliprect.width();
+	//	UINT16 screen_width = 512; //cliprect.width();
 		UINT16 min_y = cliprect.min_y;
 		UINT16 max_y = cliprect.max_y;
 
@@ -754,16 +753,18 @@ void tc0480scp_device::bg01_draw( screen_device &screen, bitmap_ind16 &bitmap, c
 
 			src16 = &srcbitmap.pix16(src_y_index);
 			tsrc = &flagsbitmap.pix8(src_y_index);
-			dst16 = scanline;
+			UINT16 *dsti = &bitmap.pix16(y, 0);
+			UINT8 *dstp = &screen.priority().pix8(y, 0);
 
 			x_step = zoomx;
 
 			if (flags & TILEMAP_DRAW_OPAQUE)
 			{
-				for (int i = 0; i < screen_width/32; i++)
+				for (int i = 0; i < 320/32; i++)
 				{
 #define DRAW_PIXEL_1 \
-	*dst16++ = src16[(x_index >> 16) & width_mask]; \
+	*dsti++ = src16[(x_index >> 16) & width_mask]; \
+	*dstp++ = priority; \
 	x_index += x_step;
 
 					DRAW_PIXEL_1
@@ -806,14 +807,17 @@ void tc0480scp_device::bg01_draw( screen_device &screen, bitmap_ind16 &bitmap, c
 			}
 			else
 			{
-				for (int i = 0; i < screen_width/32; i++)
+				for (int i = 0; i < 320/32; i++)
 				{
 					
 #define DRAW_PIXEL_2 \
 	if (tsrc[(x_index >> 16) & width_mask]) \
-		*dst16++ = src16[(x_index >> 16) & width_mask]; \
-	else \
-		*dst16++ = 0x8000; \
+	{ \
+		*dsti = src16[(x_index >> 16) & width_mask]; \
+		*dstp = priority; \
+	} \
+	dsti++; \
+	dstp++; \
 	x_index += x_step;
 
 
@@ -852,9 +856,9 @@ void tc0480scp_device::bg01_draw( screen_device &screen, bitmap_ind16 &bitmap, c
 
 
 				}
+
 			}
 
-			taitoic_drawscanline(bitmap, cliprect, 0, y, scanline, (flags & TILEMAP_DRAW_OPAQUE) ? 0 : 1, ROT0, screen.priority(), priority);
 
 			y_index += zoomy;
 		}
@@ -903,15 +907,14 @@ void tc0480scp_device::bg23_draw(screen_device &screen, bitmap_ind16 &bitmap, co
 	bitmap_ind16 &srcbitmap = m_tilemap[layer][m_dblwidth]->pixmap();
 	bitmap_ind8 &flagsbitmap = m_tilemap[layer][m_dblwidth]->flagsmap();
 
-	UINT16 *dst16, *src16;
+	UINT16 *src16;
 	UINT8 *tsrc;
 	int y_index, src_y_index, row_index, row_zoom;
 	int sx, x_index, x_step;
 	UINT32 zoomx, zoomy;
-	UINT16 scanline[512];
 	int flipscreen = m_pri_reg & 0x40;
 
-	UINT16 screen_width = 512; //cliprect.width();
+	//UINT16 screen_width = 512; //cliprect.width();
 	UINT16 min_y = cliprect.min_y;
 	UINT16 max_y = cliprect.max_y;
 
@@ -978,15 +981,18 @@ void tc0480scp_device::bg23_draw(screen_device &screen, bitmap_ind16 &bitmap, co
 
 		src16 = &srcbitmap.pix16(src_y_index);
 		tsrc = &flagsbitmap.pix8(src_y_index);
-		dst16 = scanline;
+		UINT16 *dsti = &bitmap.pix16(y, 0);
+		UINT8 *dstp = &screen.priority().pix8(y, 0);
+
 
 		if (flags & TILEMAP_DRAW_OPAQUE)
 		{
-			for (int i = 0; i < screen_width/32; i++)
+			for (int i = 0; i < 320/32; i++)
 			{
 
 #define DRAW_PIXEL_3 \
-	*dst16++ = src16[(x_index >> 16) & width_mask]; \
+	*dsti++ = src16[(x_index >> 16) & width_mask]; \
+	*dstp++ = priority; \
 	x_index += x_step;
 
 
@@ -1028,14 +1034,18 @@ void tc0480scp_device::bg23_draw(screen_device &screen, bitmap_ind16 &bitmap, co
 		}
 		else
 		{
-			for (int i = 0; i < screen_width/32; i++)
+
+			for (int i = 0; i < 320 / 32; i++)
 			{
-				 
+
 #define DRAW_PIXEL_4 \
 	if (tsrc[(x_index >> 16) & width_mask]) \
-		*dst16++ = src16[(x_index >> 16) & width_mask]; \
-	else \
-		*dst16++ = 0x8000; \
+	{ \
+		*dsti = src16[(x_index >> 16) & width_mask]; \
+		*dstp = priority; \
+	} \
+	dsti++; \
+	dstp++; \
 	x_index += x_step;
 
 			
@@ -1072,12 +1082,10 @@ void tc0480scp_device::bg23_draw(screen_device &screen, bitmap_ind16 &bitmap, co
 				DRAW_PIXEL_4
 				DRAW_PIXEL_4
 
-
-
 			}
+
 		}
 
-		taitoic_drawscanline(bitmap, cliprect, 0, y, scanline, (flags & TILEMAP_DRAW_OPAQUE) ? 0 : 1, ROT0, screen.priority(), priority);
 
 		y_index += zoomy;
 	}
