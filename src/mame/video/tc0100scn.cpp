@@ -674,10 +674,29 @@ void tc0100scn_device::tilemap_draw_fg( screen_device &screen, bitmap_ind16 &bit
 
 bool tc0100scn_device::is_enabled(int layer)
 {
-	if (m_tilemap[layer][m_dblwidth]->enabled())
-		return true;
-	else
-		return false;
+	int disable = m_ctrl[6] & 0xf7;
+	if (layer == 0)
+	{
+		if (disable & 0x01)
+			return false;
+		else
+			return true;
+	}
+	else if (layer == 1)
+	{
+		if (disable & 0x02)
+			return false;
+		else
+			return true;
+	}
+	else if (layer == 2)
+	{
+		if (disable & 0x04)
+			return false;
+		else
+			return true;
+	}
+	return false;
 }
 
 int tc0100scn_device::tilemap_draw( screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int layer, int flags, UINT32 priority )
