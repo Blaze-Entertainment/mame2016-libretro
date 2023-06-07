@@ -67,12 +67,13 @@ public:
 
 	void postload();
 
+	bool is_enabled(int layer);
+
 protected:
 	// device-level overrides
 	virtual void device_start() override;
 	virtual void device_reset() override;
 
-private:
 	// internal state
 	UINT16       m_ctrl[8];
 

@@ -248,7 +248,7 @@ void asuka_state::device_timer(emu_timer &timer, device_timer_id id, int param, 
 
 INTERRUPT_GEN_MEMBER(asuka_state::cadash_interrupt)
 {
-	timer_set(downcast<cpu_device *>(&device)->cycles_to_attotime(500), TIMER_CADASH_INTERRUPT5);
+//	timer_set(downcast<cpu_device *>(&device)->cycles_to_attotime(50000), TIMER_CADASH_INTERRUPT5);
 	device.execute().set_input_line(4, HOLD_LINE);  /* interrupt vector 4 */
 }
 

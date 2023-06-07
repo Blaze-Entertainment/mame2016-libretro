@@ -31,7 +31,8 @@ UINT32 asuka_state::screen_update_asuka(screen_device &screen, bitmap_ind16 &bit
 	screen.priority().fill(0, cliprect);
 
 	/* Ensure screen blanked even when bottom layer not drawn due to disable bit */
-	bitmap.fill(0, cliprect);
+	if (!m_tc0100scn->is_enabled(layer[0]))
+		bitmap.fill(0, cliprect);
 
 	m_tc0100scn->tilemap_draw(screen, bitmap, cliprect, layer[0], TILEMAP_DRAW_OPAQUE, 1);
 	m_tc0100scn->tilemap_draw(screen, bitmap, cliprect, layer[1], 0, 2);
@@ -56,7 +57,8 @@ UINT32 asuka_state::screen_update_bonzeadv(screen_device &screen, bitmap_ind16 &
 	screen.priority().fill(0, cliprect);
 
 	/* Ensure screen blanked even when bottom layer not drawn due to disable bit */
-	bitmap.fill(0, cliprect);
+	if (!m_tc0100scn->is_enabled(layer[0]))
+		bitmap.fill(0, cliprect);
 
 	m_tc0100scn->tilemap_draw(screen, bitmap, cliprect, layer[0], TILEMAP_DRAW_OPAQUE, 1);
 	m_tc0100scn->tilemap_draw(screen, bitmap, cliprect, layer[1], 0, 2);
