@@ -97,8 +97,13 @@ READ16_MEMBER( tc0280grd_device::tc0280grd_word_r )
 
 WRITE16_MEMBER( tc0280grd_device::tc0280grd_word_w )
 {
+	UINT16 old = m_ram[offset];
 	COMBINE_DATA(&m_ram[offset]);
-	m_tilemap->mark_tile_dirty(offset);
+
+	if (old != m_ram[offset])
+	{
+		m_tilemap->mark_tile_dirty(offset);
+	}
 }
 
 WRITE16_MEMBER( tc0280grd_device::tc0280grd_ctrl_word_w )

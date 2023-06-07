@@ -463,28 +463,34 @@ READ16_MEMBER( tc0100scn_device::word_r )
 
 WRITE16_MEMBER( tc0100scn_device::word_w )
 {
+	UINT16 old = m_ram[offset];
+
 	COMBINE_DATA(&m_ram[offset]);
-	if (!m_dblwidth)
+
+	if (old != m_ram[offset])
 	{
-		if (offset < 0x2000)
-			m_tilemap[0][0]->mark_tile_dirty(offset / 2);
-		else if (offset < 0x3000)
-			m_tilemap[2][0]->mark_tile_dirty((offset & 0x0fff));
-		else if (offset < 0x3800)
-			m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x3000) / 8);
-		else if (offset >= 0x4000 && offset < 0x6000)
-			m_tilemap[1][0]->mark_tile_dirty((offset & 0x1fff) / 2);
-	}
-	else    /* Double-width tilemaps have a different memory map */
-	{
-		if (offset < 0x4000)
-			m_tilemap[0][1]->mark_tile_dirty(offset / 2);
-		else if (offset >= 0x4000 && offset < 0x8000)
-			m_tilemap[1][1]->mark_tile_dirty((offset & 0x3fff) / 2);
-		else if (offset >= 0x8800 && offset < 0x9000)
-			m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x8800) / 8);
-		else if (offset >= 0x9000)
-			m_tilemap[2][1]->mark_tile_dirty((offset & 0x0fff));
+		if (!m_dblwidth)
+		{
+			if (offset < 0x2000)
+				m_tilemap[0][0]->mark_tile_dirty(offset / 2);
+			else if (offset < 0x3000)
+				m_tilemap[2][0]->mark_tile_dirty((offset & 0x0fff));
+			else if (offset < 0x3800)
+				m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x3000) / 8);
+			else if (offset >= 0x4000 && offset < 0x6000)
+				m_tilemap[1][0]->mark_tile_dirty((offset & 0x1fff) / 2);
+		}
+		else    /* Double-width tilemaps have a different memory map */
+		{
+			if (offset < 0x4000)
+				m_tilemap[0][1]->mark_tile_dirty(offset / 2);
+			else if (offset >= 0x4000 && offset < 0x8000)
+				m_tilemap[1][1]->mark_tile_dirty((offset & 0x3fff) / 2);
+			else if (offset >= 0x8800 && offset < 0x9000)
+				m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x8800) / 8);
+			else if (offset >= 0x9000)
+				m_tilemap[2][1]->mark_tile_dirty((offset & 0x0fff));
+		}
 	}
 }
 
