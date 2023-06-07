@@ -356,7 +356,7 @@ static ADDRESS_MAP_START( cadash_map, AS_PROGRAM, 16, asuka_state )
 	AM_RANGE(0x0c0000, 0x0c0001) AM_READNOP AM_DEVWRITE8("tc0140syt", tc0140syt_device, master_port_w, 0x00ff)
 	AM_RANGE(0x0c0002, 0x0c0003) AM_DEVREADWRITE8("tc0140syt", tc0140syt_device, master_comm_r, master_comm_w, 0x00ff)
 	AM_RANGE(0x100000, 0x107fff) AM_RAM
-	AM_RANGE(0x800000, 0x800fff) AM_READWRITE(cadash_share_r,cadash_share_w)    /* network ram */
+	AM_RANGE(0x800000, 0x800fff) AM_RAM// AM_READWRITE(cadash_share_r,cadash_share_w)    /* network ram */
 	AM_RANGE(0x900000, 0x90000f) AM_DEVREADWRITE8("tc0220ioc", tc0220ioc_device, read, write, 0x00ff)
 	AM_RANGE(0xa00000, 0xa0000f) AM_DEVREADWRITE("tc0110pcr", tc0110pcr_device, word_r, step1_4bpg_word_w)
 	AM_RANGE(0xb00000, 0xb03fff) AM_DEVREADWRITE("pc090oj", pc090oj_device, word_r, word_w)  /* sprite ram */
@@ -434,7 +434,7 @@ communicates with m68k S with its own shared ram. In short:
 
 m68k M -> z180 M <-> z180 S <- m68k S
 */
-
+#if 0
 static ADDRESS_MAP_START( cadash_sub_map, AS_PROGRAM, 8, asuka_state )
 	AM_RANGE(0x0000, 0x7fff) AM_ROM
 	AM_RANGE(0x8000, 0x87ff) AM_RAM AM_SHARE("sharedram")
@@ -443,6 +443,7 @@ ADDRESS_MAP_END
 static ADDRESS_MAP_START( cadash_sub_io, AS_IO, 8, asuka_state )
 	AM_RANGE(0x00, 0x3f) AM_RAM // z180 internal I/O regs
 ADDRESS_MAP_END
+#endif
 
 /***********************************************************
              INPUT PORTS, DIPs
@@ -957,9 +958,9 @@ static MACHINE_CONFIG_START( cadash, asuka_state )
 	MCFG_CPU_ADD("audiocpu", Z80, XTAL_8MHz/2)  /* verified on pcb */
 	MCFG_CPU_PROGRAM_MAP(cadash_z80_map)
 
-	MCFG_CPU_ADD("subcpu", Z180, 4000000)   /* 4 MHz ??? */
-	MCFG_CPU_PROGRAM_MAP(cadash_sub_map)
-	MCFG_CPU_IO_MAP(cadash_sub_io)
+//	MCFG_CPU_ADD("subcpu", Z180, 4000000)   /* 4 MHz ??? */
+//	MCFG_CPU_PROGRAM_MAP(cadash_sub_map)
+//	MCFG_CPU_IO_MAP(cadash_sub_io)
 
 
 	MCFG_QUANTUM_TIME(attotime::from_hz(600))
