@@ -415,42 +415,47 @@ READ16_MEMBER( tc0480scp_device::word_r )
 
 WRITE16_MEMBER( tc0480scp_device::word_w )
 {
+	UINT16 old = m_ram[offset];
+
 	COMBINE_DATA(&m_ram[offset]);
 
-	if (!m_dblwidth)
+	if (old != m_ram[offset])
 	{
-		if (offset < 0x2000)
+		if (!m_dblwidth)
 		{
-			m_tilemap[(offset / 0x800)][m_dblwidth]->mark_tile_dirty(((offset % 0x800) / 2));
+			if (offset < 0x2000)
+			{
+				m_tilemap[(offset / 0x800)][m_dblwidth]->mark_tile_dirty(((offset % 0x800) / 2));
+			}
+			else if (offset < 0x6000)
+			{   /* do nothing */
+			}
+			else if (offset < 0x7000)
+			{
+				m_tilemap[4][m_dblwidth]->mark_tile_dirty((offset - 0x6000));
+			}
+			else if (offset <= 0x7fff)
+			{
+				m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x7000) / 16);
+			}
 		}
-		else if (offset < 0x6000)
-		{   /* do nothing */
-		}
-		else if (offset < 0x7000)
+		else
 		{
-			m_tilemap[4][m_dblwidth]->mark_tile_dirty((offset - 0x6000));
-		}
-		else if (offset <= 0x7fff)
-		{
-			m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x7000) / 16);
-		}
-	}
-	else
-	{
-		if (offset < 0x4000)
-		{
-			m_tilemap[(offset / 0x1000)][m_dblwidth]->mark_tile_dirty(((offset % 0x1000) / 2));
-		}
-		else if (offset < 0x6000)
-		{   /* do nothing */
-		}
-		else if (offset < 0x7000)
-		{
-			m_tilemap[4][m_dblwidth]->mark_tile_dirty((offset - 0x6000));
-		}
-		else if (offset <= 0x7fff)
-		{
-			m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x7000) / 16);
+			if (offset < 0x4000)
+			{
+				m_tilemap[(offset / 0x1000)][m_dblwidth]->mark_tile_dirty(((offset % 0x1000) / 2));
+			}
+			else if (offset < 0x6000)
+			{   /* do nothing */
+			}
+			else if (offset < 0x7000)
+			{
+				m_tilemap[4][m_dblwidth]->mark_tile_dirty((offset - 0x6000));
+			}
+			else if (offset <= 0x7fff)
+			{
+				m_gfxdecode->gfx(m_txnum)->mark_dirty((offset - 0x7000) / 16);
+			}
 		}
 	}
 }
