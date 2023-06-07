@@ -30,6 +30,7 @@ public:
 			m_sprite_extension(*this, "sprite_ext"),
 			m_spriteram(*this, "spriteram"),
 			m_cchip2_ram(*this, "cchip2_ram"),
+			m_palram(*this, "palram"),
 			m_maincpu(*this, "maincpu"),
 			m_audiocpu(*this, "audiocpu"),
 			m_oki(*this, "oki"),
@@ -53,6 +54,7 @@ public:
 	std::unique_ptr<UINT16[]>        m_spriteram_buffered;
 	std::unique_ptr<UINT16[]>        m_spriteram_delayed;
 	optional_shared_ptr<UINT16> m_cchip2_ram;           // for megablst only
+	optional_shared_ptr<UINT16> m_palram;
 
 	/* video-related */
 	std::unique_ptr<struct f2_tempsprite[]> m_spritelist;
@@ -112,6 +114,9 @@ public:
 	optional_device<tc0510nio_device> m_tc0510nio;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
+
+	DECLARE_WRITE16_MEMBER(pal_w);
+
 
 	DECLARE_WRITE16_MEMBER(growl_coin_word_w);
 	DECLARE_WRITE16_MEMBER(taitof2_4p_coin_word_w);
