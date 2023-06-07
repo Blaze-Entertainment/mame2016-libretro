@@ -3524,7 +3524,7 @@ void z80_device::execute_run()
 		m_after_ldair = FALSE;
 
 		PRVPC = PCD;
-		debugger_instruction_hook(this, PCD);
+		//debugger_instruction_hook(this, PCD);
 		m_r++;
 		EXEC(op,rop());
 	} while (m_icount > 0);
