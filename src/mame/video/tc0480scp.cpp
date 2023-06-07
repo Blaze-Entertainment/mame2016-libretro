@@ -760,21 +760,244 @@ void tc0480scp_device::bg01_draw( screen_device &screen, bitmap_ind16 &bitmap, c
 
 			if (flags & TILEMAP_DRAW_OPAQUE)
 			{
-				for (int i = 0; i < screen_width; i++)
+				for (int i = 0; i < screen_width/32; i++)
 				{
 					*dst16++ = src16[(x_index >> 16) & width_mask];
 					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+					x_index += x_step;
+
 				}
 			}
 			else
 			{
-				for (int i = 0; i < screen_width; i++)
+				for (int i = 0; i < screen_width/32; i++)
 				{
+					
 					if (tsrc[(x_index >> 16) & width_mask])
 						*dst16++ = src16[(x_index >> 16) & width_mask];
 					else
 						*dst16++ = 0x8000;
 					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+					if (tsrc[(x_index >> 16) & width_mask])
+						*dst16++ = src16[(x_index >> 16) & width_mask];
+					else
+						*dst16++ = 0x8000;
+					x_index += x_step;
+
+
+
+
 				}
 			}
 
@@ -906,21 +1129,241 @@ void tc0480scp_device::bg23_draw(screen_device &screen, bitmap_ind16 &bitmap, co
 
 		if (flags & TILEMAP_DRAW_OPAQUE)
 		{
-			for (int i = 0; i < screen_width; i++)
+			for (int i = 0; i < screen_width/32; i++)
 			{
 				*dst16++ = src16[(x_index >> 16) & width_mask];
 				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+				*dst16++ = src16[(x_index >> 16) & width_mask];
+				x_index += x_step;
+
+
 			}
 		}
 		else
 		{
-			for (int i = 0; i < screen_width; i++)
+			for (int i = 0; i < screen_width/32; i++)
 			{
 				if (tsrc[(x_index >> 16) & width_mask])
 					*dst16++ = src16[(x_index >> 16) & width_mask];
 				else
 					*dst16++ = 0x8000;
 				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+				if (tsrc[(x_index >> 16) & width_mask])
+					*dst16++ = src16[(x_index >> 16) & width_mask];
+				else
+					*dst16++ = 0x8000;
+				x_index += x_step;
+
 			}
 		}
 
