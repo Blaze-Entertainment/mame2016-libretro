@@ -300,8 +300,8 @@ READ8_MEMBER(bublbobl_state::bublbobl_super_mode_r)
 
 	//printf("bublbobl_super_mode_r pc is %04x\n", pc);
 
-	if (pc == 0xaba8)
-		m_share1[0x05db] = 0x01;
+	//if (pc == 0xaba8)
+	//	m_share1[0x05db] = 0x01;
 
 	return m_share1[0x05db];
 }
