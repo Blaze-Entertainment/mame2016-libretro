@@ -200,6 +200,10 @@
 #include "sound/ay8910.h"
 #include "sound/speaker.h"
 #include "includes/8080bw.h"
+#include "sound/2203intf.h"
+#include "sound/2610intf.h"
+#include "sound/okim6295.h"
+#include "includes/taito_b.h"
 
 #include "attackfc.lh"
 #include "cosmicm.lh"
@@ -369,13 +373,14 @@ INPUT_PORTS_END
 /*                                                     */
 /*******************************************************/
 
+
 static ADDRESS_MAP_START( invadpt2_io_map, AS_IO, 8, _8080bw_state )
 	AM_RANGE(0x00, 0x00) AM_READ_PORT("IN0")
 	AM_RANGE(0x01, 0x01) AM_READ_PORT("IN1")
 	AM_RANGE(0x02, 0x02) AM_READ_PORT("IN2") AM_DEVWRITE("mb14241", mb14241_device, shift_count_w)
-	AM_RANGE(0x03, 0x03) AM_DEVREAD("mb14241", mb14241_device, shift_result_r) AM_WRITE(invaders_audio_1_w)
+	AM_RANGE(0x03, 0x03) AM_DEVREAD("mb14241", mb14241_device, shift_result_r) AM_WRITE(invaders_hack_audio_1_w)
 	AM_RANGE(0x04, 0x04) AM_DEVWRITE("mb14241", mb14241_device, shift_data_w)
-	AM_RANGE(0x05, 0x05) AM_WRITE(invaders_audio_2_w)
+	AM_RANGE(0x05, 0x05) AM_WRITE(invaders_hack_audio_2_w)
 	AM_RANGE(0x06, 0x06) AM_DEVWRITE("watchdog", watchdog_timer_device, reset_w)
 ADDRESS_MAP_END
 
@@ -402,6 +407,23 @@ static INPUT_PORTS_START( invadpt2 )
 	PORT_DIPSETTING(    0x00, DEF_STR( Off ) )
 	PORT_DIPSETTING(    0x08, DEF_STR( On ) )
 INPUT_PORTS_END
+
+
+static const char *const invaders2_sample_names[] =
+{
+	"*invaders",
+	"1",        /* shot/missle */
+	"2",        /* base hit/explosion */
+	"3",        /* invader hit */
+	"4",        /* fleet move 1 */
+	"5",        /* fleet move 2 */
+	"6",        /* fleet move 3 */
+	"7",        /* fleet move 4 */
+	"8",        /* UFO/saucer hit */
+	"9",        /* bonus base */
+	nullptr
+};
+
 
 
 /* same as regular invaders, but with a color board added */
@@ -431,7 +453,63 @@ static MACHINE_CONFIG_DERIVED_CLASS( invadpt2, mw8080bw_root, _8080bw_state )
 	/* audio hardware */
 	MCFG_FRAGMENT_ADD(invaders_audio)
 
+	MCFG_SOUND_START_OVERRIDE(mw8080bw_state, samples)
+	MCFG_SOUND_ADD("samples", SAMPLES, 0)
+	MCFG_SAMPLES_CHANNELS(6)
+	MCFG_SAMPLES_NAMES(invaders2_sample_names)
+	MCFG_SOUND_ROUTE(ALL_OUTPUTS, "mono", 1.0)
+
+
 MACHINE_CONFIG_END
+
+
+WRITE8_MEMBER(_8080bw_state::bankswitch_w)
+{
+	membank("bank1")->set_entry(data & 3);
+}
+
+
+static ADDRESS_MAP_START( sound_dxmap, AS_PROGRAM, 8, _8080bw_state )
+	AM_RANGE(0x0000, 0x3fff) AM_ROM
+	AM_RANGE(0x4000, 0x7fff) AM_ROMBANK("bank1")
+	AM_RANGE(0xc000, 0xdfff) AM_RAM
+	AM_RANGE(0xe000, 0xe003) AM_DEVREADWRITE("ymsnd", ym2610_device, read, write)
+	AM_RANGE(0xe200, 0xe200) AM_READNOP AM_DEVWRITE("tc0140syt", tc0140syt_device, slave_port_w)
+	AM_RANGE(0xe201, 0xe201) AM_DEVREADWRITE("tc0140syt", tc0140syt_device, slave_comm_r, slave_comm_w)
+	AM_RANGE(0xe400, 0xe403) AM_WRITENOP /* pan */
+	AM_RANGE(0xe600, 0xe600) AM_WRITENOP /* ? */
+	AM_RANGE(0xea00, 0xea00) AM_READNOP
+	AM_RANGE(0xee00, 0xee00) AM_WRITENOP /* ? */
+	AM_RANGE(0xf000, 0xf000) AM_WRITENOP /* ? */
+	AM_RANGE(0xf200, 0xf200) AM_WRITE(bankswitch_w)
+ADDRESS_MAP_END
+
+WRITE_LINE_MEMBER(_8080bw_state::irqhandler)
+{
+	m_audiocpu->set_input_line(0, state ? ASSERT_LINE : CLEAR_LINE);
+}
+
+
+static MACHINE_CONFIG_DERIVED_CLASS( invadpt2_sicv, invadpt2, _8080bw_state )
+
+	MCFG_CPU_ADD("audiocpu", Z80, XTAL_16MHz/4)  /* 4 MHz */
+	MCFG_CPU_PROGRAM_MAP(sound_dxmap)
+
+	MCFG_QUANTUM_TIME(attotime::from_hz(600))
+	
+	MCFG_SOUND_ADD("ymsnd", YM2610, XTAL_16MHz/2)  /* 8 MHz */
+	MCFG_YM2610_IRQ_HANDLER(WRITELINE(_8080bw_state, irqhandler))
+	MCFG_SOUND_ROUTE(0, "mono", 0.25)
+	MCFG_SOUND_ROUTE(1, "mono", 1.0)
+	MCFG_SOUND_ROUTE(2, "mono", 1.0)
+
+
+	MCFG_DEVICE_ADD("tc0140syt", TC0140SYT, 0)
+	MCFG_TC0140SYT_MASTER_CPU("maincpu")
+	MCFG_TC0140SYT_SLAVE_CPU("audiocpu")
+MACHINE_CONFIG_END
+
+
 
 
 
@@ -3492,6 +3570,12 @@ ROM_START( sicv ) // likely not the first sicv version...
 	ROM_LOAD( "cv19.34",     0x1000, 0x0800, CRC(d202b41c) SHA1(868fe938ef768655c894ec95b7d9a81bf21f69ca) )
 	ROM_LOAD( "cv20.33",     0x1800, 0x0800, CRC(c74ee7b6) SHA1(4f52db274a2d4433ab67c099ee805e8eb8516c0f) )
 
+	ROM_REGION( 0x10000, "audiocpu", 0 )
+	ROM_LOAD( "audio", 0x00000, 0x10000, CRC(ba606462) SHA1(486f06d7bfb4a4197964f3d4a48f2673205501bb) )
+
+	ROM_REGION( 0x80000, "ymsnd", 0 )
+	ROM_LOAD( "samples", 0x00000, 0x80000, CRC(ae9690dd) SHA1(9f527cb566bf849d9204a9aad3ea695f6b7c6be3) )
+
 	ROM_REGION( 0x0800, "proms", 0 )        /* color maps player 1/player 2 */
 	ROM_LOAD( "cv01.1",      0x0000, 0x0400, CRC(037e16ac) SHA1(d585030aaff428330c91ae94d7cd5c96ebdd67dd) )
 	ROM_LOAD( "cv02.2",      0x0400, 0x0400, CRC(8263da38) SHA1(2e7c769d129e6f8a1a31eba1e02777bb94ac32b2) )
@@ -4723,16 +4807,41 @@ ROM_START( attackfc )
 ROM_END
 
 
+DRIVER_INIT_MEMBER(_8080bw_state,sicv)
+{
+	membank("bank1")->configure_entries(0, 4, memregion("audiocpu")->base(), 0x4000);
+
+	{
+		UINT8* base = memregion("audiocpu")->base();
+		for (int i = 0; i < 0x10000; i++)
+		{
+			base[i] ^= 0x55;
+		}
+	}
+
+	{
+		UINT8* base = memregion("ymsnd")->base();
+		for (int i = 0; i < 0x80000; i++)
+		{
+			base[i] ^= 0xaa;
+		}
+	}
+}
+
+
 /* board #  rom         parent    machine    inp        init              monitor, .. */
 
 // Taito games (+clones), starting with Space Invaders
+/*
 GAME( 1978, sisv1,      invaders, invaders,  sitv,      driver_device, 0, ROT270, "Taito", "Space Invaders (SV Version rev 1)", MACHINE_NOT_WORKING | MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
 GAME( 1978, sisv2,      invaders, invaders,  sitv,      driver_device, 0, ROT270, "Taito", "Space Invaders (SV Version rev 2)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
 GAME( 1978, sisv3,      invaders, invaders,  sitv,      driver_device, 0, ROT270, "Taito", "Space Invaders (SV Version rev 3)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
 GAME( 1978, sisv,       invaders, invaders,  sitv,      driver_device, 0, ROT270, "Taito", "Space Invaders (SV Version rev 4)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
 GAMEL(1978, sitv1,      invaders, invaders,  sitv,      driver_device, 0, ROT270, "Taito", "Space Invaders (TV Version rev 1)", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAMEL(1978, sitv,       invaders, invaders,  sitv,      driver_device, 0, ROT270, "Taito", "Space Invaders (TV Version rev 2)", MACHINE_SUPPORTS_SAVE, layout_invaders )
-GAME( 1979, sicv,       invaders, invadpt2,  sicv,      driver_device, 0, ROT270, "Taito", "Space Invaders (CV Version)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
+*/
+GAME( 1979, sicv,       0, invadpt2_sicv,  sicv,      _8080bw_state, sicv, ROT270, "Taito", "Space Invaders (CV Version)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE )
+/*
 GAMEL(1978, invadrmr,   invaders, invaders,  invadrmr,  driver_device, 0, ROT270, "Taito / Model Racing", "Space Invaders (Model Racing)", MACHINE_SUPPORTS_SAVE, layout_invaders ) // unclassified, licensed or bootleg?
 GAMEL(1978, invaderl,   invaders, invaders,  sicv,      driver_device, 0, ROT270, "Taito / Logitec", "Space Invaders (Logitec)", MACHINE_SUPPORTS_SAVE, layout_invaders ) // unclassified, licensed or bootleg?
 GAMEL(1978, spcewars,   invaders, spcewars,  spcewars,  driver_device, 0, ROT270, "Taito / Sanritsu", "Space War (Sanritsu)", MACHINE_IMPERFECT_SOUND | MACHINE_SUPPORTS_SAVE, layout_invaders ) // unclassified, licensed or bootleg?
@@ -4767,6 +4876,7 @@ GAMEL(1978, spacewr3,   invaders, spcewars,  sicv,      driver_device, 0, ROT270
 GAMEL(1978, invader4,   invaders, invaders,  sicv,      driver_device, 0, ROT270, "bootleg", "Space Invaders Part Four", MACHINE_SUPPORTS_SAVE, layout_invaders )
 GAME( 1978, darthvdr,   invaders, darthvdr,  darthvdr,  driver_device, 0, ROT270, "bootleg", "Darth Vader (bootleg of Space Invaders)", MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND )
 GAMEL(19??, tst_invd,   invaders, invaders,  sicv,      driver_device, 0, ROT0,   "<unknown>", "Space Invaders Test ROM", MACHINE_SUPPORTS_SAVE, layout_invaders )
+*/
 
 // other Taito
 GAME( 1979, invadpt2,   0,        invadpt2,  invadpt2,  driver_device, 0, ROT270, "Taito", "Space Invaders Part II (Taito)", MACHINE_SUPPORTS_SAVE | MACHINE_IMPERFECT_SOUND )

@@ -106,117 +106,118 @@ rugby                           // (c) 1999 C.M.C.
 @source:68ksbc.cpp
 68ksbc                          //
 
+
 @source:8080bw.cpp
-alieninv                        // Margamatics
-alieninvp2                      // bootleg
-astropal                        // (c) 19?? Sidam
-attackfc                        // (c) 1979? E.G.S.
-ballbomb                        // TN  (c) 1980 Taito
-claybust                        // (c) 1978 Model Racing
-cosmicm2                        // Universal
-cosmicmo                        // Universal
-cosmo                           // TDS & Mints
-darthvdr                        // bootleg
-desterth                        // bootleg
-galactic                        // (c) 19?? Taito
-galmonst                        // (c) Laguna S.A.
-galxwars                        // (c) 1979 Universal
-galxwars2                       // (c) 1979 Universal
-galxwarst                       // (c) 1979 Taito?
-grescue                         // bootleg?
-gunchamp                        // (c) 1980 Model Racing
-indianbt                        // (c) 1980 Taito
-indianbtbr                      // (c) 1983 Taito do Brasil
-intruder                        // (c) 1980 GamePlan (Taito)
-invaddlx                        // 852 [1980] Midway
-invader4                        // bootleg
-invaderl                        // bootleg
-invadersem                      // Electromar
-invadpt2                        // 852 [1980] Taito
-invadpt2br                      // Taito do Brasil
-invadrmr                        // (c) 1978 Model Racing
-invasion                        // Sidam
-invasiona                       // bootleg
-invasionb                       // bootleg
-invasionrz                      // bootleg
-invasionrza                     // bootleg
-invmulti                        // hack
-invmultim1a                     // hack
-invmultim2a                     // hack
-invmultim2c                     // hack
-invmultim3a                     // hack
-invmultip                       // hack
-invmultis1a                     // hack
-invmultis2a                     // hack
-invmultis3a                     // hack
-invmultit3d                     // hack
-invrvnge                        // Zenitone-Microsec Ltd.
-invrvngea                       // Zenitone-Microsec Ltd.
-invrvngeb                       // Zenitone-Microsec Ltd.
-invrvngedu                      // Zenitone-Microsec Ltd. (Dutchford license)
-invrvngegw                      // Zenitone-Microsec Ltd. (Game World license)
-jspecter                        // (c) 1979 Jatre
-jspecter2                       // (c) 1979 Jatre
-laser                           // (c) 1980 Leisure Time Electronics Inc.
-lrescue                         // LR  (c) 1979 Taito
-lrescuem                        // Model Racing bootleg set 1
-lrescuem2                       // Model Racing bootleg set 2
-lupin3                          // LP  (c) 1980 Taito
-lupin3a                         // LP  (c) 1980 Taito
-mlander                         // (c) 1980 Leisure Time Electronics
-moonbase                        // Taito
-moonbasea                       // Zeta - Nichibutsu
-ozmawars                        // Shin Nihon Kikaku (SNK)
-ozmawars2                       // Shin Nihon Kikaku (SNK)
-polaris                         // PS  (c) 1980 Taito
-polarisa                        // PS  (c) 1980 Taito
-polarisbr                       // PS  (c) 1981 Taito do Brasil
-polariso                        // PS  (c) 1980 Taito
-rollingc                        // Nichibutsu
-schaser                         // RT  Taito
-schasera                        // RT  Taito
-schaserb                        // RT  Taito
-schaserc                        // RT  Taito
-schasercv                       // RT  Taito
-schaserm                        // Model Racing
-searthie                        // bootleg
-searthin                        // bootleg
-searthina                       // bootleg
-sflush                          // (c)1979 Taito
-shuttlei                        // (c) 1979 Omori (Arcade Tv Game List - P.79, Left, 6 from bottom)
+//alieninv                        // Margamatics
+//alieninvp2                      // bootleg
+//astropal                        // (c) 19?? Sidam
+//attackfc                        // (c) 1979? E.G.S.
+//ballbomb                        // TN  (c) 1980 Taito
+//claybust                        // (c) 1978 Model Racing
+//cosmicm2                        // Universal
+//cosmicmo                        // Universal
+//cosmo                           // TDS & Mints
+//darthvdr                        // bootleg
+//desterth                        // bootleg
+//galactic                        // (c) 19?? Taito
+//galmonst                        // (c) Laguna S.A.
+//galxwars                        // (c) 1979 Universal
+//galxwars2                       // (c) 1979 Universal
+//galxwarst                       // (c) 1979 Taito?
+//grescue                         // bootleg?
+//gunchamp                        // (c) 1980 Model Racing
+//indianbt                        // (c) 1980 Taito
+//indianbtbr                      // (c) 1983 Taito do Brasil
+//intruder                        // (c) 1980 GamePlan (Taito)
+//invaddlx                        // 852 [1980] Midway
+//invader4                        // bootleg
+//invaderl                        // bootleg
+//invadersem                      // Electromar
+//invadpt2                        // 852 [1980] Taito
+//invadpt2br                      // Taito do Brasil
+//invadrmr                        // (c) 1978 Model Racing
+//invasion                        // Sidam
+//invasiona                       // bootleg
+//invasionb                       // bootleg
+//invasionrz                      // bootleg
+//invasionrza                     // bootleg
+//invmulti                        // hack
+//invmultim1a                     // hack
+//invmultim2a                     // hack
+//invmultim2c                     // hack
+//invmultim3a                     // hack
+//invmultip                       // hack
+//invmultis1a                     // hack
+//invmultis2a                     // hack
+//invmultis3a                     // hack
+//invmultit3d                     // hack
+//invrvnge                        // Zenitone-Microsec Ltd.
+//invrvngea                       // Zenitone-Microsec Ltd.
+//invrvngeb                       // Zenitone-Microsec Ltd.
+//invrvngedu                      // Zenitone-Microsec Ltd. (Dutchford license)
+//invrvngegw                      // Zenitone-Microsec Ltd. (Game World license)
+//jspecter                        // (c) 1979 Jatre
+//jspecter2                       // (c) 1979 Jatre
+//laser                           // (c) 1980 Leisure Time Electronics Inc.
+//lrescue                         // LR  (c) 1979 Taito
+//lrescuem                        // Model Racing bootleg set 1
+//lrescuem2                       // Model Racing bootleg set 2
+//lupin3                          // LP  (c) 1980 Taito
+//lupin3a                         // LP  (c) 1980 Taito
+//mlander                         // (c) 1980 Leisure Time Electronics
+//moonbase                        // Taito
+//moonbasea                       // Zeta - Nichibutsu
+//ozmawars                        // Shin Nihon Kikaku (SNK)
+//ozmawars2                       // Shin Nihon Kikaku (SNK)
+//polaris                         // PS  (c) 1980 Taito
+//polarisa                        // PS  (c) 1980 Taito
+//polarisbr                       // PS  (c) 1981 Taito do Brasil
+//polariso                        // PS  (c) 1980 Taito
+//rollingc                        // Nichibutsu
+//schaser                         // RT  Taito
+//schasera                        // RT  Taito
+//schaserb                        // RT  Taito
+//schaserc                        // RT  Taito
+//schasercv                       // RT  Taito
+//schaserm                        // Model Racing
+//searthie                        // bootleg
+//searthin                        // bootleg
+//searthina                       // bootleg
+//sflush                          // (c)1979 Taito
+//shuttlei                        // (c) 1979 Omori (Arcade Tv Game List - P.79, Left, 6 from bottom)
 sicv                            // (c) 1979 Taito
-sinvemag                        // Zenitone-Microsec Ltd.
-sinvzen                         // Zenitone-Microsec Ltd
-sisv                            // (c) 1978 Taito
-sisv1                           // (c) 1978 Taito
-sisv2                           // (c) 1978 Taito
-sisv3                           // (c) 1978 Taito
-sitv                            // (c) 1978 Taito
-sitv1                           // (c) 1978 Taito
-skylove                         // (c) 1979 Omori
-solfight                        // bootleg
-spaceat2                        // (c) 1980 Zenitone-Microsec Ltd
-spaceatt                        // (c) 1978 Video Games GmbH
-spaceatt2k                      // (c) 1978 Video Games GmbH
-spaceattbp                      // (c) 1978 Video Games GmbH
-spacecom                        // bootleg
-spaceph                         // Zilec Games
-spacerng                        // bootleg
-spacewr3                        // bootleg
-spacmiss                        // bootleg?
-spceking                        // (c) 1978 Leijac Corporation (Konami)
-spcewarl                        // (c) 1979 Leijac Corporation (Konami)
-spcewars                        // (c) 1978 Sanritsu
-spclaser                        // (c) 1980 GamePlan (Taito)
-starw                           // bootleg
-starw1                          // bootleg
-steelwkr                        // (c) 1980 Taito
-superinv                        // bootleg
-tst_invd                        // Test ROM
-ultrainv                        //
-vortex                          // 852 [1980] Zilec Electronics Ltd.
-yosakdon                        // (c) 1979 Yosaku To Donbei
-yosakdona                       // (c) 1979 Yosaku To Donbei
+//sinvemag                        // Zenitone-Microsec Ltd.
+//sinvzen                         // Zenitone-Microsec Ltd
+//sisv                            // (c) 1978 Taito
+//sisv1                           // (c) 1978 Taito
+//sisv2                           // (c) 1978 Taito
+//sisv3                           // (c) 1978 Taito
+//sitv                            // (c) 1978 Taito
+//sitv1                           // (c) 1978 Taito
+//skylove                         // (c) 1979 Omori
+//solfight                        // bootleg
+//spaceat2                        // (c) 1980 Zenitone-Microsec Ltd
+//spaceatt                        // (c) 1978 Video Games GmbH
+//spaceatt2k                      // (c) 1978 Video Games GmbH
+//spaceattbp                      // (c) 1978 Video Games GmbH
+//spacecom                        // bootleg
+//spaceph                         // Zilec Games
+//spacerng                        // bootleg
+//spacewr3                        // bootleg
+//spacmiss                        // bootleg?
+//spceking                        // (c) 1978 Leijac Corporation (Konami)
+//spcewarl                        // (c) 1979 Leijac Corporation (Konami)
+//spcewars                        // (c) 1978 Sanritsu
+//spclaser                        // (c) 1980 GamePlan (Taito)
+//starw                           // bootleg
+//starw1                          // bootleg
+//steelwkr                        // (c) 1980 Taito
+//superinv                        // bootleg
+//tst_invd                        // Test ROM
+//ultrainv                        //
+//vortex                          // 852 [1980] Zilec Electronics Ltd.
+//yosakdon                        // (c) 1979 Yosaku To Donbei
+//yosakdona                       // (c) 1979 Yosaku To Donbei
 
 @source:88games.cpp
 88games                         // GX861 (c) 1988
@@ -27363,7 +27364,7 @@ gmissile                        // 623 [1977]
 gunfight                        // 597 [1975]
 gunfighto                       // 597 [1975]
 invad2ct                        // 851 (c) 1980 Midway
-invaders                        // 739 [1979]
+//invaders                        // 739 [1979]
 lagunar                         // 622 [1977]
 m4                              // 626 [1977]
 maze                            // 611 [1976]

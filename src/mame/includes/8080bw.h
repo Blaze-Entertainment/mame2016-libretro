@@ -8,6 +8,11 @@
 ****************************************************************************/
 
 #include "includes/mw8080bw.h"
+
+#include "cpu/z80/z80.h"
+
+#include "audio/taitosnd.h"
+
 #include "sound/sn76477.h"
 #include "sound/speaker.h"
 #include "machine/eepromser.h"
@@ -27,7 +32,10 @@ public:
 		m_eeprom(*this, "eeprom"),
 		m_sn(*this, "snsnd"),
 		m_screen(*this, "screen"),
-		m_palette(*this, "palette")
+		m_palette(*this, "palette"),
+		m_audiocpu(*this, "audiocpu"),
+		m_tsys(*this, "tc0140syt")
+
 	{ }
 
 	/* devices/memory pointers */
@@ -39,6 +47,8 @@ public:
 	optional_device<sn76477_device> m_sn;
 	required_device<screen_device> m_screen;
 	optional_device<palette_device> m_palette;
+	optional_device<cpu_device> m_audiocpu;
+	optional_device<tc0140syt_device> m_tsys;
 
 	/* misc game specific */
 	UINT8 m_color_map;
@@ -56,9 +66,19 @@ public:
 	UINT8 m_schaser_background_select;
 	UINT16 m_claybust_gun_pos;
 
+
+	DECLARE_WRITE8_MEMBER(invaders_hack_audio_1_w);
+	DECLARE_WRITE8_MEMBER(invaders_hack_audio_2_w);
+
+
+
 	DECLARE_CUSTOM_INPUT_MEMBER(sflush_80_r);
 	DECLARE_INPUT_CHANGED_MEMBER(claybust_gun_trigger);
 	DECLARE_CUSTOM_INPUT_MEMBER(claybust_gun_on_r);
+	
+	DECLARE_WRITE8_MEMBER(bankswitch_w);
+	DECLARE_WRITE_LINE_MEMBER(irqhandler);
+	DECLARE_DRIVER_INIT(sicv);
 
 	DECLARE_READ8_MEMBER(indianbt_r);
 	DECLARE_READ8_MEMBER(polaris_port00_r);
