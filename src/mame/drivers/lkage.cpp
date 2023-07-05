@@ -159,7 +159,15 @@ READ8_MEMBER(lkage_state::lkage_flash_col1_r)
 
 		if (pc == 0x03d7)
 		{
-			return 0x28;
+			if (m_cooldown == 0)
+			{
+				m_cooldown = 20;
+				return 0x28;
+			}
+			else
+			{
+				return 0x25;
+			}
 		}
 
 	}
@@ -180,7 +188,13 @@ READ8_MEMBER(lkage_state::lkage_flash_col2_r)
 
 		if (pc == 0x03d7)
 		{
-			return 0x00;
+			if (m_cooldown == 0)
+				return 0x00;
+			else
+			{
+				m_cooldown--;
+				return 0x00;
+			}
 		}
 
 	}
@@ -569,11 +583,13 @@ void lkage_state::machine_start()
 	save_item(NAME(m_main_sent));
 	save_item(NAME(m_from_main));
 	save_item(NAME(m_from_mcu));
+	save_item(NAME(m_cooldown));
 }
 
 void lkage_state::machine_reset()
 {
 	m_bg_tile_bank = m_fg_tile_bank = m_tx_tile_bank =0;
+	m_cooldown = 0;
 
 	m_mcu_ready = 3;
 	m_mcu_val = 0;

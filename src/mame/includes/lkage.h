@@ -31,6 +31,8 @@ public:
 
 	int m_sprite_dx;
 
+	int m_cooldown;
+
 	/* misc */
 	int m_sound_nmi_enable;
 	int m_pending_nmi;
