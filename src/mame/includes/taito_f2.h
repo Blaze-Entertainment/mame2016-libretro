@@ -140,6 +140,18 @@ public:
 	DECLARE_DRIVER_INIT(cameltry);
 	DECLARE_DRIVER_INIT(mjnquest);
 	DECLARE_DRIVER_INIT(finalb);
+
+	DECLARE_DRIVER_INIT(dondokod);
+	DECLARE_DRIVER_INIT(growl);
+	DECLARE_DRIVER_INIT(footchmp);
+	DECLARE_DRIVER_INIT(thundfox);
+
+	DECLARE_READ16_MEMBER(ddd_string_r);
+	DECLARE_READ16_MEMBER(growl_string_r);
+	DECLARE_READ16_MEMBER(footchmp_string_r);
+
+
+
 	DECLARE_MACHINE_START(f2);
 	DECLARE_VIDEO_START(taitof2_default);
 	DECLARE_MACHINE_START(common);

@@ -5590,11 +5590,72 @@ DRIVER_INIT_MEMBER(taitof2_state,driveout)
 }
 
 
+
+READ16_MEMBER(taitof2_state::ddd_string_r)
+{
+	int pc =  m_maincpu->state_int(SIMPLETOAPLAN_M68K_PC);
+	int a4 = m_maincpu->state_int(SIMPLETOAPLAN_M68K_A4);
+
+//	printf("pc is %08x\n", pc);
+//	printf("a4 is %08x\n\n", a4);
+
+	if (pc == 0x109e)
+	{
+		if (a4 == 0xcc5)
+		{
+			m_maincpu->set_state_int(SIMPLETOAPLAN_M68K_A4, 0xce7);
+		}
+		else
+		{
+		//	printf("bloo %04x\n", a4);
+		}
+
+		return 0x4f20;
+
+	}
+
+	return 0x3120;
+}
+
+READ16_MEMBER(taitof2_state::growl_string_r)
+{
+	int pc = m_maincpu->pc();
+	printf("pc is %08x\n", pc);
+	return -1;
+}
+
+READ16_MEMBER(taitof2_state::footchmp_string_r)
+{
+	int pc = m_maincpu->pc();
+	printf("pc is %08x\n", pc);
+	return -1;
+}
+
+
+DRIVER_INIT_MEMBER(taitof2_state,dondokod)
+{
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xcc4, 0xcc5, read16_delegate(FUNC(taitof2_state::ddd_string_r), this) );
+}
+
+DRIVER_INIT_MEMBER(taitof2_state,growl)
+{
+}
+
+DRIVER_INIT_MEMBER(taitof2_state,footchmp)
+{
+}
+
+DRIVER_INIT_MEMBER(taitof2_state,thundfox)
+{
+}
+
+
+
 GAME( 1988, finalb,     0,        finalb,    finalb, taitof2_state,    finalb,   ROT0,   "Taito Corporation Japan",   "Final Blow (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1988, finalbu,    finalb,   finalb,    finalbu, taitof2_state,   finalb,   ROT0,   "Taito America Corporation", "Final Blow (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1988, finalbj,    finalb,   finalb,    finalbj, taitof2_state,   finalb,   ROT0,   "Taito Corporation",         "Final Blow (Japan)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1989, dondokod,   0,        dondokod,  dondokod, driver_device,  0,        ROT0,   "Taito Corporation Japan",   "Don Doko Don (World)", MACHINE_SUPPORTS_SAVE )
+GAME( 1989, dondokod,   0,        dondokod,  dondokod, taitof2_state,  dondokod,        ROT0,   "Taito Corporation Japan",   "Don Doko Don (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, dondokodu,  dondokod, dondokod,  dondokodu, driver_device, 0,        ROT0,   "Taito America Corporation", "Don Doko Don (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, dondokodj,  dondokod, dondokod,  dondokodj, driver_device, 0,        ROT0,   "Taito Corporation",         "Don Doko Don (Japan)", MACHINE_SUPPORTS_SAVE )
 
@@ -5602,7 +5663,7 @@ GAME( 1989, megablst,   0,        megab,     megab, driver_device,     0,       
 GAME( 1989, megablstu,  megablst, megab,     megabu, driver_device,    0,        ROT0,   "Taito America Corporation", "Mega Blast (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1989, megablstj,  megablst, megab,     megabj, driver_device,    0,        ROT0,   "Taito Corporation",         "Mega Blast (Japan)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1990, thundfox,   0,        thundfox,  thundfox, driver_device,  0,        ROT0,   "Taito Corporation Japan",   "Thunder Fox (World)", MACHINE_SUPPORTS_SAVE )
+GAME( 1990, thundfox,   0,        thundfox,  thundfox, taitof2_state,  thundfox,        ROT0,   "Taito Corporation Japan",   "Thunder Fox (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, thundfoxu,  thundfox, thundfox,  thundfoxu, driver_device, 0,        ROT0,   "Taito America Corporation", "Thunder Fox (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, thundfoxj,  thundfox, thundfox,  thundfoxj, driver_device, 0,        ROT0,   "Taito Corporation",         "Thunder Fox (Japan)", MACHINE_SUPPORTS_SAVE )
 
@@ -5627,7 +5688,7 @@ GAME( 1990, majest12j,  ssi,      ssi,       majest12j, driver_device, 0,       
 GAME( 1990, gunfront,   0,        gunfront,  gunfront, driver_device,  0,        ROT270, "Taito Corporation Japan",   "Gun & Frontier (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, gunfrontj,  gunfront, gunfront,  gunfrontj, driver_device, 0,        ROT270, "Taito Corporation",         "Gun Frontier (Japan)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1990, growl,      0,        growl,     growl, driver_device,     0,        ROT0,   "Taito Corporation Japan",   "Growl (World, Rev 1)", MACHINE_SUPPORTS_SAVE )
+GAME( 1990, growl,      0,        growl,     growl, taitof2_state,     growl,        ROT0,   "Taito Corporation Japan",   "Growl (World, Rev 1)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, growla,     growl,    growl,     growl, driver_device,     0,        ROT0,   "Taito Corporation Japan",   "Growl (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, growlu,     growl,    growl,     growlu, driver_device,    0,        ROT0,   "Taito America Corporation", "Growl (US)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, runark,     growl,    growl,     runark, driver_device,    0,        ROT0,   "Taito Corporation",         "Runark (Japan)", MACHINE_SUPPORTS_SAVE )
@@ -5637,7 +5698,7 @@ GAME( 1990, growlp,     growl,    growl,     growl, driver_device,     0,       
 GAME( 1990, mjnquest,   0,        mjnquest,  mjnquest, taitof2_state,  mjnquest, ROT0,   "Taito Corporation",         "Mahjong Quest (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, mjnquestb,  mjnquest, mjnquest,  mjnquest, taitof2_state,  mjnquest, ROT0,   "Taito Corporation",         "Mahjong Quest (No Nudity)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1990, footchmp,   0,        footchmp,  footchmp, driver_device,  0,        ROT0,   "Taito Corporation Japan",   "Football Champ (World)", MACHINE_SUPPORTS_SAVE )
+GAME( 1990, footchmp,   0,        footchmp,  footchmp, taitof2_state,  footchmp,        ROT0,   "Taito Corporation Japan",   "Football Champ (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1990, hthero,     footchmp, hthero,    hthero, driver_device,    0,        ROT0,   "Taito Corporation",         "Hat Trick Hero (Japan)", MACHINE_SUPPORTS_SAVE )
 GAME( 1992, euroch92,   footchmp, footchmp,  footchmp, driver_device,  0,        ROT0,   "Taito Corporation Japan",   "Euro Champ '92 (World)", MACHINE_SUPPORTS_SAVE )
 GAME( 1992, footchmpbl, footchmp, footchmpbl,footchmpbl, driver_device,0,        ROT0,   "bootleg",                   "Football Champ (World) (bootleg)", MACHINE_SUPPORTS_SAVE | MACHINE_NOT_WORKING ) // very different hw register etc.
