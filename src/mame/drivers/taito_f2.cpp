@@ -5619,10 +5619,29 @@ READ16_MEMBER(taitof2_state::ddd_string_r)
 
 READ16_MEMBER(taitof2_state::growl_string_r)
 {
-	int pc = m_maincpu->pc();
-	printf("pc is %08x\n", pc);
+	int pc =  m_maincpu->state_int(SIMPLETOAPLAN_M68K_PC);
+
+	if (pc == 0x17b2)
+		return 0x2020;
+
+	//printf("pc is %08x\n", pc);
+
+	if (offset == 0)
+	{
+		return 0x204f;
+	}
+	else if (offset == 1)
+	{
+		return 0x5220;
+	}
+	else if (offset == 2)
+	{
+		return 0x3220;
+	}
+
 	return -1;
 }
+
 
 READ16_MEMBER(taitof2_state::footchmp_string_r)
 {
@@ -5639,6 +5658,7 @@ DRIVER_INIT_MEMBER(taitof2_state,dondokod)
 
 DRIVER_INIT_MEMBER(taitof2_state,growl)
 {
+	m_maincpu->space(AS_PROGRAM).install_read_handler(0xf530, 0xf535, read16_delegate(FUNC(taitof2_state::growl_string_r), this) );
 }
 
 DRIVER_INIT_MEMBER(taitof2_state,footchmp)
