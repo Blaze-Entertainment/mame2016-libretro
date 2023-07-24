@@ -298,10 +298,13 @@ READ8_MEMBER(bublbobl_state::bublbobl_super_mode_r)
 {
 	int pc = m_maincpu->pc();
 
-	//printf("bublbobl_super_mode_r pc is %04x\n", pc);
+//	printf("bublbobl_super_mode_r pc is %04x\n", pc);
 
-	//if (pc == 0xaba8)
+	if (pc == 0xaba8)
+	{
+		m_share1[0x05d7] = 0x03;
 	//	m_share1[0x05db] = 0x01;
+	}
 
 	return m_share1[0x05db];
 }
@@ -310,7 +313,16 @@ READ8_MEMBER(bublbobl_state::bublbobl_2p_mode_r)
 {
 	int pc = m_maincpu->pc();
 
-	//printf("bublbobl_2p_mode_r pc is %04x\n", pc);
+	if (pc == 0x05c7)
+		return m_share1[0x05d7];
+
+	if (pc == 0xb1ac)
+		return m_share1[0x05d7];
+
+	if (pc == 0xb27d)
+		return m_share1[0x05d7];
+
+//	printf("bublbobl_2p_mode_r pc is %04x\n", pc);
 
 	if (pc == 0xabae)
 		m_share1[0x05d7] = 0x03;
