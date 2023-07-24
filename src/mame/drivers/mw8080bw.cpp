@@ -2582,7 +2582,12 @@ CUSTOM_INPUT_MEMBER(mw8080bw_state::invaders_in0_control_r)
 
 CUSTOM_INPUT_MEMBER(mw8080bw_state::invaders_in1_control_r)
 {
-	return ioport(INVADERS_P1_CONTROL_PORT_TAG)->read();
+	UINT8 ret = ioport(INVADERS_P1_CONTROL_PORT_TAG)->read();
+
+	if (ret & 0x80)
+		ret |= 0x01;
+
+	return ret;
 }
 
 
