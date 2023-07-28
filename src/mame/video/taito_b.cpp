@@ -126,6 +126,38 @@ WRITE16_MEMBER(taitob_state::tc0180vcu_framebuffer_word_w)
 }
 
 
+void taitob_state::pb_draw_sprites(bitmap_ind16& bitmap, const rectangle& cliprect)
+{
+
+	if ((m_spriteram[0x320 / 2] == 0x47b) && (m_spriteram[0x330 / 2] == 0x47c) && (m_spriteram[0x340 / 2] == 0x47d))
+	{
+		m_spriteram[0x320 / 2] = 0x0000;
+		m_spriteram[0x330 / 2] = 0x0000;
+		m_spriteram[0x340 / 2] = 0x0000;
+		m_spriteram[0x350 / 2] = 0x0000;
+		m_spriteram[0x360 / 2] = 0x0000;
+		m_spriteram[0x370 / 2] = 0x0000;
+		m_spriteram[0x380 / 2] = 0x0000;
+		m_spriteram[0x390 / 2] = 0x0000;
+		m_spriteram[0x3a0 / 2] = 0x0000;
+		m_spriteram[0x3b0 / 2] = 0x0000;
+		m_spriteram[0x3c0 / 2] = 0x0000;
+		m_spriteram[0x3d0 / 2] = 0x0000;
+		m_spriteram[0x3e0 / 2] = 0x0000;
+		m_spriteram[0x3f0 / 2] = 0x0000;
+		m_spriteram[0x400 / 2] = 0x0000;
+		m_spriteram[0x410 / 2] = 0x0000;
+		m_spriteram[0x420 / 2] = 0x0000;
+		m_spriteram[0x430 / 2] = 0x0000;
+		m_spriteram[0x440 / 2] = 0x0000;
+		m_spriteram[0x450 / 2] = 0x0000;
+		m_spriteram[0x460 / 2] = 0x0000;
+		m_spriteram[0x470 / 2] = 0x0000;
+	}
+
+	draw_sprites(bitmap, cliprect);
+
+}
 void taitob_state::draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect )
 {
 /*  Sprite format: (16 bytes per sprite)
@@ -502,3 +534,26 @@ void taitob_state::screen_eof_taitob(screen_device &screen, bool state)
 		draw_sprites(*m_framebuffer[framebuffer_page], screen.visible_area());
 	}
 }
+
+void taitob_state::pb_screen_eof_taitob(screen_device &screen, bool state)
+{
+	// rising edge
+	if (state)
+	{
+		address_space &space = machine().driver_data()->generic_space();
+		UINT8 video_control = m_tc0180vcu->get_videoctrl(space, 0);
+		UINT8 framebuffer_page = m_tc0180vcu->get_fb_page(space, 0);
+
+		if (~video_control & 0x01)
+			m_framebuffer[framebuffer_page]->fill(0, screen.visible_area());
+
+		if (~video_control & 0x80)
+		{
+			framebuffer_page ^= 1;
+			m_tc0180vcu->set_fb_page(space, 0, framebuffer_page);
+		}
+
+		pb_draw_sprites(*m_framebuffer[framebuffer_page], screen.visible_area());
+	}
+}
+

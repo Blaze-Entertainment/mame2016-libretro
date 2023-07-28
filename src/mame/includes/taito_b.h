@@ -116,6 +116,7 @@ public:
 	DECLARE_VIDEO_START(taitob_core);
 	UINT32 screen_update_taitob(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect);
 	UINT32 screen_update_realpunc(screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect);
+	void pb_screen_eof_taitob(screen_device &screen, bool state);
 	void screen_eof_taitob(screen_device &screen, bool state);
 	INTERRUPT_GEN_MEMBER(rastansaga2_interrupt);
 	INTERRUPT_GEN_MEMBER(crimec_interrupt);
@@ -129,6 +130,7 @@ public:
 	INTERRUPT_GEN_MEMBER(sbm_interrupt);
 	INTERRUPT_GEN_MEMBER(realpunc_interrupt);
 	void hitice_clear_pixel_bitmap(  );
+	void pb_draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect );
 	void draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect );
 	void draw_framebuffer( bitmap_ind16 &bitmap, const rectangle &cliprect, int priority );
 	DECLARE_WRITE_LINE_MEMBER(irqhandler);
