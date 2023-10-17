@@ -14,6 +14,8 @@
 #include "drivenum.h"
 
 #include <libretro.h>
+#include "libretro_core_options.h"
+#include "libretro_options.h"
 #include "libretro_shared.h"
 
 #include <sys/syscall.h>
@@ -37,27 +39,6 @@ float retro_fps = 60.0;
 int SHIFTON           = -1;
 int NEWGAME_FROM_OSD  = 0;
 char RPATH[512];
-
-static char option_mouse[50];
-static char option_cheats[50];
-static char option_overclock[50];
-static char option_scheduler_allow_target_update[60];
-static char option_nag[50];
-static char option_info[50];
-static char option_renderer[50];
-static char option_warnings[50];
-static char option_osd[50];
-static char option_cli[50];
-static char option_bios[50];
-static char option_softlist[50];
-static char option_softlist_media[50];
-static char option_media[50];
-static char option_read_config[50];
-static char option_write_config[50];
-static char option_auto_save[50];
-static char option_throttle[50];
-static char option_nobuffer[50];
-static char option_saves[50];
 
 static int cpu_overclock = 100;
 
@@ -138,63 +119,17 @@ void retro_set_audio_sample(retro_audio_sample_t cb) { }
 
 void retro_set_environment(retro_environment_t cb)
 {
-   sprintf(option_mouse, "%s_%s", core, "mouse_enable");
-   sprintf(option_cheats, "%s_%s", core, "cheats_enable");
-   sprintf(option_overclock, "%s_%s", core, "cpu_overclock");
-   sprintf(option_scheduler_allow_target_update, "%s_%s", core, "scheduler_allow_target_update");
-   sprintf(option_nag, "%s_%s",core,"hide_nagscreen");
-   sprintf(option_info, "%s_%s",core,"hide_infoscreen");
-   sprintf(option_warnings,"%s_%s",core,"hide_warnings");
-   sprintf(option_renderer,"%s_%s",core,"alternate_renderer");
-   sprintf(option_osd,"%s_%s",core,"boot_to_osd");
-   sprintf(option_bios,"%s_%s",core,"boot_to_bios");
-   sprintf(option_cli,"%s_%s",core,"boot_from_cli");
-   sprintf(option_softlist,"%s_%s",core,"softlists_enable");
-   sprintf(option_softlist_media,"%s_%s",core,"softlists_auto_media");
-   sprintf(option_media,"%s_%s",core,"media_type");
-   sprintf(option_read_config,"%s_%s",core,"read_config");
-   sprintf(option_write_config,"%s_%s",core,"write_config");
-   sprintf(option_auto_save,"%s_%s",core,"auto_save");
-   sprintf(option_saves,"%s_%s",core,"saves");
-   sprintf(option_throttle,"%s_%s",core,"throttle");
-  sprintf(option_nobuffer,"%s_%s",core,"nobuffer");
-
-   static const struct retro_variable vars[] = {
-    /* some ifdefs are redundant but I wanted 
-     * to have these options in a logical order
-     * common for MAME/MESS/UME. */
-
-    { option_read_config, "Read configuration; disabled|enabled" },
-    { option_write_config, "Write configuration; disabled|enabled" },
-    { option_saves, "Save state naming; game|system" },
-    { option_auto_save, "Auto save/load states; disabled|enabled" },
-    { option_mouse, "Enable in-game mouse; disabled|enabled" },
-    { option_throttle, "Enable throttle; disabled|enabled" },
-    { option_cheats, "Enable cheats; disabled|enabled" },
-    { option_overclock, "Main CPU Overclock; default|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|60|65|70|75|80|85|90|95|100|105|110|115|120|125|130|135|140|145|150" },
-    { option_scheduler_allow_target_update, "Allow Scheduler Target Update; enabled|disabled" },
-    { option_renderer, "Alternate render method; disabled|enabled" },
-
-    { option_softlist, "Enable softlists; enabled|disabled" },
-    { option_softlist_media, "Softlist automatic media type; enabled|disabled" },
-    { option_media, "Media type; rom|cart|flop|cdrm|cass|hard|serl|prin" },
-    { option_bios, "Boot to BIOS; disabled|enabled" },
-
-    { option_osd, "Boot to OSD; disabled|enabled" },
-    { option_cli, "Boot from CLI; disabled|enabled" },
-    { NULL, NULL },
-
-   };
-
    environ_cb = cb;
 
    pthread_attr_t tattr;
    int policy;
    int ret;
+   bool categories_supported = false;
 
    /* set the scheduling policy to SCHED_RR */
    ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
-   cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+
+   libretro_set_core_options(environ_cb, &categories_supported);
 }
 
 static void update_runtime_variables(void)
@@ -209,7 +144,7 @@ static void check_variables(void)
 {
    struct retro_variable var = {0};
 
-   var.key   = option_cli;
+   var.key   = MAME_OPT(boot_from_cli);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -220,7 +155,7 @@ static void check_variables(void)
          experimental_cmdline = false;
    }
 
-   var.key   = option_mouse;
+   var.key   = MAME_OPT(mouse_enable);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -231,7 +166,7 @@ static void check_variables(void)
          mouse_enable = true;
    }
 
-   var.key   = option_throttle;
+   var.key   = MAME_OPT(throttle);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -242,7 +177,7 @@ static void check_variables(void)
          throttle_enable = true;
    }
 
-   var.key   = option_nobuffer;
+   var.key   = MAME_OPT(nobuffer);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -253,7 +188,7 @@ static void check_variables(void)
          nobuffer_enable = true;
    }
 
-   var.key   = option_cheats;
+   var.key   = MAME_OPT(cheats_enable);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -264,7 +199,7 @@ static void check_variables(void)
          cheats_enable = true;
    }
 
-   var.key   = option_overclock;
+   var.key   = MAME_OPT(cpu_overclock);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -274,7 +209,7 @@ static void check_variables(void)
         cpu_overclock = atoi(var.value);
    }
 
-   var.key   = option_scheduler_allow_target_update;
+   var.key   = MAME_OPT(scheduler_allow_target_update);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -285,7 +220,9 @@ static void check_variables(void)
          scheduler_allow_target_update = 1;
    }
 
-   var.key   = option_nag;
+   /* Disabled in src/frontend/mame/ui/ui.cpp */
+#if 0
+   var.key   = MAME_OPT(hide_nagscreen);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -296,7 +233,7 @@ static void check_variables(void)
          hide_nagscreen = true;
    }
 
-   var.key   = option_info;
+   var.key   = MAME_OPT(hide_infoscreen);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -307,7 +244,7 @@ static void check_variables(void)
          hide_gameinfo = true;
    }
 
-   var.key   = option_warnings;
+   var.key   = MAME_OPT(hide_warnings);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -317,8 +254,9 @@ static void check_variables(void)
       if (!strcmp(var.value, "enabled"))
          hide_warnings = true;
    }
+#endif
 
-   var.key   = option_renderer;
+   var.key   = MAME_OPT(alternate_renderer);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -329,7 +267,7 @@ static void check_variables(void)
          alternate_renderer = true;
    }
 
-   var.key   = option_osd;
+   var.key   = MAME_OPT(boot_to_osd);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -340,7 +278,7 @@ static void check_variables(void)
          boot_to_osd_enable = false;
    }
 
-   var.key = option_read_config;
+   var.key = MAME_OPT(read_config);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -351,7 +289,7 @@ static void check_variables(void)
          read_config_enable = true;
    }
 
-   var.key   = option_auto_save;
+   var.key   = MAME_OPT(auto_save);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -362,7 +300,7 @@ static void check_variables(void)
          auto_save_enable = true;
    }
 
-   var.key   = option_saves;
+   var.key   = MAME_OPT(saves);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -373,7 +311,7 @@ static void check_variables(void)
          game_specific_saves_enable = false;
    }
 
-   var.key   = option_media;
+   var.key   = MAME_OPT(media_type);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -381,7 +319,7 @@ static void check_variables(void)
       sprintf(mediaType,"-%s",var.value);
    }
 
-   var.key   = option_softlist;
+   var.key   = MAME_OPT(softlists_enable);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -392,7 +330,7 @@ static void check_variables(void)
          softlist_enable = false;
    }
 
-   var.key   = option_softlist_media;
+   var.key   = MAME_OPT(softlists_auto_media);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -403,7 +341,7 @@ static void check_variables(void)
          softlist_auto = false;
    }
 
-   var.key = option_bios;
+   var.key = MAME_OPT(boot_to_bios);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -414,7 +352,7 @@ static void check_variables(void)
          boot_to_bios_enable = false;
    }
 
-   var.key = option_write_config;
+   var.key = MAME_OPT(write_config);
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
