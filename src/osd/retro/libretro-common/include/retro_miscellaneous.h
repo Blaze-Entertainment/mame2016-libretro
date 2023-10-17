@@ -49,21 +49,21 @@
 #include <compat/msvc.h>
 #endif
 
-static INLINE void bits_or_bits(uint32_t *a, uint32_t *b, uint32_t count)
+INLINE void bits_or_bits(uint32_t *a, uint32_t *b, uint32_t count)
 {
    uint32_t i;
    for (i = 0; i < count;i++)
       a[i] |= b[i];
 }
 
-static INLINE void bits_clear_bits(uint32_t *a, uint32_t *b, uint32_t count)
+INLINE void bits_clear_bits(uint32_t *a, uint32_t *b, uint32_t count)
 {
    uint32_t i;
    for (i = 0; i < count;i++)
       a[i] &= ~b[i];
 }
 
-static INLINE bool bits_any_set(uint32_t* ptr, uint32_t count)
+INLINE bool bits_any_set(uint32_t* ptr, uint32_t count)
 {
    uint32_t i;
    for (i = 0; i < count; i++)

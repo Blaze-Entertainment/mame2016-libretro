@@ -82,6 +82,21 @@ project ("osd_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/modules/sound/retro_sound.cpp",
 		MAME_DIR .. "src/osd/retro/retromain.cpp",
 
+		MAME_DIR .. "src/osd/retro/libretro-common/compat/compat_posix_string.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/compat/compat_strcasestr.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/compat/compat_snprintf.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/compat/compat_strl.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/compat/fopen_utf8.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/encodings/encoding_utf.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/file/config_file.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/file/file_path.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/file/file_path_io.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/streams/file_stream.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/streams/file_stream_transforms.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/string/stdstring.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/time/rtime.c",
+		MAME_DIR .. "src/osd/retro/libretro-common/vfs/vfs_implementation.c",
+
 		-- The public API in libretro.c is "unused" and tends to get
 		-- stripped by the "helpful" linker, so we compile it into
 		-- the top-level shared lib to avoid having to jump through

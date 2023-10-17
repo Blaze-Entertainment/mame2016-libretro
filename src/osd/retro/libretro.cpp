@@ -22,6 +22,14 @@
 #define gettid() syscall(SYS_gettid)
 /* forward decls / externs / prototypes */
 
+#include <string/stdstring.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
+#include <file/config_file.h>
+
+#define EVERCADE_OPTION_OVERRIDE_FILE_EXT ".opt"
+static config_file_t *evercade_option_overrides = NULL;
+
 extern const char bare_build_version[];
 bool retro_load_ok  = false;
 int retro_pause = 0;
@@ -124,12 +132,15 @@ void retro_set_environment(retro_environment_t cb)
    pthread_attr_t tattr;
    int policy;
    int ret;
-   bool categories_supported = false;
+   struct retro_vfs_interface_info vfs_iface_info;
 
    /* set the scheduling policy to SCHED_RR */
    ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
 
-   libretro_set_core_options(environ_cb, &categories_supported);
+   vfs_iface_info.required_interface_version = 1;
+   vfs_iface_info.iface                      = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+      filestream_vfs_init(&vfs_iface_info);
 }
 
 static void update_runtime_variables(void)
@@ -561,7 +572,49 @@ void retro_run (void)
 bool retro_load_game(const struct retro_game_info *info)
 {
     char basename[256];
+    bool opt_categories_supported;
 
+    /* Load option overrides */
+    if (!string_is_empty(info->path))
+    {
+        char override_path[2048] = {0};
+        config_file_t *option_overrides = NULL;
+        struct retro_core_option_v2_definition *option_def = NULL;
+
+        /* Get options file path */
+        fill_pathname(override_path, info->path,
+            EVERCADE_OPTION_OVERRIDE_FILE_EXT,
+            sizeof(override_path));
+
+        /* Read options file */
+        if (!string_is_empty(override_path) &&
+            path_is_valid(override_path) &&
+            (option_overrides = config_file_new_from_path_to_string(override_path)))
+        {
+            if (log_cb)
+                log_cb(RETRO_LOG_INFO, "Reading option overrides from: %s\n", override_path);
+
+            /* Override default option values */
+            for (option_def = option_defs_us; option_def->key; option_def++)
+            {
+                struct config_entry_list *option_override =
+                    config_get_entry(option_overrides, option_def->key);
+
+                if (option_override && option_override->value)
+                    option_def->default_value = option_override->value;
+            }
+
+            /* Cache current override config
+             * (i.e. want value strings to remain valid for
+             * the 'lifetime' of the loaded content) */
+            if (evercade_option_overrides)
+                config_file_free(evercade_option_overrides);
+            evercade_option_overrides = option_overrides;
+        }
+    }
+
+    /* Can now upload core options to frontend */
+    libretro_set_core_options(environ_cb, &opt_categories_supported);
     check_variables();
 
 #ifdef M16B
@@ -605,6 +658,10 @@ void retro_unload_game(void)
    {
       retro_pause = -1;
    }
+
+   if (evercade_option_overrides)
+      config_file_free(evercade_option_overrides);
+   evercade_option_overrides = NULL;
 }
 
 /* Stubs */
