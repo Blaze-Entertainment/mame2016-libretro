@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2015 The RetroArch team
+/* Copyright (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this libretro SDK code part (glsym).
@@ -44,7 +44,7 @@ typedef void *GLeglImageOES;
 #if !defined(GL_OES_fixed_point) && !defined(HAVE_OPENGLES2)
 typedef GLint GLfixed;
 #endif
-#if defined(OSX) && !defined(MAC_OS_X_VERSION_10_7)
+#if defined(__MACH__) && !defined(OS_TARGET_IPHONE) && !defined(MAC_OS_X_VERSION_10_7)
 typedef long long int GLint64;
 typedef unsigned long long int GLuint64;
 typedef unsigned long long int GLuint64EXT;
@@ -652,6 +652,10 @@ typedef GLboolean (APIENTRYP RGLSYMGLISIMAGEHANDLERESIDENTARBPROC) (GLuint64 han
 typedef void (APIENTRYP RGLSYMGLVERTEXATTRIBL1UI64ARBPROC) (GLuint index, GLuint64EXT x);
 typedef void (APIENTRYP RGLSYMGLVERTEXATTRIBL1UI64VARBPROC) (GLuint index, const GLuint64EXT *v);
 typedef void (APIENTRYP RGLSYMGLGETVERTEXATTRIBLUI64VARBPROC) (GLuint index, GLenum pname, GLuint64EXT *params);
+#ifdef __APPLE__
+	struct _cl_context;
+	struct _cl_event;
+#endif
 typedef GLsync (APIENTRYP RGLSYMGLCREATESYNCFROMCLEVENTARBPROC) (struct _cl_context *context, struct _cl_event *event, GLbitfield flags);
 typedef void (APIENTRYP RGLSYMGLCLAMPCOLORARBPROC) (GLenum target, GLenum clamp);
 typedef void (APIENTRYP RGLSYMGLDISPATCHCOMPUTEGROUPSIZEARBPROC) (GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z);
@@ -696,7 +700,7 @@ typedef void (APIENTRYP RGLSYMGLCOPYCOLORTABLEPROC) (GLenum target, GLenum inter
 typedef void (APIENTRYP RGLSYMGLGETCOLORTABLEPROC) (GLenum target, GLenum format, GLenum type, void *table);
 typedef void (APIENTRYP RGLSYMGLGETCOLORTABLEPARAMETERFVPROC) (GLenum target, GLenum pname, GLfloat *params);
 typedef void (APIENTRYP RGLSYMGLGETCOLORTABLEPARAMETERIVPROC) (GLenum target, GLenum pname, GLint *params);
-typedef void (APIENTRYP RGLSYMGLCOLORSUBTABLEPROC) (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data);
+typedef void (APIENTRYP RGLSYMGLCOLORSUBTABLEPROC) (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const GLvoid *data);
 typedef void (APIENTRYP RGLSYMGLCOPYCOLORSUBTABLEPROC) (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width);
 typedef void (APIENTRYP RGLSYMGLCONVOLUTIONFILTER1DPROC) (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image);
 typedef void (APIENTRYP RGLSYMGLCONVOLUTIONFILTER2DPROC) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image);

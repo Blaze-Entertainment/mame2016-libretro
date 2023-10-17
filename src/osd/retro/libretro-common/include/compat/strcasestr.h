@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (strcasestr.h).
@@ -31,20 +31,18 @@
 
 #ifndef HAVE_STRCASESTR
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <retro_common_api.h>
+
+RETRO_BEGIN_DECLS
 
 /* Avoid possible naming collisions during link
  * since we prefer to use the actual name. */
-#define strcasestr(haystack, needle) strcasestr_rarch__(haystack, needle)
+#define strcasestr(haystack, needle) strcasestr_retro__(haystack, needle)
 
 char *strcasestr(const char *haystack, const char *needle);
 
-#ifdef __cplusplus
-}
-#endif
-#endif
+RETRO_END_DECLS
 
 #endif
 
+#endif

@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2015 The RetroArch team
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (strl.h).
@@ -26,27 +26,34 @@
 #include <string.h>
 #include <stddef.h>
 
-#ifdef HAVE_CONFIG_H
+#if defined(RARCH_INTERNAL) && defined(HAVE_CONFIG_H)
 #include "../../../config.h"
 #endif
 
-#ifndef HAVE_STRL
+#include <retro_common_api.h>
 
-#ifdef __cplusplus
-extern "C" {
+RETRO_BEGIN_DECLS
+
+#ifdef __MACH__
+#ifndef HAVE_STRL
+#define HAVE_STRL
 #endif
+#endif
+
+#ifndef HAVE_STRL
 /* Avoid possible naming collisions during link since
  * we prefer to use the actual name. */
-#define strlcpy(dst, src, size) strlcpy_rarch__(dst, src, size)
+#define strlcpy(dst, src, size) strlcpy_retro__(dst, src, size)
 
-#define strlcat(dst, src, size) strlcat_rarch__(dst, src, size)
+#define strlcat(dst, src, size) strlcat_retro__(dst, src, size)
 
 size_t strlcpy(char *dest, const char *source, size_t size);
 size_t strlcat(char *dest, const char *source, size_t size);
 
-#ifdef __cplusplus
-}
-#endif
-#endif
 #endif
 
+char *strldup(const char *s, size_t n);
+
+RETRO_END_DECLS
+
+#endif
