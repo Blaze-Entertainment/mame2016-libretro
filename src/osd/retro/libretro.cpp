@@ -17,6 +17,7 @@
 #include "libretro_core_options.h"
 #include "libretro_options.h"
 #include "libretro_shared.h"
+#include "libretro_mapper.h"
 
 #include <sys/syscall.h>
 #define gettid() syscall(SYS_gettid)
@@ -49,6 +50,21 @@ int NEWGAME_FROM_OSD  = 0;
 char RPATH[512];
 
 static int cpu_overclock = 100;
+
+/* - Minimum turbo pulse train
+ *   is 1 frames ON, 1 frames OFF
+ * - Default turbo pulse train
+ *   is 2 frames ON, 2 frames OFF */
+#define TURBO_PERIOD_MIN          2
+#define TURBO_PERIOD_MAX          120
+#define TURBO_PERIOD_DEFAULT      4
+#define TURBO_PULSE_WIDTH_MIN     1
+#define TURBO_PULSE_WIDTH_MAX     15
+#define TURBO_PULSE_WIDTH_DEFAULT 2
+
+unsigned retropad_turbo_period      = TURBO_PERIOD_DEFAULT;
+unsigned retropad_turbo_pulse_width = TURBO_PULSE_WIDTH_DEFAULT;
+unsigned retropad_turbo_counters[MAX_PADS][MAX_BUTTONS];
 
 int scheduler_allow_target_update;
 const char *retro_save_directory;
@@ -373,6 +389,30 @@ static void check_variables(void)
       if (!strcmp(var.value, "enabled"))
          write_config_enable = true;
    }
+
+   libretro_update_turbo_btn_map();
+
+   retropad_turbo_period      = TURBO_PERIOD_DEFAULT;
+   retropad_turbo_pulse_width = TURBO_PULSE_WIDTH_DEFAULT;
+   var.key                    = MAME_OPT(turbo_period);
+   var.value                  = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      retropad_turbo_period = atoi(var.value);
+      retropad_turbo_period = (retropad_turbo_period < TURBO_PERIOD_MIN) ?
+            TURBO_PERIOD_MIN : retropad_turbo_period;
+      retropad_turbo_period = (retropad_turbo_period > TURBO_PERIOD_MAX) ?
+            TURBO_PERIOD_MAX : retropad_turbo_period;
+
+      retropad_turbo_pulse_width = retropad_turbo_period >> 1;
+      retropad_turbo_pulse_width = (retropad_turbo_pulse_width < TURBO_PULSE_WIDTH_MIN) ?
+            TURBO_PULSE_WIDTH_MIN : retropad_turbo_pulse_width;
+      retropad_turbo_pulse_width = (retropad_turbo_pulse_width > TURBO_PULSE_WIDTH_MAX) ?
+            TURBO_PULSE_WIDTH_MAX : retropad_turbo_pulse_width;
+
+      memset(retropad_turbo_counters, 0, sizeof(retropad_turbo_counters));
+   }
 }
 
 unsigned retro_api_version(void)
@@ -491,6 +531,8 @@ void retro_init (void)
       exit(0);
    }
 
+   libretro_mapping_init();
+   libretro_fill_turbo_mapping_core_options(option_defs_us);
 }
 
 int RLOOP=1;
@@ -501,6 +543,8 @@ void retro_deinit(void)
 {
     printf("RETRO DEINIT\n");
     if(retro_load_ok)retro_finish();
+
+    libretro_mapping_deinit();
 }
 
 void retro_reset (void)

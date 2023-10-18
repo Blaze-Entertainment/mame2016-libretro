@@ -20,6 +20,7 @@
 #include "modules/font/font_module.h"
 
 #include "libretro_shared.h"
+#include "libretro_mapper.h"
 
 #ifdef _WIN32
 char slash = '\\';
@@ -67,15 +68,15 @@ static render_target *our_target = NULL;
 /* input device */
 static input_device *retrokbd_device; // KEYBD
 static input_device *mouse_device;    // MOUSE
-static input_device *joy_device[4];// JOY0/JOY1/JOY2/JOY3
-static input_device *Pad_device[4];// PAD0/PAD1/PAD2/PAD3
+static input_device *joy_device[MAX_PADS];// JOY0/JOY1/JOY2/JOY3
+static input_device *Pad_device[MAX_PADS];// PAD0/PAD1/PAD2/PAD3
 
 /* state */
 UINT16 retrokbd_state[RETROK_LAST];
 int mouseLX;
 int mouseLY;
 int mouseBUT[4];
-static Joystate joystate[4];
+static Joystate joystate[MAX_PADS];
 
 static int ui_ipt_pushchar=-1;
 
@@ -383,10 +384,42 @@ void process_joypad_state(void)
 {
    unsigned i, j;
 
-   for(j = 0;j < 4; j++)
+   for(j = 0; j < MAX_PADS; j++)
    {
-      for(i = 0;i < MAX_BUTTONS; i++)
-         joystate[j].button[i] = input_state_cb(j, RETRO_DEVICE_JOYPAD, 0,i)?0x80:0;
+      /* Get RetroPad input */
+      int retropad_input_state[MAX_BUTTONS] = {0};
+      int retropad_turbo_state[MAX_BUTTONS] = {0};
+
+      for(i = 0; i < MAX_BUTTONS; i++)
+      {
+         int turbo_btn = retropad_turbo_btn_map[i];
+
+         if (turbo_btn == RETROPAD_TURBO_UNMAPPED)
+            retropad_input_state[i] =
+                  input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, i);
+         else
+            retropad_turbo_state[turbo_btn] |=
+                  input_state_cb(j, RETRO_DEVICE_JOYPAD, 0, i);
+      }
+
+      /* Process turbo buttons */
+      for(i = 0; i < MAX_BUTTONS; i++)
+      {
+         if (retropad_turbo_state[i])
+         {
+            retropad_input_state[i] |=
+                  (retropad_turbo_counters[j][i] < retropad_turbo_pulse_width);
+            retropad_turbo_counters[j][i]++;
+            if (retropad_turbo_counters[j][i] >= retropad_turbo_period)
+               retropad_turbo_counters[j][i] = 0;
+         }
+         else
+            retropad_turbo_counters[j][i] = 0;
+      }
+
+      /* Update MAME joystick state */
+      for(i = 0; i < MAX_BUTTONS; i++)
+         joystate[j].button[i] = retropad_input_state[i] ? 0x80 : 0;
 
       joystate[j].a1[0] = 2 * (input_state_cb(j, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X));
       joystate[j].a1[1] = 2 * (input_state_cb(j, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y));

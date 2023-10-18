@@ -67,6 +67,11 @@ struct retro_core_option_v2_category option_cats_us[] = {
       "Boot",
       "Configure start-up behaviour."
    },
+   {
+      "turbo",
+      "Turbo Buttons",
+      "Configure RetroPad turbo button mapping."
+   },
    { NULL, NULL, NULL },
 };
 
@@ -358,6 +363,345 @@ struct retro_core_option_v2_definition option_defs_us[] = {
          { NULL, NULL },
       },
       "disabled"
+   },
+   {
+      MAME_OPT(turbo_btn_up),
+      "RetroPad Turbo Mapping > Up",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_down),
+      "RetroPad Turbo Mapping > Down",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_left),
+      "RetroPad Turbo Mapping > Left",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_right),
+      "RetroPad Turbo Mapping > Right",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_a),
+      "RetroPad Turbo Mapping > A",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_b),
+      "RetroPad Turbo Mapping > B",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_x),
+      "RetroPad Turbo Mapping > X",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_y),
+      "RetroPad Turbo Mapping > Y",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_select),
+      "RetroPad Turbo Mapping > Select",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_start),
+      "RetroPad Turbo Mapping > Start",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_r),
+      "RetroPad Turbo Mapping > R",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_l),
+      "RetroPad Turbo Mapping > L",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_r2),
+      "RetroPad Turbo Mapping > R2",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_l2),
+      "RetroPad Turbo Mapping > L2",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_r3),
+      "RetroPad Turbo Mapping > R3",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_btn_l3),
+      "RetroPad Turbo Mapping > L3",
+      NULL,
+      NULL,
+      NULL,
+      "turbo",
+      {
+         /* Filled automatically */
+         { NULL, NULL },
+      },
+      RETROPAD_OPT_UNMAPPED
+   },
+   {
+      MAME_OPT(turbo_period),
+      "Turbo Button Period",
+      NULL,
+      "Specify the repeat interval (in frames) when holding down a mapped turbo button.",
+      NULL,
+      "turbo",
+      {
+         { "2",   NULL },
+         { "3",   NULL },
+         { "4",   NULL },
+         { "5",   NULL },
+         { "6",   NULL },
+         { "7",   NULL },
+         { "8",   NULL },
+         { "9",   NULL },
+         { "10",  NULL },
+         { "11",  NULL },
+         { "12",  NULL },
+         { "13",  NULL },
+         { "14",  NULL },
+         { "15",  NULL },
+         { "16",  NULL },
+         { "17",  NULL },
+         { "18",  NULL },
+         { "19",  NULL },
+         { "20",  NULL },
+         { "21",  NULL },
+         { "22",  NULL },
+         { "23",  NULL },
+         { "24",  NULL },
+         { "25",  NULL },
+         { "26",  NULL },
+         { "27",  NULL },
+         { "28",  NULL },
+         { "29",  NULL },
+         { "30",  NULL },
+         { "31",  NULL },
+         { "32",  NULL },
+         { "33",  NULL },
+         { "34",  NULL },
+         { "35",  NULL },
+         { "36",  NULL },
+         { "37",  NULL },
+         { "38",  NULL },
+         { "39",  NULL },
+         { "40",  NULL },
+         { "41",  NULL },
+         { "42",  NULL },
+         { "43",  NULL },
+         { "44",  NULL },
+         { "45",  NULL },
+         { "46",  NULL },
+         { "47",  NULL },
+         { "48",  NULL },
+         { "49",  NULL },
+         { "50",  NULL },
+         { "51",  NULL },
+         { "52",  NULL },
+         { "53",  NULL },
+         { "54",  NULL },
+         { "55",  NULL },
+         { "56",  NULL },
+         { "57",  NULL },
+         { "58",  NULL },
+         { "59",  NULL },
+         { "60",  NULL },
+         { "61",  NULL },
+         { "62",  NULL },
+         { "63",  NULL },
+         { "64",  NULL },
+         { "65",  NULL },
+         { "66",  NULL },
+         { "67",  NULL },
+         { "68",  NULL },
+         { "69",  NULL },
+         { "70",  NULL },
+         { "71",  NULL },
+         { "72",  NULL },
+         { "73",  NULL },
+         { "74",  NULL },
+         { "75",  NULL },
+         { "76",  NULL },
+         { "77",  NULL },
+         { "78",  NULL },
+         { "79",  NULL },
+         { "80",  NULL },
+         { "81",  NULL },
+         { "82",  NULL },
+         { "83",  NULL },
+         { "84",  NULL },
+         { "85",  NULL },
+         { "86",  NULL },
+         { "87",  NULL },
+         { "88",  NULL },
+         { "89",  NULL },
+         { "90",  NULL },
+         { "91",  NULL },
+         { "92",  NULL },
+         { "93",  NULL },
+         { "94",  NULL },
+         { "95",  NULL },
+         { "96",  NULL },
+         { "97",  NULL },
+         { "98",  NULL },
+         { "99",  NULL },
+         { "100", NULL },
+         { "101", NULL },
+         { "102", NULL },
+         { "103", NULL },
+         { "104", NULL },
+         { "105", NULL },
+         { "106", NULL },
+         { "107", NULL },
+         { "108", NULL },
+         { "109", NULL },
+         { "110", NULL },
+         { "111", NULL },
+         { "112", NULL },
+         { "113", NULL },
+         { "114", NULL },
+         { "115", NULL },
+         { "116", NULL },
+         { "117", NULL },
+         { "118", NULL },
+         { "119", NULL },
+         { "120", NULL },
+         { NULL, NULL },
+      },
+      "4"
    },
    { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
 };

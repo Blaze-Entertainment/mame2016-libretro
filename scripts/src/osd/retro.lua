@@ -81,6 +81,7 @@ project ("osd_" .. _OPTIONS["osd"])
 		MAME_DIR .. "src/osd/modules/sound/none.cpp",
 		MAME_DIR .. "src/osd/modules/sound/retro_sound.cpp",
 		MAME_DIR .. "src/osd/retro/retromain.cpp",
+		MAME_DIR .. "src/osd/retro/libretro_mapper.cpp",
 
 		MAME_DIR .. "src/osd/retro/libretro-common/compat/compat_posix_string.c",
 		MAME_DIR .. "src/osd/retro/libretro-common/compat/compat_strcasestr.c",

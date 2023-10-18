@@ -1,9 +1,14 @@
 #ifndef _LIBRETRO_SHARED_H
 #define _LIBRETRO_SHARED_H
 
+#include "osdcomm.h"
+#include <libretro.h>
+
 #ifndef MAX_BUTTONS
-#define MAX_BUTTONS 16
+#define MAX_BUTTONS (RETRO_DEVICE_ID_JOYPAD_R3 + 1)
 #endif
+
+#define MAX_PADS 4
 
 #if !defined(HAVE_GL) && !defined(HAVE_RGB32)
 
@@ -65,6 +70,10 @@ extern int fb_pitch;
 extern float retro_aspect;
 extern float retro_fps;
 extern float view_aspect;
+
+extern unsigned retropad_turbo_period;
+extern unsigned retropad_turbo_pulse_width;
+extern unsigned retropad_turbo_counters[MAX_PADS][MAX_BUTTONS];
 
 static const char core[] = "mame2016";
 
