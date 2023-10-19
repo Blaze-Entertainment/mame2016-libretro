@@ -31,6 +31,15 @@
 #define EVERCADE_OPTION_OVERRIDE_FILE_EXT ".opt"
 static config_file_t *evercade_option_overrides = NULL;
 
+#if defined(EVERCADE_DEBUG)
+#include <unordered_set>
+#include <vector>
+#include "modules/lib/osdobj_common.h"
+
+#define EVERCADE_ROM_LIST_FILE_EXT_NO_DOT "romlist"
+#define EVERCADE_DRIVER_LIST_FILE_EXT ".driverlist"
+#endif
+
 extern const char bare_build_version[];
 bool retro_load_ok  = false;
 int retro_pause = 0;
@@ -426,7 +435,11 @@ void retro_get_system_info(struct retro_system_info *info)
 
    info->library_name     = "MAME 2016";
    info->library_version  = bare_build_version;
+#if defined(EVERCADE_DEBUG)
+   info->valid_extensions = "zip|chd|7z|cmd|" EVERCADE_ROM_LIST_FILE_EXT_NO_DOT;
+#else
    info->valid_extensions = "zip|chd|7z|cmd";
+#endif
    info->need_fullpath    = true;
    info->block_extract    = true;
 }
@@ -613,48 +626,148 @@ void retro_run (void)
 
 }
 
+#if defined(EVERCADE_DEBUG)
+static void write_driver_list(const char *rom_list_path)
+{
+   FILE *rom_list_file = NULL;
+   char *line = NULL;
+   size_t len = 0;
+   osd_options tmp_options;
+   /* We could do everything in this function
+    * using plain C (as elsewhere in this file),
+    * but using a set+vector makes the code so
+    * much simpler that it would be absurd not
+    * to do so... */
+   std::unordered_set<std::string> driver_list_set;
+
+   /* Open ROM list */
+   rom_list_file = fopen(rom_list_path, "r");
+   if (!rom_list_file)
+      return;
+
+   /* Read ROM list line-by-line */
+   while ((getline(&line, &len, rom_list_file)) != -1)
+   {
+      char rom_name[256] = {0};
+      if (string_is_empty(line))
+         continue;
+
+      fill_pathname_base_noext(rom_name,
+            string_trim_whitespace(line), sizeof(rom_name));
+      if (!string_is_empty(rom_name))
+      {
+         /* Get driver source file list for current ROM */
+         driver_enumerator drivlist(tmp_options, rom_name);
+         fprintf(stdout, "# Checking ROM: %s\n", rom_name);
+
+         if (drivlist.count() < 1)
+         {
+            fprintf(stderr, "  > ERROR: No drivers found\n");
+            continue;
+         }
+
+         while (drivlist.next())
+         {
+            /* Add current source file to set */
+            const char *driver_src_file =
+                  path_basename(drivlist.driver().source_file);
+            if (!string_is_empty(driver_src_file))
+            {
+               fprintf(stdout, "  > Found driver: %s\n", driver_src_file);
+               driver_list_set.insert(driver_src_file);
+            }
+         }
+      }
+   }
+
+   fclose(rom_list_file);
+   if (line)
+      free(line);
+
+   if (driver_list_set.size() > 0)
+   {
+      char driver_list_path[2048] = {0};
+      FILE *driver_list_file = NULL;
+      size_t i;
+
+      /* Sort driver list */
+      std::vector<std::string> driver_list_sorted(
+            driver_list_set.begin(), driver_list_set.end());
+
+      /* Get output file name */
+      fill_pathname(driver_list_path, rom_list_path,
+            EVERCADE_DRIVER_LIST_FILE_EXT,
+            sizeof(driver_list_path));
+
+      /* Write list to file */
+      driver_list_file = fopen(driver_list_path, "w");
+      if (!driver_list_file)
+         return;
+
+      for (i = 0; i < driver_list_sorted.size(); i++)
+         fprintf(driver_list_file, "%s\n",
+               driver_list_sorted[i].c_str());
+
+      fclose(driver_list_file);
+   }
+}
+#endif
+
 bool retro_load_game(const struct retro_game_info *info)
 {
-    char basename[256];
+    char basename[256] = {0};
     bool opt_categories_supported;
+    char override_path[2048] = {0};
+    config_file_t *option_overrides = NULL;
+    struct retro_core_option_v2_definition *option_def = NULL;
 
-    /* Load option overrides */
-    if (!string_is_empty(info->path))
+    if (string_is_empty(info->path))
+        return false;
+
+#if defined(EVERCADE_DEBUG)
+    if (string_is_equal(path_get_extension(info->path),
+        EVERCADE_ROM_LIST_FILE_EXT_NO_DOT))
     {
-        char override_path[2048] = {0};
-        config_file_t *option_overrides = NULL;
-        struct retro_core_option_v2_definition *option_def = NULL;
+        write_driver_list(info->path);
+        return false;
+    }
+#endif
 
-        /* Get options file path */
-        fill_pathname(override_path, info->path,
-            EVERCADE_OPTION_OVERRIDE_FILE_EXT,
-            sizeof(override_path));
+    /* Cache path components */
+    extract_basename(basename, info->path, sizeof(basename));
+    extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
+    strlcpy(RPATH, info->path, sizeof(RPATH));
 
-        /* Read options file */
-        if (!string_is_empty(override_path) &&
-            path_is_valid(override_path) &&
-            (option_overrides = config_file_new_from_path_to_string(override_path)))
+    /* Load option overrides
+     * > Get options file path */
+    fill_pathname(override_path, info->path,
+        EVERCADE_OPTION_OVERRIDE_FILE_EXT,
+        sizeof(override_path));
+
+    /* Read options file */
+    if (!string_is_empty(override_path) &&
+        path_is_valid(override_path) &&
+        (option_overrides = config_file_new_from_path_to_string(override_path)))
+    {
+        if (log_cb)
+            log_cb(RETRO_LOG_INFO, "Reading option overrides from: %s\n", override_path);
+
+        /* Override default option values */
+        for (option_def = option_defs_us; option_def->key; option_def++)
         {
-            if (log_cb)
-                log_cb(RETRO_LOG_INFO, "Reading option overrides from: %s\n", override_path);
+            struct config_entry_list *option_override =
+                config_get_entry(option_overrides, option_def->key);
 
-            /* Override default option values */
-            for (option_def = option_defs_us; option_def->key; option_def++)
-            {
-                struct config_entry_list *option_override =
-                    config_get_entry(option_overrides, option_def->key);
-
-                if (option_override && option_override->value)
-                    option_def->default_value = option_override->value;
-            }
-
-            /* Cache current override config
-             * (i.e. want value strings to remain valid for
-             * the 'lifetime' of the loaded content) */
-            if (evercade_option_overrides)
-                config_file_free(evercade_option_overrides);
-            evercade_option_overrides = option_overrides;
+            if (option_override && option_override->value)
+                option_def->default_value = option_override->value;
         }
+
+        /* Cache current override config
+         * (i.e. want value strings to remain valid for
+         * the 'lifetime' of the loaded content) */
+        if (evercade_option_overrides)
+            config_file_free(evercade_option_overrides);
+        evercade_option_overrides = option_overrides;
     }
 
     /* Can now upload core options to frontend */
@@ -683,10 +796,6 @@ bool retro_load_game(const struct retro_game_info *info)
     if (!environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
        return false;
 #endif
-
-    extract_basename(basename, info->path, sizeof(basename));
-    extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
-    strcpy(RPATH,info->path);
 
     return true;
 }

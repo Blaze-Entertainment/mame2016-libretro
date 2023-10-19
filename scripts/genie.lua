@@ -396,6 +396,11 @@ newoption {
 	}
 }
 
+newoption {
+	trigger = "EVERCADE_DEBUG",
+	description = "Enable Evercade debugging utilities.",
+}
+
 dofile ("extlib.lua")
 
 if not _OPTIONS["USE_BGFX"] then
@@ -556,6 +561,14 @@ if _OPTIONS["osd"]=="retro" then
 	}
 end
 -- RETRO HACK
+
+-- EVERCADE HACK
+if (_OPTIONS["EVERCADE_DEBUG"]=="1") then
+	defines {
+		"EVERCADE_DEBUG",
+	}
+end
+-- EVERCADE HACK
 
 if _OPTIONS["USE_LIBUV"]=="0" then
 	defines {
