@@ -4,6 +4,9 @@
 *.pyc
 *.pyo
 .DS_Store
+*.o
+*.a
+*.so
 
 /*
 /*/
