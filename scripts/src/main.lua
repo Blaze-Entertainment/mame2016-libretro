@@ -410,7 +410,19 @@ if (STANDALONE~=true) then
 
 	if (_OPTIONS["SOURCES"] == nil) then
 
-		if os.isfile(MAME_DIR .. "src/".._target .."/" .. _subtarget ..".flt") then
+		if _OPTIONS["SOURCEFILTER"] ~= nil then
+			local driverfilter = MAME_DIR .. "src/" .. _target .. "/" .. _OPTIONS["SOURCEFILTER"]
+			if not os.isfile(driverfilter) then
+				error("File " .. driverfilter .. " does not exist")
+			end
+			dependency {
+			{
+				GEN_DIR  .. _target .. "/" .. _subtarget .."/drivlist.cpp",  MAME_DIR .. "src/".._target .."/" .. _target ..".lst", true },
+			}
+			custombuildtask {
+				{ driverfilter ,  GEN_DIR  .. _target .. "/" .. _subtarget .."/drivlist.cpp",    {  MAME_DIR .. "scripts/build/makelist.py", MAME_DIR .. "src/".._target .."/" .. _target ..".lst"  }, {"@echo Building driver list...",    PYTHON .. " $(1) $(2) $(<) > $(@)" }},
+			}
+		elseif os.isfile(MAME_DIR .. "src/".._target .."/" .. _subtarget ..".flt") then
 			dependency {
 			{
 				GEN_DIR  .. _target .. "/" .. _subtarget .."/drivlist.cpp",  MAME_DIR .. "src/".._target .."/" .. _target ..".lst", true },
@@ -436,6 +448,9 @@ if (STANDALONE~=true) then
 	end
 
 	if (_OPTIONS["SOURCES"] ~= nil) then
+			if _OPTIONS["SOURCEFILTER"] ~= nil then
+				error("SOURCES and SOURCEFILTER cannot be combined")
+			end
 			dependency {
 			{
 				GEN_DIR  .. _target .. "/" .. _subtarget .."/drivlist.cpp",  MAME_DIR .. "src/".._target .."/" .. _target ..".lst", true },

@@ -364,6 +364,11 @@ newoption {
 }
 
 newoption {
+	trigger = "SOURCEFILTER",
+	description = "Filter list specifying sources to compile.",
+}
+
+newoption {
 	trigger = "PLATFORM",
 	description = "Target machine platform (x86,arm,...)",
 }
@@ -1399,6 +1404,9 @@ configuration { "winphone8* or winstore8*" }
 configuration { }
 
 if (_OPTIONS["SOURCES"] ~= nil) then
+	if _OPTIONS["SOURCEFILTER"] ~= nil then
+		error("SOURCES and SOURCEFILTER cannot be combined")
+	end
 	OUT_STR = os.outputof( PYTHON .. " " .. MAME_DIR .. "scripts/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["SOURCES"] .. " target " .. _OPTIONS["subtarget"])
 	load(OUT_STR)()
 	os.outputof( PYTHON .. " " .. MAME_DIR .. "scripts/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["SOURCES"] .. " drivers " .. _OPTIONS["subtarget"] .. " > ".. GEN_DIR  .. _OPTIONS["target"] .. "/" .. _OPTIONS["subtarget"]..".flt")

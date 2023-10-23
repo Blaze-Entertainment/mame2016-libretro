@@ -93,6 +93,8 @@
 
 # SOURCES = src/mame/drivers/asteroid.cpp,src/mame/audio/llander.cpp
 
+# SOURCEFILTER = mydrivers.flt
+
 # FORCE_VERSION_COMPILE = 1
 
 # MSBUILD = 1
@@ -717,6 +719,10 @@ endif
 
 ifdef SOURCES
 PARAMS += --SOURCES='$(SOURCES)'
+endif
+
+ifdef SOURCEFILTER
+PARAMS += --SOURCEFILTER='$(SOURCEFILTER)'
 endif
 
 ifdef FORCE_VERSION_COMPILE
