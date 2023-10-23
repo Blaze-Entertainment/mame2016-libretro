@@ -12,6 +12,8 @@ opwolf.cpp
 bublbobl.cpp
 taito_f2.cpp
 chaknpop.cpp
+//auxiliary dependencies
+seta.cpp
 //exceptions + to add - to remove from imported list
 -3do
 -3do_m2
