@@ -65,6 +65,7 @@ CPUS["MIPS"] = true
 CPUS["R3000"] = true
 CPUS["PSX"] = true
 CPUS["SH2"] = true
+CPUS["SH2ALT"] = true
 CPUS["SH4"] = true
 CPUS["DSP16A"] = true
 CPUS["DSP32C"] = true

@@ -8,6 +8,7 @@
 
 #include "machine/intelfsh.h"
 #include "cpu/sh2/sh2.h"
+#include "cpu/sh2alt/sh2.h"
 #include "audio/cps3.h"
 
 
@@ -36,7 +37,7 @@ public:
 	{
 	}
 
-	required_device<sh2_device> m_maincpu;
+	required_device<cpu_device> m_maincpu;
 	required_device<gfxdecode_device> m_gfxdecode;
 	required_device<palette_device> m_palette;
 	required_device<cps3_sound_device> m_cps3sound;

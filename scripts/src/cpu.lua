@@ -13,7 +13,7 @@
 -- Dynamic recompiler objects
 --------------------------------------------------
 
-if (CPUS["SH2"]~=null or CPUS["MIPS"]~=null or CPUS["POWERPC"]~=null or CPUS["RSP"]~=null or CPUS["ARM7"]~=null) then
+if (CPUS["SH2"]~=null or CPUS["SH2ALT"]~=null or CPUS["MIPS"]~=null or CPUS["POWERPC"]~=null or CPUS["RSP"]~=null or CPUS["ARM7"]~=null) then
 	files {
 		MAME_DIR .. "src/devices/cpu/drcbec.cpp",
 		MAME_DIR .. "src/devices/cpu/drcbec.h",
@@ -651,6 +651,22 @@ end
 
 if (CPUS["SH2"]~=null or _OPTIONS["with-tools"]) then
 	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/sh2/sh2dasm.cpp")
+end
+
+--------------------------------------------------
+-- Hitachi SH1/SH2
+--@src/devices/cpu/sh2alt/sh2.h,CPUS["SH2ALT"] = true
+--------------------------------------------------
+
+if (CPUS["SH2ALT"]~=null) then
+	files {
+		MAME_DIR .. "src/devices/cpu/sh2alt/sh2.cpp",
+		MAME_DIR .. "src/devices/cpu/sh2alt/sh2.h",
+	}
+end
+
+if (CPUS["SH2ALT"]~=null or _OPTIONS["with-tools"]) then
+	table.insert(disasm_files , MAME_DIR .. "src/devices/cpu/sh2alt/sh2dasm.cpp")
 end
 
 --------------------------------------------------
