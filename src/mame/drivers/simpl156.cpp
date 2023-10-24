@@ -132,6 +132,7 @@ INPUT_PORTS_END
 void simpl156_state::postload()
 {
 	memcpy(memregion("okimusic")->base(), memregion("okimusic2")->base()+0x40000 * (m_musicbank & 0x7), 0x40000);
+	m_maincpu->resume(0xffffffff);
 }
 
 WRITE32_MEMBER(simpl156_state::simpl156_eeprom_w)

@@ -103,6 +103,8 @@ protected:
 	int storeDec(UINT32 pat, UINT32 rbv);
 	static UINT32 BCDToDecimal(UINT32 value);
 	static UINT32 DecimalToBCD(UINT32 value);
+
+	void save_arm();
 };
 
 

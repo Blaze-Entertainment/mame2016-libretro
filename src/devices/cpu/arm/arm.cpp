@@ -505,16 +505,21 @@ void arm_cpu_device::execute_set_input(int irqline, int state)
 	arm_check_irq_state();
 }
 
+void arm_cpu_device::save_arm()
+{
+	save_item(NAME(m_icount));
+	save_item(NAME(m_sArmRegister));
+	save_item(NAME(m_coproRegister));
+	save_item(NAME(m_pendingIrq));
+	save_item(NAME(m_pendingFiq));
+}
 
 void arm_cpu_device::device_start()
 {
 	m_program = &space(AS_PROGRAM);
 	m_direct = &m_program->direct();
 
-	save_item(NAME(m_sArmRegister));
-	save_item(NAME(m_coproRegister));
-	save_item(NAME(m_pendingIrq));
-	save_item(NAME(m_pendingFiq));
+
 
 	state_add( ARM32_PC,   "PC",   m_sArmRegister[15]       ).mask(ADDRESS_MASK).formatstr("%08X");
 	state_add( ARM32_R0,   "R0",   m_sArmRegister[ 0]       ).formatstr("%08X");
@@ -549,6 +554,8 @@ void arm_cpu_device::device_start()
 	state_add(STATE_GENFLAGS, "GENFLAGS", m_sArmRegister[15]).formatstr("%11s").noshow();
 
 	m_icountptr = &m_icount;
+
+	save_arm();
 }
 
 
