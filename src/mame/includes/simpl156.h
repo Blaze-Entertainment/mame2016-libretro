@@ -31,16 +31,46 @@ public:
 	required_device<eeprom_serial_93cxx_device> m_eeprom;
 	required_device<okim6295_device> m_okimusic;
 	/* memory pointers */
-	std::unique_ptr<UINT16[]>  m_pf1_rowscroll;
-	std::unique_ptr<UINT16[]>  m_pf2_rowscroll;
 	required_shared_ptr<UINT32> m_mainram;
 	required_shared_ptr<UINT32> m_systemram;
 	optional_device<decospr_device> m_sprgen;
 	required_device<palette_device> m_palette;
-	std::unique_ptr<UINT16[]> m_spriteram;
+
+	uint16_t m_pf1_rowscroll[0x800];
+	uint16_t m_pf2_rowscroll[0x800];
+	uint16_t m_spriteram[0x1000];
+	uint16_t m_pal[0x800];
+	void postload();
+
 	size_t m_spriteram_size;
+	uint8_t m_musicbank;
 	DECO16IC_BANK_CB_MEMBER(bank_callback);
 	DECOSPR_PRIORITY_CB_MEMBER(pri_callback);
+
+	READ32_MEMBER(simpl156_palram_r)
+	{
+		return m_pal[offset] ^ 0xffff0000;
+	}
+
+	WRITE32_MEMBER(simpl156_palram_w)
+	{
+		data &= 0x0000ffff;
+		mem_mask &= 0x0000ffff;
+
+		COMBINE_DATA(&m_pal[offset]);
+
+		const uint16_t color = m_pal[offset];
+
+		/* extract RGB components */
+		const uint8_t r = pal5bit(color >>  10);
+		const uint8_t g = pal5bit(color >>   5);
+		const uint8_t b = pal5bit(color & 0x1f);
+
+		/* update game palette */
+		m_palette->set_pen_color(4096*0 + offset, rgb_t(r, g, b));
+
+	}
+
 
 	DECLARE_WRITE32_MEMBER(simpl156_eeprom_w);
 	DECLARE_READ32_MEMBER(simpl156_spriteram_r);

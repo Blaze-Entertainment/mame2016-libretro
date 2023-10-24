@@ -129,13 +129,22 @@ static INPUT_PORTS_START( simpl156 )
 INPUT_PORTS_END
 
 
+void simpl156_state::postload()
+{
+	memcpy(memregion("okimusic")->base(), memregion("okimusic2")->base()+0x40000 * (m_musicbank & 0x7), 0x40000);
+}
+
 WRITE32_MEMBER(simpl156_state::simpl156_eeprom_w)
 {
 	//int okibank;
 
 	//okibank = data & 0x07;
+	uint8_t bank = data & 0x07;
 
-	m_okimusic->set_bank_base(0x40000 * (data & 0x7));
+	if (bank != m_musicbank)
+		memcpy(memregion("okimusic")->base(), memregion("okimusic2")->base()+0x40000 * (data & 0x7), 0x40000);
+
+	m_musicbank = data & 0x7;
 
 	m_eeprom->clk_write(BIT(data, 5) ? ASSERT_LINE : CLEAR_LINE);
 	m_eeprom->di_write(BIT(data, 4));
@@ -206,7 +215,7 @@ static ADDRESS_MAP_START( joemacr_map, AS_PROGRAM, 32, simpl156_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
 	AM_RANGE(0x100000, 0x107fff) AM_READWRITE(simpl156_mainram_r, simpl156_mainram_w) AM_SHARE("mainram") // main ram
 	AM_RANGE(0x110000, 0x111fff) AM_READWRITE(simpl156_spriteram_r, simpl156_spriteram_w)
-	AM_RANGE(0x120000, 0x120fff) AM_DEVREADWRITE16("palette", palette_device, read, write, 0x0000ffff) AM_SHARE("palette")
+	AM_RANGE(0x120000, 0x120fff) AM_READWRITE(simpl156_palram_r, simpl156_palram_w)
 	AM_RANGE(0x130000, 0x130003) AM_READ_PORT("IN1") AM_WRITE(simpl156_eeprom_w)
 	AM_RANGE(0x140000, 0x14001f) AM_DEVREADWRITE("tilegen1", deco16ic_device, pf_control_dword_r, pf_control_dword_w)
 	AM_RANGE(0x150000, 0x151fff) AM_DEVREADWRITE("tilegen1", deco16ic_device, pf1_data_dword_r, pf1_data_dword_w)
@@ -376,6 +385,7 @@ DECOSPR_PRIORITY_CB_MEMBER(simpl156_state::pri_callback)
 }
 
 
+
 static MACHINE_CONFIG_START( chainrec, simpl156_state )
 
 	/* basic machine hardware */
@@ -511,7 +521,9 @@ ROM_START( joemacr )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "mbn04",    0x00000, 0x40000,  CRC(dcbd4771) SHA1(2a1ab6b0fc372333c7eb17aab077fe1ca5ba1dea) ) /* 07.u46 */
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mbn03",    0x00000, 0x200000, CRC(70b71a2a) SHA1(45851b0692de73016fc9b913316001af4690534c) ) /* 06.u45 */
 ROM_END
 
@@ -547,7 +559,9 @@ ROM_START( joemacra )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "mbn04",    0x00000, 0x40000,  CRC(dcbd4771) SHA1(2a1ab6b0fc372333c7eb17aab077fe1ca5ba1dea) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mbn03",    0x00000, 0x200000, CRC(70b71a2a) SHA1(45851b0692de73016fc9b913316001af4690534c) )
 ROM_END
 
@@ -565,7 +579,9 @@ ROM_START( joemacrj )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "mbn04",    0x00000, 0x40000,  CRC(dcbd4771) SHA1(2a1ab6b0fc372333c7eb17aab077fe1ca5ba1dea) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mbn03",    0x00000, 0x200000, CRC(70b71a2a) SHA1(45851b0692de73016fc9b913316001af4690534c) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -614,7 +630,9 @@ ROM_START( chainrec )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "mcc-04",    0x00000, 0x40000,  CRC(86ee6ade) SHA1(56ad3f432c7f430f19fcba7c89940c63da165906) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcc-03",    0x00000, 0x100000, CRC(da2ebba0) SHA1(96d31dea4c7226ee1d386b286919fa334388c7a1) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -659,7 +677,9 @@ ROM_START( magdrop )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "mcc-04",    0x00000, 0x40000,  CRC(86ee6ade) SHA1(56ad3f432c7f430f19fcba7c89940c63da165906) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcc-03",    0x00000, 0x100000, CRC(da2ebba0) SHA1(96d31dea4c7226ee1d386b286919fa334388c7a1) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -680,7 +700,9 @@ ROM_START( magdropp )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "mcc-04",    0x00000, 0x40000,  CRC(86ee6ade) SHA1(56ad3f432c7f430f19fcba7c89940c63da165906) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcc-03",    0x00000, 0x100000, CRC(da2ebba0) SHA1(96d31dea4c7226ee1d386b286919fa334388c7a1) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -746,7 +768,9 @@ ROM_START( charlien )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "nd01-0.13h",    0x00000, 0x40000,  CRC(635a100a) SHA1(f6ec70890892e7557097ccd519de37247bb8c98d) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mbr-02.12f",    0x00000, 0x100000, CRC(4f67d333) SHA1(608f921bfa6b7020c0ce72e5229b3f1489208b23) ) // 00, 01, 04, 05
 ROM_END
 
@@ -829,7 +853,9 @@ ROM_START( prtytime )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "pz_01-0.13h",    0x00000, 0x40000,  CRC(8925bce2) SHA1(0ff2d5db7a24a2af30bd753eba274572c32cc2e7) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcb-04.12f",    0x00000, 0x200000, CRC(e23d3590) SHA1(dc8418edc525f56e84f26e9334d5576000b14e5f) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -855,7 +881,9 @@ ROM_START( gangonta )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "rd_01-0.13h",    0x00000, 0x40000,  CRC(70fd18c6) SHA1(368cd8e10c5f5a13eb3813974a7e6b46a4fa6b6c) )
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcb-04.12f",    0x00000, 0x200000, CRC(e23d3590) SHA1(dc8418edc525f56e84f26e9334d5576000b14e5f) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -920,7 +948,9 @@ ROM_START( osman )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "sa01-0.13h",    0x00000, 0x40000,  CRC(cea8368e) SHA1(1fcc641381fdc29bd50d3a4b23e67647f79e505a))
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcf-05.12f",    0x00000, 0x200000, CRC(f007d376) SHA1(4ba20e5dabeacc3278b7f30c4462864cbe8f6984) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -948,7 +978,9 @@ ROM_START( candance )
 	ROM_REGION( 0x80000, "okisfx", 0 ) /* Oki samples */
 	ROM_LOAD( "sa01-0.13h",    0x00000, 0x40000,  CRC(cea8368e) SHA1(1fcc641381fdc29bd50d3a4b23e67647f79e505a))
 
-	ROM_REGION( 0x200000, "okimusic", 0 ) /* samples? (banked?) */
+	ROM_REGION( 0x80000, "okimusic", ROMREGION_ERASE00 )
+
+	ROM_REGION( 0x200000, "okimusic2", 0 ) /* samples? (banked?) */
 	ROM_LOAD( "mcf-05.12f",    0x00000, 0x200000, CRC(f007d376) SHA1(4ba20e5dabeacc3278b7f30c4462864cbe8f6984) )
 
 	ROM_REGION16_BE( 0x80, "eeprom", 0 ) /* eeprom */
@@ -1017,8 +1049,8 @@ ROM_END
 
 DRIVER_INIT_MEMBER(simpl156_state,simpl156)
 {
-	UINT8 *rom = memregion("okimusic")->base();
-	int length = memregion("okimusic")->bytes();
+	UINT8 *rom = memregion("okimusic2")->base();
+	int length = memregion("okimusic2")->bytes();
 	dynamic_buffer buf1(length);
 
 	UINT32 x;
@@ -1042,6 +1074,11 @@ DRIVER_INIT_MEMBER(simpl156_state,simpl156)
 
 	deco56_decrypt_gfx(machine(), "gfx1");
 	deco156_decrypt(machine());
+
+	memcpy(memregion("okimusic")->base(), memregion("okimusic2")->base(), 0x80000);
+
+	save_item(NAME(m_musicbank));
+	machine().save().register_postload(save_prepost_delegate(FUNC(simpl156_state::postload), this));
 }
 
 /* Everything seems more stable if we run the CPU speed x4 and use Idle skips.. maybe it has an internal multipler? */
