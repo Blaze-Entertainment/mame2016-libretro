@@ -79,7 +79,7 @@ ifeq ($(platform),)
 		platform = win
 	endif
 endif
-ifeq ($(ARCH),)
+ifneq ($(ARCH),)
 	LIBRETRO_CPU = $(ARCH)
 endif
 ifeq ($(LIBRETRO_CPU),)

@@ -154,6 +154,7 @@ void mame_machine_manager::start_luaengine()
 		}
 	}
 	m_lua->initialize();
+	m_lua->set_emu_options(options());
 
 	{
 		emu_file file(options().plugins_path(), OPEN_FLAG_READ);

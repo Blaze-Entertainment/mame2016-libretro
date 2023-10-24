@@ -947,21 +947,12 @@ end
 		"-Wwrite-strings",
 		"-Wno-sign-compare",
 		"-Wno-conversion",
-		"-marm",
 		"-fcommon",
-		"-DLUA_32BITS",
-		"-mtune=cortex-a7",
-		"-march=armv7ve",
-		"-mfpu=neon-vfpv4",
-		"-mfloat-abi=hard",
 		"-ftree-vectorize",
 		"-ffast-math",
 		"-funsafe-math-optimizations",
 		"-DNDEBUG=1",
 		"-fstrict-aliasing",
-		"-ftree-vectorizer-verbose=0",
-		"-fopt-info-vec",
-		-- "-fopt-info-vec-missed",
 		"-ftree-parallelize-loops=6",
 		"-funroll-loops",
 		"-funswitch-loops",
@@ -988,6 +979,20 @@ end
 		"-Wpointer-arith",
 		"-Wstrict-prototypes",
 	}
+
+if (_OPTIONS["PLATFORM"]=="arm") then
+	buildoptions {
+		"-marm",
+		"-DLUA_32BITS",
+		"-mtune=cortex-a7",
+		"-march=armv7ve",
+		"-mfpu=neon-vfpv4",
+		"-mfloat-abi=hard",
+		"-ftree-vectorizer-verbose=0",
+		"-fopt-info-vec",
+		-- "-fopt-info-vec-missed",
+	}
+end
 
 if _OPTIONS["targetos"]~="freebsd" then
 	buildoptions_c {

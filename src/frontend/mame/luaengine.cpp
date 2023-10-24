@@ -324,6 +324,31 @@ int lua_engine::l_emu_app_version(lua_State *L)
 	return 1;
 }
 
+//-------------------------------------------------
+//  emu_plugins_path - return full path of plugins directory
+//-------------------------------------------------
+
+int lua_engine::l_emu_plugins_path(lua_State *L)
+{
+	if (luaThis->options() != nullptr)
+		lua_pushstring(L, luaThis->options()->plugins_path());
+	else
+		lua_pushstring(L, "");
+	return 1;
+}
+
+//-------------------------------------------------
+//  emu_hiscore_directory - return full path of hiscore directory
+//-------------------------------------------------
+
+int lua_engine::l_emu_hiscore_directory(lua_State *L)
+{
+	if (luaThis->options() != nullptr)
+		lua_pushstring(L, luaThis->options()->hiscore_directory());
+	else
+		lua_pushstring(L, "");
+	return 1;
+}
 
 //-------------------------------------------------
 //  emu_gamename - returns game full name
@@ -1703,6 +1728,7 @@ static void *serve_lua(void *param)
 lua_engine::lua_engine()
 {
 	m_machine = nullptr;
+	m_emu_options = nullptr;
 	luaThis = this;
 	m_lua_state = luaL_newstate();  /* create state */
 	output_notifier_set = false;
@@ -2085,6 +2111,8 @@ void lua_engine::initialize()
 		.beginNamespace ("emu")
 			.addCFunction ("app_name",    l_emu_app_name )
 			.addCFunction ("app_version", l_emu_app_version )
+			.addCFunction ("plugins_path", l_emu_plugins_path )
+			.addCFunction ("hiscore_directory", l_emu_hiscore_directory )
 			.addCFunction ("gamename",    l_emu_gamename )
 			.addCFunction ("romname",     l_emu_romname )
 			.addCFunction ("softname",    l_emu_softname )

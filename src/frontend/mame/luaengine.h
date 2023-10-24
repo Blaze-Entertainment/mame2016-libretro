@@ -59,6 +59,7 @@ public:
 
 	void resume(lua_State *L, int nparam = 0, lua_State *root = nullptr);
 	void set_machine(running_machine *machine) { m_machine = machine; update_machine(); }
+	void set_emu_options(emu_options &options) { m_emu_options = std::addressof(options); }
 	std::vector<std::string> &get_menu() { return m_menu; }
 	void attach_notifiers();
 	void on_frame_done();
@@ -81,6 +82,7 @@ private:
 	// internal state
 	lua_State          *m_lua_state;
 	running_machine *   m_machine;
+	emu_options *       m_emu_options;
 
 	std::vector<std::string> m_menu;
 
@@ -94,6 +96,7 @@ private:
 	std::map<lua_State *, std::pair<lua_State *, int> > thread_registry;
 
 	running_machine &machine() const { return *m_machine; }
+	emu_options *options() const { return m_emu_options; }
 
 	void update_machine();
 
@@ -117,6 +120,8 @@ private:
 	static int l_emu_after(lua_State *L);
 	static int l_emu_app_name(lua_State *L);
 	static int l_emu_app_version(lua_State *L);
+	static int l_emu_plugins_path(lua_State *L);
+	static int l_emu_hiscore_directory(lua_State *L);
 	static int l_emu_wait(lua_State *L);
 	static int l_emu_time(lua_State *L);
 	static int l_emu_gamename(lua_State *L);

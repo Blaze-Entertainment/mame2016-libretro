@@ -23,7 +23,11 @@ end
 function hiscore.startplugin()
 
 	local hiscoredata_path = "hiscore.dat";
-	local hiscore_path = "hi";
+	local hiscore_path = emu.hiscore_directory();
+	if (hiscore_path == nil or hiscore_path == '') then
+		hiscore_path = "hi"
+	end
+	emu.print_verbose("hiscore save directory: " .. hiscore_path);
 
 	local current_checksum = 0;
 	local default_checksum = 0;
@@ -63,7 +67,10 @@ function hiscore.startplugin()
 	  local file = io.open( hiscoredata_path, "r" );
 	  local rm_match;
 	  if not file then
-		file = io.open( hiscore_plugin_path .. "/hiscore.dat", "r" );
+	   file = io.open( hiscore_plugin_path .. "/hiscore.dat", "r" );
+	  end
+	  if not file then
+	   emu.print_error("Failed to open hiscore dat file: " .. hiscore_plugin_path .. "/hiscore.dat");
 	  end
 	  if emu.softname() ~= "" then
 		rm_match = '^' .. emu.romname() .. ',' .. emu.softname() .. ':';

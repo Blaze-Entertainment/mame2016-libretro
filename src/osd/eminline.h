@@ -15,7 +15,9 @@
 #include "osdcomm.h"
 #include "osdcore.h"
 #include "libdivide.h"
-#include "sse2neon.h"
+#if defined(__arm__)
+#include <sse2neon.h>
+#endif
 
 #if !defined(MAME_NOASM)
 /* we come with implementations for GCC x86 and PPC */
@@ -262,11 +264,15 @@ static inline UINT32 modu_64x32(UINT64 a, UINT32 b)
 #ifndef recip_approx
 static inline float recip_approx(float value)
 {
+#if defined(__arm__)
 	__m128 mz = _mm_set_ss(value);
 	__m128 mooz = _mm_rcp_ss(mz);
 	float ooz;
 	_mm_store_ss(&ooz, mooz);
 	return ooz;
+#else
+	return 1.0f / value;
+#endif
 }
 #endif
 
@@ -318,6 +324,7 @@ static inline UINT8 count_leading_ones(UINT32 val)
 #ifndef get_profile_ticks
 static inline INT64 get_profile_ticks(void)
 {
+#if defined(__arm__)
     uint32_t pmccntr;
     uint32_t pmuseren;
     uint32_t pmcntenset;
@@ -333,6 +340,9 @@ static inline INT64 get_profile_ticks(void)
     }
 
     return 0;
+#else
+    return osd_ticks();
+#endif
 }
 #endif
 

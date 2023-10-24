@@ -12,7 +12,9 @@
 #ifndef __RGBUTIL__
 #define __RGBUTIL__
 
+#if defined(__arm__)
 #include <sse2neon.h>
+#endif
 #include "rgbsse.h"
 
 #endif /* __RGBUTIL__ */

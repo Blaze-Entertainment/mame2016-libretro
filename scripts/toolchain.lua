@@ -236,7 +236,11 @@ function toolchain(_buildDir, _subDir)
 				premake.gcc.cc   = "@gcc -V 4.2"
 				premake.gcc.cxx  = "@g++-4.2"
 			end
-			premake.gcc.ar  = "arm-linux-gnueabihf-gcc-ar"
+			if (_OPTIONS["PLATFORM"]=="arm") then
+				premake.gcc.ar  = "arm-linux-gnueabihf-gcc-ar"
+			else
+				premake.gcc.ar  = "ar"
+			end
 			buildoptions_cpp {
 				"-std=c++14",
 				"-fpermissive"
