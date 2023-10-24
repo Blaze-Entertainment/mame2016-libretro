@@ -120,6 +120,15 @@ project ("osd_" .. _OPTIONS["osd"])
 	--	}
 	--end
 
+	if (_OPTIONS["EVERCADE_DEBUG"]=="1") then
+		files {
+			MAME_DIR .. "src/osd/retro/libretro-common/encodings/encoding_crc32.c",
+			MAME_DIR .. "src/osd/retro/libretro-common/formats/json/rjson.c",
+			MAME_DIR .. "src/osd/retro/libretro-common/streams/interface_stream.c",
+			MAME_DIR .. "src/osd/retro/libretro-common/streams/memory_stream.c",
+		}
+	end
+
 	if _OPTIONS["NO_OPENGL"]=="1" then
 		files {
 			MAME_DIR .. "src/osd/retro/libretro-common/glsym/rglgen.c",

@@ -35,9 +35,31 @@ static config_file_t *evercade_option_overrides = NULL;
 #include <unordered_set>
 #include <vector>
 #include "modules/lib/osdobj_common.h"
+#include <formats/rjson.h>
 
 #define EVERCADE_ROM_LIST_FILE_EXT_NO_DOT "romlist"
 #define EVERCADE_DRIVER_LIST_FILE_EXT ".driverlist"
+#define EVERCADE_DIP_DESC_FILE_EXT ".diplist"
+
+typedef struct
+{
+   std::string name;
+   UINT32 value;
+} dip_setting_desc_t;
+
+typedef struct
+{
+   std::string port_tag;
+   std::string field_name;
+   UINT32 field_mask;
+   UINT32 field_defvalue;
+   std::vector<dip_setting_desc_t> field_settings;
+} dip_desc_t;
+
+#define DIP_NAME_UNUSED "Unused"
+#define DIP_NAME_UNKNOWN "Unknown"
+
+static bool dump_dip_list = false;
 #endif
 
 extern const char bare_build_version[];
@@ -399,6 +421,19 @@ static void check_variables(void)
          write_config_enable = true;
    }
 
+#if defined(EVERCADE_DEBUG)
+   var.key = MAME_OPT(dump_dip_info);
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "disabled"))
+         dump_dip_list = false;
+      if (!strcmp(var.value, "enabled"))
+         dump_dip_list = true;
+   }
+#endif
+
    libretro_update_turbo_btn_map();
 
    retropad_turbo_period      = TURBO_PERIOD_DEFAULT;
@@ -566,6 +601,210 @@ void retro_reset (void)
    //mame_machine_manager::instance()->ui().show_menu();
 }
 
+#if defined(EVERCADE_DEBUG)
+static void write_dip_list(void)
+{
+   /* .cfg file DIP switch entry:
+    *    <port tag="port.tag()" type="DIPSWITCH" mask="field.mask()" defvalue="field.defvalue()" value="current_value" />
+    * For each DIP switch, need to dump:
+    * - port tag
+    * - field name
+    * - field mask
+    * - field defvalue
+    * - all setting values
+    * - all setting value names */
+   std::vector<dip_desc_t> dip_descs;
+
+   /* Loop over all machine ports */
+   for (ioport_port &port : mame_machine_manager::instance()->machine()->ioport().ports())
+   {
+      const char *port_tag = port.tag();
+
+      if (port.fields().empty())
+         continue;
+
+      /* Loop over all fields of the current port */
+      for (ioport_field &field : port.fields())
+      {
+         const char *field_name = field.name();
+         dip_desc_t dip_desc;
+
+         if (string_is_empty(field_name))
+            continue;
+
+         /* Skip invalid field types */
+         if ((field.type() != IPT_DIPSWITCH) || field.diplocations().empty())
+            continue;
+
+         /* Skip unused, unknown switches */
+         if (string_is_equal(field_name, DIP_NAME_UNUSED) ||
+             string_is_equal(field_name, DIP_NAME_UNKNOWN))
+            continue;
+
+         /* Cache field parameters */
+         dip_desc.port_tag = std::string(port_tag);
+         dip_desc.field_name = std::string(field_name);
+         dip_desc.field_mask = field.mask();
+         dip_desc.field_defvalue = field.defvalue();
+
+         /* Loop over all field settings */
+         for (ioport_setting &setting : field.settings())
+         {
+            dip_setting_desc_t dip_setting_desc;
+            dip_setting_desc.name = setting.name();
+            dip_setting_desc.value = setting.value();
+            dip_desc.field_settings.push_back(dip_setting_desc);
+         }
+
+         if (dip_desc.field_settings.size() > 0)
+            dip_descs.push_back(dip_desc);
+      }
+   }
+
+   /* If DIP switch entries were found, write to disk */
+   if (dip_descs.size() > 0)
+   {
+      char dip_desc_path[2048] = {0};
+      RFILE *dip_desc_file = NULL;
+      rjsonwriter_t *json_writer = NULL;
+      size_t i, j;
+
+      /* Get output file name */
+      fill_pathname(dip_desc_path, RPATH,
+            EVERCADE_DIP_DESC_FILE_EXT,
+            sizeof(dip_desc_path));
+
+      /* Open file */
+      dip_desc_file = filestream_open(dip_desc_path,
+            RETRO_VFS_FILE_ACCESS_WRITE,
+            RETRO_VFS_FILE_ACCESS_HINT_NONE);
+      if (!dip_desc_file)
+      {
+         osd_printf_error("Failed to open DIP description file: %s\n", dip_desc_path);
+         return;
+      }
+      json_writer = rjsonwriter_open_rfile(dip_desc_file);
+      if (!json_writer)
+      {
+         osd_printf_error("Failed to create JSON writer for DIP description file\n");
+         filestream_close(dip_desc_file);
+         return;
+      }
+
+      rjsonwriter_add_start_object(json_writer);
+      rjsonwriter_add_newline(json_writer);
+      rjsonwriter_add_spaces(json_writer, 2);
+      rjsonwriter_add_string(json_writer, "ports");
+      rjsonwriter_add_colon(json_writer);
+      rjsonwriter_add_spaces(json_writer, 1);
+      rjsonwriter_add_start_array(json_writer);
+
+      /* Write DIP switch descriptions */
+      for (i = 0; i < dip_descs.size(); i++)
+      {
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 4);
+         rjsonwriter_add_start_object(json_writer);
+
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 6);
+         rjsonwriter_add_string(json_writer, "name");
+         rjsonwriter_add_colon(json_writer);
+         rjsonwriter_add_space(json_writer);
+         rjsonwriter_add_string(json_writer, dip_descs[i].field_name.c_str());
+         rjsonwriter_add_comma(json_writer);
+
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 6);
+         rjsonwriter_add_string(json_writer, "tag");
+         rjsonwriter_add_colon(json_writer);
+         rjsonwriter_add_space(json_writer);
+         rjsonwriter_add_string(json_writer, dip_descs[i].port_tag.c_str());
+         rjsonwriter_add_comma(json_writer);
+
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 6);
+         rjsonwriter_add_string(json_writer, "mask");
+         rjsonwriter_add_colon(json_writer);
+         rjsonwriter_add_space(json_writer);
+         rjsonwriter_add_int(json_writer, (int)dip_descs[i].field_mask);
+         rjsonwriter_add_comma(json_writer);
+
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 6);
+         rjsonwriter_add_string(json_writer, "defvalue");
+         rjsonwriter_add_colon(json_writer);
+         rjsonwriter_add_space(json_writer);
+         rjsonwriter_add_int(json_writer, (int)dip_descs[i].field_defvalue);
+         rjsonwriter_add_comma(json_writer);
+
+         /* Write settings array */
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 6);
+         rjsonwriter_add_string(json_writer, "settings");
+         rjsonwriter_add_colon(json_writer);
+         rjsonwriter_add_spaces(json_writer, 1);
+         rjsonwriter_add_start_array(json_writer);
+
+         for (j = 0; j < dip_descs[i].field_settings.size(); j++)
+         {
+            rjsonwriter_add_newline(json_writer);
+            rjsonwriter_add_spaces(json_writer, 8);
+            rjsonwriter_add_start_object(json_writer);
+
+            rjsonwriter_add_newline(json_writer);
+            rjsonwriter_add_spaces(json_writer, 10);
+            rjsonwriter_add_string(json_writer, "name");
+            rjsonwriter_add_colon(json_writer);
+            rjsonwriter_add_space(json_writer);
+            rjsonwriter_add_string(json_writer, dip_descs[i].field_settings[j].name.c_str());
+            rjsonwriter_add_comma(json_writer);
+
+            rjsonwriter_add_newline(json_writer);
+            rjsonwriter_add_spaces(json_writer, 10);
+            rjsonwriter_add_string(json_writer, "value");
+            rjsonwriter_add_colon(json_writer);
+            rjsonwriter_add_space(json_writer);
+            rjsonwriter_add_int(json_writer, (int)dip_descs[i].field_settings[j].value);
+
+            rjsonwriter_add_newline(json_writer);
+            rjsonwriter_add_spaces(json_writer, 8);
+            rjsonwriter_add_end_object(json_writer);
+
+            if (j < dip_descs[i].field_settings.size() - 1)
+               rjsonwriter_add_comma(json_writer);
+         }
+
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 6);
+         rjsonwriter_add_end_array(json_writer);
+         rjsonwriter_add_newline(json_writer);
+         rjsonwriter_add_spaces(json_writer, 4);
+         rjsonwriter_add_end_object(json_writer);
+
+         if (i < dip_descs.size() - 1)
+            rjsonwriter_add_comma(json_writer);
+      }
+
+      rjsonwriter_add_newline(json_writer);
+      rjsonwriter_add_spaces(json_writer, 2);
+      rjsonwriter_add_end_array(json_writer);
+      rjsonwriter_add_newline(json_writer);
+      rjsonwriter_add_end_object(json_writer);
+      rjsonwriter_add_newline(json_writer);
+
+      /* Close file */
+      if (rjsonwriter_free(json_writer))
+         osd_printf_info("Wrote DIP description file: %s\n", dip_desc_path);
+      else
+         osd_printf_error("Failed to write DIP description file: %s\n", dip_desc_path);
+      filestream_close(dip_desc_file);
+   }
+   else
+      osd_printf_info("No DIP switch settings found for ROM: %s\n", RPATH);
+}
+#endif
+
 void retro_run (void)
 {  
    static int mfirst=1;
@@ -578,10 +817,14 @@ void retro_run (void)
 
    if(mfirst==1)
    {
-      mfirst++;
+      mfirst=0;
       mmain(1,RPATH);
       retro_load_ok=true;
       update_runtime_variables();
+#if defined(EVERCADE_DEBUG)
+      if (dump_dip_list)
+         write_dip_list();
+#endif
       return;
    }
 

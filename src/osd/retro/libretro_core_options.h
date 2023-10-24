@@ -72,6 +72,13 @@ struct retro_core_option_v2_category option_cats_us[] = {
       "Turbo Buttons",
       "Configure RetroPad turbo button mapping."
    },
+#if defined(EVERCADE_DEBUG)
+   {
+      "utilities",
+      "Utilities",
+      "Developer tools."
+   },
+#endif
    { NULL, NULL, NULL },
 };
 
@@ -703,6 +710,25 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       },
       "4"
    },
+#if defined(EVERCADE_DEBUG)
+   {
+      MAME_OPT(dump_dip_info),
+      "Dump DIP Switch Info (Restart)",
+      NULL,
+      "When enabled, a list of all DIP switch descriptions/settings for the current machine will be dumped to disk when content is launched. Output files are named '<rom_name>.diplist', and are written in JSON format in the same directory as the loaded content.",
+      NULL,
+      "utilities",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      /* Should be disabled by default, but this would
+       * make the feature awkward to use on Evercade
+       * devices... */
+      "enabled"
+   },
+#endif
    { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
 };
 
