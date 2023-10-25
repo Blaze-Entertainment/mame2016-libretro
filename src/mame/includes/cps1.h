@@ -344,7 +344,6 @@ public:
 	uint16_t m_palpens[0xc00];
 	int m_spritecodes[0x10000];
 	int m_tile2codes[0x10000];
-	int m_tile3codes[0x10000];
 
 	DECLARE_VIDEO_START(cps);
 	DECLARE_MACHINE_START(sf2m1);

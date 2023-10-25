@@ -3346,7 +3346,7 @@ GFXDECODE_START( cps1 )
 	GFXDECODE_ENTRY( "txgfx", 0, cps1_layout8x8,   0, 0x100 )
 //	GFXDECODE_ENTRY( "gfx", 0, cps1_layout8x8_2, 0, 0x100 )
 	GFXDECODE_ENTRY( "gfx", 0, cps1_layout16x16, 0, 0x100 )
-	GFXDECODE_ENTRY( "gfx", 0, cps1_layout32x32, 0, 0x100 )
+	GFXDECODE_ENTRY( "bggfx", 0, cps1_layout32x32, 0, 0x100 )
 GFXDECODE_END
 
 
@@ -3511,7 +3511,7 @@ MACHINE_CONFIG_END
 */
 /* Note that ROMs are labeled left to right, top to bottom, instead of top to bottom, left to right as usual. */
 ROM_START( forgottn )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lw40.12f",       0x00000, 0x20000, CRC(73e920b7) SHA1(2df12fc1a66f488d06b0927db909da81466d7d07) ) /* Higher program numbers indicates a later revision */
 	ROM_LOAD16_BYTE( "lw41.12h",       0x00001, 0x20000, CRC(58210b9e) SHA1(416cb56a81e74fce6f86c2b2519ba620457b785a) ) /* 1 byte difference: 0x66D4 == 0x0C versus 0x04 in lw15.12h below */
 	ROM_LOAD16_BYTE( "lw42.13f",       0x40000, 0x20000, CRC(bea45994) SHA1(c419f65c5e0c11ae7508ec54412bf6b62fac4f72) )
@@ -3587,7 +3587,7 @@ ROM_END
 */
 /* Note that ROMs are labeled left to right, top to bottom, instead of top to bottom, left to right as usual. */
 ROM_START( forgottna )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lw11.12f",       0x00000, 0x20000, CRC(73e920b7) SHA1(2df12fc1a66f488d06b0927db909da81466d7d07) )
 	ROM_LOAD16_BYTE( "lw15.12h",       0x00001, 0x20000, CRC(50d7012d) SHA1(f82a28a835f0a83b26c2c8170b824447b1d7409f) )
 	ROM_LOAD16_BYTE( "lw10.13f",       0x40000, 0x20000, CRC(bea45994) SHA1(c419f65c5e0c11ae7508ec54412bf6b62fac4f72) )
@@ -3644,7 +3644,7 @@ ROM_END
    named LW-13 and located @ 10D instead of LW_25.10C, LW_26.10E, LW_27.11C, LW_28.11E EPROMs. */
 /* Note that ROMs are labeled left to right, top to bottom, instead of top to bottom, left to right as usual. */
 ROM_START( forgottnu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lw11c.12f",      0x00000, 0x20000, CRC(e62742b6) SHA1(39dd3bdd405a8217d8816567d4f2014fc77f5ce8) )
 	ROM_LOAD16_BYTE( "lw15c.12h",      0x00001, 0x20000, CRC(1b70f216) SHA1(f200f615dca8aa23d166e74b8baa9a8863ee7a95) )
 	ROM_LOAD16_BYTE( "lw10c.13f",      0x40000, 0x20000, CRC(8f5ea3f5) SHA1(c3e43659bd7e03ec3d5c79647db380bde391b0f1) )
@@ -3696,7 +3696,7 @@ ROM_END
 /* B-Board 88618B-2 */
 /* Note that this set is equivalent to forgottnu, but ROMs use the 88618B-2 B-Board layout. */
 ROM_START( forgottnu1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lw11c.14f",      0x00000, 0x20000, CRC(e62742b6) SHA1(39dd3bdd405a8217d8816567d4f2014fc77f5ce8) )
 	ROM_LOAD16_BYTE( "lw15c.14g",      0x00001, 0x20000, CRC(1b70f216) SHA1(f200f615dca8aa23d166e74b8baa9a8863ee7a95) )
 	ROM_LOAD16_BYTE( "lw10c.13f",      0x40000, 0x20000, CRC(8f5ea3f5) SHA1(c3e43659bd7e03ec3d5c79647db380bde391b0f1) )
@@ -3738,7 +3738,7 @@ ROM_END
 
 /* B-Board 88618B-2 */
 ROM_START( forgottnua )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lwu_11a.14f",    0x00000, 0x20000, CRC(ddf78831) SHA1(b9c815613efdfde933d4500b588798b7fb4c1854) )
 	ROM_LOAD16_BYTE( "lwu_15a.14g",    0x00001, 0x20000, CRC(f7ce2097) SHA1(44c06fabdb6de7d8afc2164458c90b0be9cf945d) )
 	ROM_LOAD16_BYTE( "lwu_10a.13f",    0x40000, 0x20000, CRC(8cb38c81) SHA1(1d36cab7d17ff778ee7dfcd9606a3a87f6906f21) )
@@ -3780,7 +3780,7 @@ ROM_END
 
 /* B-Board 88618B-2 */
 ROM_START( forgottnuaa ) /* 1 byte difference to parent set. Region byte or pointer to the US "warning" screen at boot */
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lwu_11aa.14f",   0x00000, 0x20000, CRC(73e920b7) SHA1(2df12fc1a66f488d06b0927db909da81466d7d07) ) // == lw11.12f
 	ROM_LOAD16_BYTE( "lwu_15aa.14g",   0x00001, 0x20000, CRC(e47524b9) SHA1(2fad1e59432cb63017caf691bb28eb7cbcecb3c6) ) // 1 byte difference to lw15.12h 0x8B6 == 0x07
 	ROM_LOAD16_BYTE( "lwu_10aa.13f",   0x40000, 0x20000, CRC(bea45994) SHA1(c419f65c5e0c11ae7508ec54412bf6b62fac4f72) ) // == lw10.13f
@@ -3822,7 +3822,7 @@ ROM_END
 
 /* B-Board 88618B-2 */
 ROM_START( lostwrld )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lw_11c.14f",     0x00000, 0x20000, CRC(67e42546) SHA1(3e385661f71616180a26b74e443978077246fe66) )
 	ROM_LOAD16_BYTE( "lw_15c.14g",     0x00001, 0x20000, CRC(402e2a46) SHA1(cbb7017e75a425706505717bf83c2615f53309f9) )
 	ROM_LOAD16_BYTE( "lw_10c.13f",     0x40000, 0x20000, CRC(c46479d7) SHA1(84fd9ef33ae7d0af2110e8dc299de25c0f039cee) )
@@ -3864,7 +3864,7 @@ ROM_END
 
 /* B-Board 88618B-2 */
 ROM_START( lostwrldo )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "lw_11.14f",      0x00000, 0x20000, CRC(61e2cc56) SHA1(bc192e37806129dd00677ca2c2e4287aa670973d) )
 	ROM_LOAD16_BYTE( "lw_15.14g",      0x00001, 0x20000, CRC(8a0c18d3) SHA1(7a4d80cefa0c2be427de43fbbbb906880876ed1d) )
 	ROM_LOAD16_BYTE( "lw_10.13f",      0x40000, 0x20000, CRC(23bca4d5) SHA1(c9d356d052d82117b6c30e40aa02a5f1f5335a73) )
@@ -3907,7 +3907,7 @@ ROM_END
 /* B-Board 88620-B-? */
 /* Note that ROMs are labeled left to right, top to bottom, instead of top to bottom, left to right as usual. */
 ROM_START( ghouls )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "dme_29.10h", 0x00000, 0x20000, CRC(166a58a2) SHA1(f21fcf88d2ebb7bc9e8885fde760a5d82f295c1a) )
 	ROM_LOAD16_BYTE( "dme_30.10j", 0x00001, 0x20000, CRC(7ac8407a) SHA1(3613699213db47bfeabedf87f12eb0fa7e5973b6) )
 	ROM_LOAD16_BYTE( "dme_27.9h",  0x40000, 0x20000, CRC(f734b2be) SHA1(fa230bf5503487ec11d767485a18f0a55dcc13d2) )
@@ -3957,7 +3957,7 @@ ROM_END
 /* B-Board 88620-B-2 */
 /* Note that ROMs are labeled left to right, top to bottom, instead of top to bottom, left to right as usual. */
 ROM_START( ghoulsu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "dmu_29.10h", 0x00000, 0x20000, CRC(334d85b2) SHA1(89bacc28b7c799c7568420e3de5a99060baa7b0f) )
 	ROM_LOAD16_BYTE( "dmu_30.10j", 0x00001, 0x20000, CRC(cee8ceb5) SHA1(fc8db1ce0c143dfda0b5989d02d5e5a872e27cd2) )
 	ROM_LOAD16_BYTE( "dmu_27.9h",  0x40000, 0x20000, CRC(4a524140) SHA1(cebd651293c3570912d5506c1c223c39bcccc802) )
@@ -4007,7 +4007,7 @@ ROM_END
 /* B-Board 88622B-2 */
 /* Note that ROMs are labeled left to right, top to bottom, instead of top to bottom, left to right as usual. */
 ROM_START( daimakai )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "dmj_38.12f", 0x00000, 0x20000, CRC(82fd1798) SHA1(7a199384659d8e6602384b1953339f221d61a9e6) )
 	ROM_LOAD16_BYTE( "dmj_39.12h", 0x00001, 0x20000, CRC(35366ccc) SHA1(42c7004a641f34b9dd1333be51b50639a97e2be9) )
 	ROM_LOAD16_BYTE( "dmj_40.13f", 0x40000, 0x20000, CRC(a17c170a) SHA1(62a9cb65df90827334d453a98e826dc1bfc27136) )
@@ -4071,7 +4071,7 @@ ROM_END
 
 /* B-Board 91634B-2, Japan Resale Ver. */
 ROM_START( daimakair )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "damj_23.8f", 0x00000, 0x80000, CRC(c3b248ec) SHA1(5c016d2dcf882b2a9564e3c4502a0f51ee3d1803) )
 	ROM_LOAD16_WORD_SWAP( "damj_22.7f", 0x80000, 0x80000, CRC(595ff2f3) SHA1(ac14b81e15f2c340526a03acbb4c28181d94d5b9) )
 
@@ -4110,7 +4110,7 @@ ROM_END
 
 /* B-Board 89624B-2 */
 ROM_START( strider )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "30.11f",        0x00000, 0x20000, CRC(da997474) SHA1(3e4ac98f9a6967d61899281b31c7de779723397b) )
 	ROM_LOAD16_BYTE( "35.11h",        0x00001, 0x20000, CRC(5463aaa3) SHA1(e2d07ec2d818e9a2e2d7a77ff0309ae4011c0083) )
 	ROM_LOAD16_BYTE( "31.12f",        0x40000, 0x20000, CRC(d20786db) SHA1(c9c75488e6bb37cfd0d56073faf87ff5713bc9a0) )
@@ -4152,7 +4152,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( striderua )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "30.11f", 0x00000, 0x20000, CRC(66aec273) SHA1(576b1e9062874e68d68f8725949c151509eb6d56) )    /* different CRC from strider, pcb verified */
 	ROM_LOAD16_BYTE( "35.11h", 0x00001, 0x20000, CRC(50e0e865) SHA1(201ef385c228c124ed9412002233a501ea514efd) )    /* different CRC from strider, pcb verified */
 	ROM_LOAD16_BYTE( "31.12f", 0x40000, 0x20000, CRC(eae93bd1) SHA1(b320a00b67ea3c7fffc6c37d57863163975f7b80) )    /* different CRC from strider, pcb verified */
@@ -4196,7 +4196,7 @@ ROM_END
 // actually an incomplete conversion, layer enables are wrong in a number of places which causes the game to break even on real hardware.
 // this is essentially a Capcom made bootleg of a Capcom game.
 ROM_START( strideruc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "34.8f", 0x000000, 0x80000, CRC(e0fb5657) SHA1(6c7f668220de80169feea35371aff363f67f7b0c) )
 	ROM_LOAD16_WORD_SWAP( "33.6f", 0x080000, 0x80000, CRC(9b3cfc08) SHA1(a7d7f270a097437affa845d80bed82a1fa874878) )
 
@@ -4238,7 +4238,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( striderj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sth_36.12f", 0x00000, 0x20000, CRC(53c7b006) SHA1(30daa256a32b209b907e5d916a82068017862a01) )
 	ROM_LOAD16_BYTE( "sth_42.12h", 0x00001, 0x20000, CRC(4037f65f) SHA1(490b9fb15f80772316101ea15e61ab32f42feaec) )
 	ROM_LOAD16_BYTE( "sth_37.13f", 0x40000, 0x20000, CRC(80e8877d) SHA1(806a62c03007efe6d58fb24dac467d4fc39bb96a) )
@@ -4307,7 +4307,7 @@ ROM_END
 
 /* B-Board 91634B-2, Japan Resale Ver. */
 ROM_START( striderjr )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sthj_23.8f", 0x00000, 0x80000, CRC(046e7b12) SHA1(a5761f730f6844a7e93556a6aeae76240a99540c) )
 	ROM_LOAD16_WORD_SWAP( "sthj_22.7f", 0x80000, 0x80000, CRC(9b3cfc08) SHA1(a7d7f270a097437affa845d80bed82a1fa874878) )    // == st-14.8h
 
@@ -4351,7 +4351,7 @@ ROM_END
 
 /* B-Board 89624B-? */
 ROM_START( dynwar )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "30.11f",        0x00000, 0x20000, CRC(f9ec6d68) SHA1(02912db2b48f77489b0b841c2a5414bfb49b93f4) )
 	ROM_LOAD16_BYTE( "35.11h",        0x00001, 0x20000, CRC(e41fff2f) SHA1(a960c39c69f97b46d5efcbcd3e2bc652888094c4) )
 	ROM_LOAD16_BYTE( "31.12f",        0x40000, 0x20000, CRC(e3de76ff) SHA1(fdc552312e10c91dd00bfa72e4e686ac356d2244) )
@@ -4390,7 +4390,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( dynwara )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "tke_36.12f", 0x00000, 0x20000, CRC(895991d1) SHA1(56b105b85ccab1c49c89ae8d4aa55c9374077df0) )
 	ROM_LOAD16_BYTE( "tke_42.12h", 0x00001, 0x20000, CRC(c898d2e8) SHA1(c8b10685681bf155ea44e30f3cb0574df7d4f984) )
 	ROM_LOAD16_BYTE( "tke_37.13f", 0x40000, 0x20000, CRC(b228d58c) SHA1(99a1f42d930f788c4f9b410addc95173fda801a2) )
@@ -4456,7 +4456,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( dynwarj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "36.12f", 0x00000, 0x20000, CRC(1a516657) SHA1(f5c7c3bfd482eb59221cfd3eec4d47e717b04efa) )
 	ROM_LOAD16_BYTE( "42.12h", 0x00001, 0x20000, CRC(12a290a0) SHA1(29fd3f77c497ef8db48121301beab2862ca380b4) )
 	ROM_LOAD16_BYTE( "37.13f", 0x40000, 0x20000, CRC(932fc943) SHA1(1bd1c696072e61db791c075fae8936dece73d1d8) )
@@ -4522,7 +4522,7 @@ ROM_END
 
 /* B-Board 91634B-2, Japan Resale Ver. */
 ROM_START( dynwarjr )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk1j_23.8f", 0x00000, 0x80000, CRC(088a3009) SHA1(d4c8273d19291d278d2ff895712dfbd8dfda6c84) )
 	ROM_LOAD16_WORD_SWAP( "tk1j_22.7f", 0x80000, 0x80000, CRC(93654bcf) SHA1(c72daeb2a98d350568555059a3225343c219a1d2) )    // == tkm-9.8h
 
@@ -4563,7 +4563,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( willow )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "wle_30.11f",     0x00000, 0x20000, CRC(15372aa2) SHA1(ba8e1984180b0438255dfc68dc4eb560f3ecbe56) )
 	ROM_LOAD16_BYTE( "wle_35.11h",     0x00001, 0x20000, CRC(2e64623b) SHA1(473f6fd10b2456553f1cbf92fd9a61ce94b1c59f) )
 	ROM_LOAD16_BYTE( "wlu_31.12f",     0x40000, 0x20000, CRC(0eb48a83) SHA1(28c40c4b5d767f88922cd899e948abf11a85a864) )
@@ -4606,7 +4606,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( willowu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "wlu_30.11f",     0x00000, 0x20000, CRC(d604dbb1) SHA1(b5d78871011ff11a67f1a0cad147cd4de8d67f35) )
 	ROM_LOAD16_BYTE( "35.11h",         0x00001, 0x20000, CRC(7a791e77) SHA1(fe1429588b7eceab1d369abe03f2cad8de727f71) )
 	ROM_LOAD16_BYTE( "wlu_31.12f",     0x40000, 0x20000, CRC(0eb48a83) SHA1(28c40c4b5d767f88922cd899e948abf11a85a864) )
@@ -4652,7 +4652,7 @@ ROM_END
    the Japan "warning" it's confirmed to be a genuine USA set and almost certainly the first USA release. Then Capcom
    removed the incorrect "warning" releasing a new proper set of Willow (USA), as documented above. */
 ROM_START( willowuo )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "wlu_30.11f",     0x00000, 0x20000, CRC(d604dbb1) SHA1(b5d78871011ff11a67f1a0cad147cd4de8d67f35) )
 	ROM_LOAD16_BYTE( "wlu_35.11h",     0x00001, 0x20000, CRC(daee72fe) SHA1(2ec62f44394fac2887821881f56b6f24d05234b3) )
 	ROM_LOAD16_BYTE( "wlu_31.12f",     0x40000, 0x20000, CRC(0eb48a83) SHA1(28c40c4b5d767f88922cd899e948abf11a85a864) )
@@ -4695,7 +4695,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( willowj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "wl_36.12f", 0x00000, 0x20000, CRC(2b0d7cbc) SHA1(58172b4fdf856efa8d77abbde76738de2424f712) )
 	ROM_LOAD16_BYTE( "wl_42.12h", 0x00001, 0x20000, CRC(1ac39615) SHA1(c9fa6d20418b9bdc5a08df1fb86368b40709280a) )
 	ROM_LOAD16_BYTE( "wl_37.13f", 0x40000, 0x20000, CRC(30a717fa) SHA1(cb815e9ee2691761925898e3932b502f8f399cb4) )
@@ -4753,7 +4753,7 @@ ROM_END
 
 /* B-Board 89624B-2 */
 ROM_START( unsquad )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "aru_30.11f",     0x00000, 0x20000, CRC(24d8f88d) SHA1(9c39aa1140e92307d6d9c0ca198003282bf78c78) )
 	ROM_LOAD16_BYTE( "aru_35.11h",     0x00001, 0x20000, CRC(8b954b59) SHA1(33114f1417d48f60c6da3e14a094be7c0f0fd979) )
 	ROM_LOAD16_BYTE( "aru_31.12f",     0x40000, 0x20000, CRC(33e9694b) SHA1(90db3052ac2ff859ede8473dd13e0f5be148590c) )
@@ -4788,7 +4788,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( area88 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ar_36.12f", 0x00000, 0x20000, CRC(65030392) SHA1(d9dea5cfde28345716b0e519ee033c475be0454b) )
 	ROM_LOAD16_BYTE( "ar_42.12h", 0x00001, 0x20000, CRC(c48170de) SHA1(e968522dbdd217dd8e4cd6aaeaef801c63488c1d) )
 	ROM_LOAD16_BYTE( "ar_37.13f", 0x40000, 0x20000, CRC(33e9694b) SHA1(90db3052ac2ff859ede8473dd13e0f5be148590c) )  // == aru_31.12f
@@ -4838,7 +4838,7 @@ ROM_END
 
 /* B-Board 91634B-2, Japan Resale Ver. */
 ROM_START( area88r )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "araj_23.8f", 0x00000, 0x80000, CRC(7045d6cb) SHA1(5f8f3160e8e960ee67778232368d4f3430a0dade) )
 	ROM_LOAD16_WORD_SWAP( "araj_22.7f", 0x80000, 0x80000, CRC(9913002e) SHA1(b2da8ad34bf4ea51679d35d91601faa91ef40ae5) )
 
@@ -4875,7 +4875,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( ffight )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ff_36.11f",      0x00000, 0x20000, CRC(f9a5ce83) SHA1(0756ae576a1f6d5b8b22f8630dca40ef38567ea6) ) // in "30" socket
 	ROM_LOAD16_BYTE( "ff_42.11h",      0x00001, 0x20000, CRC(65f11215) SHA1(5045a467f3e228c02b4a355b52f58263ffa90113) ) // in "35" socket
 	ROM_LOAD16_BYTE( "ff_37.12f",      0x40000, 0x20000, CRC(e1033784) SHA1(38f44434c8befd623953ae23d6e5ff4e201d6627) ) // in "31" socket
@@ -4910,7 +4910,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( ffighta )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ffe_30.11f",     0x00000, 0x20000, CRC(2347bf51) SHA1(de05b347a8b4df4889d4e594e1abf741afdf0ab4) )
 	ROM_LOAD16_BYTE( "ffe_35.11h",     0x00001, 0x20000, CRC(5f694ecc) SHA1(57c45ffcada0cdaf1f97c7e33c8300539828a238) )
 	ROM_LOAD16_BYTE( "ffe_31.12f",     0x40000, 0x20000, CRC(6dc6b792) SHA1(553abebed2a1fa1ee2d85a4117f40d90e2321cea) )
@@ -4945,7 +4945,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( ffightu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ff_36.11f",      0x00000, 0x20000, CRC(f9a5ce83) SHA1(0756ae576a1f6d5b8b22f8630dca40ef38567ea6) ) // in "30" socket
 	ROM_LOAD16_BYTE( "ff_42.11h",      0x00001, 0x20000, CRC(65f11215) SHA1(5045a467f3e228c02b4a355b52f58263ffa90113) ) // in "35" socket
 	ROM_LOAD16_BYTE( "ff_37.12f",      0x40000, 0x20000, CRC(e1033784) SHA1(38f44434c8befd623953ae23d6e5ff4e201d6627) ) // in "31" socket
@@ -4981,7 +4981,7 @@ ROM_END
 /* B-Board 89624B-3 */
 /* Note that this set is equivalent to ffightu, but the 4Mbit MASK ROM FF-32M located @ 8H is replaced by 4 1Mbit EPROMs. */
 ROM_START( ffightu1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ff_36.11f",  0x00000, 0x20000, CRC(f9a5ce83) SHA1(0756ae576a1f6d5b8b22f8630dca40ef38567ea6) ) // in "30" socket
 	ROM_LOAD16_BYTE( "ff_42.11h",  0x00001, 0x20000, CRC(65f11215) SHA1(5045a467f3e228c02b4a355b52f58263ffa90113) ) // in "35" socket
 	ROM_LOAD16_BYTE( "ff_37.12f",  0x40000, 0x20000, CRC(e1033784) SHA1(38f44434c8befd623953ae23d6e5ff4e201d6627) ) // in "31" socket
@@ -5019,7 +5019,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( ffightua )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ffu_36.11f",     0x00000, 0x20000, CRC(e2a48af9) SHA1(11e06f95bdf575af396dded2b84d858f6c7388f1) ) // in "30" socket
 	ROM_LOAD16_BYTE( "ffu_42.11h",     0x00001, 0x20000, CRC(f4bb480e) SHA1(32114df1d2f4f98a4a2280a330c7b6af8ab4d862) ) // in "35" socket
 	ROM_LOAD16_BYTE( "ffu_37.12f",     0x40000, 0x20000, CRC(c371c667) SHA1(633977c91a8ff09b7fe83128eced7c4dee9aee1d) ) // in "31" socket
@@ -5054,7 +5054,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( ffightub )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ffu_30_3.11f",   0x00000, 0x20000, CRC(e619eb30) SHA1(41c2589a1b2cab2d0ded527a89f8e0e39e61efe1))
 	ROM_LOAD16_BYTE( "ffu_35_3.11h",   0x00001, 0x20000, CRC(bca85263) SHA1(249bc81426ee93cf2efa5594d6813d5dd896cea3) )
 	ROM_LOAD16_BYTE( "ffu_31_3.12f",   0x40000, 0x20000, CRC(59abd207) SHA1(9bc1f4d5dabd02cebce84f56f848694591c0629d) )
@@ -5089,7 +5089,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( ffightuc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ffu_30.11f",     0x00000, 0x20000, CRC(ed988977) SHA1(c718e989206bd2b68832c8fcb5667397d500ebac) )
 	ROM_LOAD16_BYTE( "ffu_35.11h",     0x00001, 0x20000, CRC(07bf1c21) SHA1(f21a939fd92607c7f54816dedbcb3c5818cf4183) )
 	ROM_LOAD16_BYTE( "ffu_31.12f",     0x40000, 0x20000, CRC(dba5a476) SHA1(2f0176dd050f9630b914f1c1ca5d96215bcf567f) )
@@ -5124,7 +5124,7 @@ ROM_END
 
 /* FIXME B-Board uncertain but should be 88622B/89625B from the program ROM names */
 ROM_START( ffightj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ff36.bin",    0x00000, 0x20000, CRC(f9a5ce83) SHA1(0756ae576a1f6d5b8b22f8630dca40ef38567ea6) )    // == ff_36.11f
 	ROM_LOAD16_BYTE( "ff42.bin",    0x00001, 0x20000, CRC(65f11215) SHA1(5045a467f3e228c02b4a355b52f58263ffa90113) )    // == ff_42.11h
 	ROM_LOAD16_BYTE( "ff37.bin",    0x40000, 0x20000, CRC(e1033784) SHA1(38f44434c8befd623953ae23d6e5ff4e201d6627) )    // == ff_37.12f
@@ -5174,7 +5174,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( ffightj1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ffj_36.12f", 0x00000, 0x20000, CRC(e2a48af9) SHA1(11e06f95bdf575af396dded2b84d858f6c7388f1) ) // == ffu_36.11f
 	ROM_LOAD16_BYTE( "ffj_42.12h", 0x00001, 0x20000, CRC(f4bb480e) SHA1(32114df1d2f4f98a4a2280a330c7b6af8ab4d862) ) // == ffu_42.11h
 	ROM_LOAD16_BYTE( "ffj_37.13f", 0x40000, 0x20000, CRC(c371c667) SHA1(633977c91a8ff09b7fe83128eced7c4dee9aee1d) ) // == ffu_37.12f
@@ -5225,7 +5225,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( ffightj2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ffj_36a.12f", 0x00000, 0x20000, CRC(088ed1c9) SHA1(7b96cd45f4d3d2c0fe94904882652814b7790869) )
 	ROM_LOAD16_BYTE( "ffj_42a.12h", 0x00001, 0x20000, CRC(c4c491e6) SHA1(d0e34d7b94f67c33615710ea721da8fefe832e3a) )
 	ROM_LOAD16_BYTE( "ffj_37a.13f", 0x40000, 0x20000, CRC(708557ff) SHA1(89e56bfd9486623a18fdbf984a72bb52054ca0e6) )
@@ -5275,7 +5275,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( ffightj3 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ff_36.12f",              0x00000, 0x20000, CRC(ed988977) SHA1(c718e989206bd2b68832c8fcb5667397d500ebac) ) // == ffu_30.11f
 	ROM_LOAD16_BYTE( "ffj_42.12h",             0x00001, 0x20000, CRC(07bf1c21) SHA1(f21a939fd92607c7f54816dedbcb3c5818cf4183) ) // sldh - == ffu_35.11h
 	ROM_LOAD16_BYTE( "ff_37.13f",              0x40000, 0x20000, CRC(dba5a476) SHA1(2f0176dd050f9630b914f1c1ca5d96215bcf567f) ) // == ffu_31.12f
@@ -5328,7 +5328,7 @@ ROM_END
    The Board uses a GAL instead of the classic PAL located in position "1A". There is no ROM check at the start and no logo
    Capcom (instead a chinese logo... maybe the bootleggers logo). Even if it's a JAP Board, the game intro is in english. */
 ROM_START( ffightjh )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "ff_23.8f", 0x00000, 0x80000, CRC(ae3dda7f) SHA1(5f08ce1e6b6b0d45994d3354d59ef79f489c7ad7) )
 	ROM_LOAD16_WORD_SWAP( "ff_22.7f", 0x80000, 0x80000, CRC(b2d5a3aa) SHA1(b60f7480d3d3ceebad4c21025394bacc154d7042) )
 
@@ -5364,7 +5364,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( 1941 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "41em_30.11f",    0x00000, 0x20000, CRC(4249ec61) SHA1(5323cfa6938e6d95db8469f09b2fb5b5c5068bfc) ) /* label is 41EM_30, pcb verified */
 	ROM_LOAD16_BYTE( "41em_35.11h",    0x00001, 0x20000, CRC(ddbee5eb) SHA1(0fef53398f4e2cd6ccc7bc122dd893e0a4e2e052) ) /* label is 41EM_35, pcb verified */
 	ROM_LOAD16_BYTE( "41em_31.12f",    0x40000, 0x20000, CRC(584e88e5) SHA1(af254408d939cc439b5653e60afbccdf59777085) ) /* label is 41EM_31, pcb verified */
@@ -5399,7 +5399,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( 1941r1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "41e_30.11f",     0x00000, 0x20000, CRC(9deb1e75) SHA1(68d9f91bef6a5c9e1bcbf286629aed6b37b4acb9) )
 	ROM_LOAD16_BYTE( "41e_35.11h",     0x00001, 0x20000, CRC(d63942b3) SHA1(b4bc7d06dcefbc075d316f2d31abbd4c7a99dbae) )
 	ROM_LOAD16_BYTE( "41e_31.12f",     0x40000, 0x20000, CRC(df201112) SHA1(d84f63bffeb9255cbabc02f23d7511f9b3c6a96c) )
@@ -5434,7 +5434,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( 1941u )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "41u_30.11f",     0x00000, 0x20000, CRC(be5439d0) SHA1(a62e0aa4f13f504c0eded99d731f7c820c51cb3d) )
 	ROM_LOAD16_BYTE( "41u_35.11h",     0x00001, 0x20000, CRC(6ac96595) SHA1(efff8185fd1aee29d9b5164a9aac61f77f769ae4) )
 	ROM_LOAD16_BYTE( "41u_31.12f",     0x40000, 0x20000, CRC(9811d6eb) SHA1(6dda86a3a726a2b5459f0b90f58343966e9783cc) )
@@ -5469,7 +5469,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( 1941j )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "41_36.12f", 0x00000, 0x20000, CRC(7fbd42ab) SHA1(4e52a599e3099bf3cccabb89152c69f216fde79e) )
 	ROM_LOAD16_BYTE( "41_42.12h", 0x00001, 0x20000, CRC(c7781f89) SHA1(7e99c433de0c903791ae153a3cc8632042b0a90d) )
 	ROM_LOAD16_BYTE( "41_37.13f", 0x40000, 0x20000, CRC(c6464b0b) SHA1(abef422d891d32334a858d49599f1ef7cf0db45d) )
@@ -5519,7 +5519,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( mercs )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "so2_30e.11f",     0x00000, 0x20000, CRC(e17f9bf7) SHA1(f44bb378de428b429c97a21f74829182d3187ace) )
 	ROM_LOAD16_BYTE( "so2_35e.11h",     0x00001, 0x20000, CRC(78e63575) SHA1(5776de0daaaedd0dec2cec8d088a0fd8bb3d4dbe) )
 	ROM_LOAD16_BYTE( "so2_31e.12f",     0x40000, 0x20000, CRC(51204d36) SHA1(af288fc369d092f38ea73be967705aacade06f28) )
@@ -5565,7 +5565,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( mercsu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "so2_30a.11f",     0x00000, 0x20000, CRC(e4e725d7) SHA1(b0454dedeb741a7dd4ceb18bac958417ca74a7e6) )
 	ROM_LOAD16_BYTE( "so2_35a.11h",     0x00001, 0x20000, CRC(e7843445) SHA1(192c85ced637e05b37ed889246ebb73e792e984b) )
 	ROM_LOAD16_BYTE( "so2_31a.12f",     0x40000, 0x20000, CRC(c0b91dea) SHA1(5c1d086ae09e4f66384a03994b3c5e12d80582ff) )
@@ -5611,7 +5611,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( mercsur1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "so2_30.11f",      0x00000, 0x20000, CRC(e17f9bf7) SHA1(f44bb378de428b429c97a21f74829182d3187ace) )    // == so2_30e.11f
 	ROM_LOAD16_BYTE( "so2_35.11h",      0x00001, 0x20000, CRC(4477df61) SHA1(e9b42357c7073c098e8fde7e7d0e4a6e3062fd0d) )
 	ROM_LOAD16_BYTE( "so2_31.12f",      0x40000, 0x20000, CRC(51204d36) SHA1(af288fc369d092f38ea73be967705aacade06f28) )    // == so2_31e.12f
@@ -5657,7 +5657,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( mercsj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "so2_36.12f", 0x00000, 0x20000, CRC(e17f9bf7) SHA1(f44bb378de428b429c97a21f74829182d3187ace) ) // == so2_30e.11f
 	ROM_LOAD16_BYTE( "so2_42.12h", 0x00001, 0x20000, CRC(2c3884c6) SHA1(98c3e93741d2344fe0a699aacdc5038bdd9007a0) )
 	ROM_LOAD16_BYTE( "so2_37.13f", 0x40000, 0x20000, CRC(51204d36) SHA1(af288fc369d092f38ea73be967705aacade06f28) ) // == so2_31e.12f
@@ -5718,7 +5718,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( mtwins )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "che_30.11f",     0x00000, 0x20000, CRC(9a2a2db1) SHA1(57524e76311afc8ab5d5affa76c85cb1be5a1faf) )
 	ROM_LOAD16_BYTE( "che_35.11h",     0x00001, 0x20000, CRC(a7f96b02) SHA1(b5fda02e5069f9e1cdafbacf98334510e9af8fcd) )
 	ROM_LOAD16_BYTE( "che_31.12f",     0x40000, 0x20000, CRC(bbff8a99) SHA1(1f931fad9f43a1494f3b8dbcf910156d5b0bd458) )
@@ -5753,7 +5753,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( chikij )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "chj_36a.12f", 0x00000, 0x20000, CRC(ec1328d8) SHA1(a7111f9c264c56d1c6474ec3ad90e394a32a86f6) )
 	ROM_LOAD16_BYTE( "chj_42a.12h", 0x00001, 0x20000, CRC(4ae13503) SHA1(c47db0445e107ad4fb62b74e277a7dc2b4d9b7ea) )
 	ROM_LOAD16_BYTE( "chj_37a.13f", 0x40000, 0x20000, CRC(46d2cf7b) SHA1(5cb7ed3003d89a08882d4dcd326c8fd9430f0eac) )
@@ -5803,7 +5803,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( msword )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "mse_30.11f",     0x00000, 0x20000, CRC(03fc8dbc) SHA1(a9e4e8a06e2d170faeae75a8b17fd65e6e5fecd4) )
 	ROM_LOAD16_BYTE( "mse_35.11h",     0x00001, 0x20000, CRC(d5bf66cd) SHA1(37c5bc4deafd7037ec5cf09c88bb89f35ea3d95c) )
 	ROM_LOAD16_BYTE( "mse_31.12f",     0x40000, 0x20000, CRC(30332bcf) SHA1(1c77c06028b77473276cb5dde5ecf414b43a7b78) )
@@ -5838,7 +5838,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( mswordr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ms_30.11f",      0x00000, 0x20000, CRC(21c1f078) SHA1(f32bd3b462cc84466244b362a66510b9d40ac2fd) )
 	ROM_LOAD16_BYTE( "ms_35.11h",      0x00001, 0x20000, CRC(a540a73a) SHA1(1c91241ba0d17d13adaa68e231b95dfd49d93b6d) )
 	ROM_LOAD16_BYTE( "ms_31.12f",      0x40000, 0x20000, CRC(d7e762b5) SHA1(6977130e9c0cd36d8a67e242c132df38f7aea5b7) )
@@ -5873,7 +5873,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( mswordu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "msu_30.11f",     0x00000, 0x20000, CRC(d963c816) SHA1(e23844a60ddfc0a8a98c0ada9c3d58fce71c5484) )
 	ROM_LOAD16_BYTE( "msu_35.11h",     0x00001, 0x20000, CRC(72f179b3) SHA1(8d31cdc84b02fc345fc78e8f231410adeb834c28) )
 	ROM_LOAD16_BYTE( "msu_31.12f",     0x40000, 0x20000, CRC(20cd7904) SHA1(cea2db01be97f69dc10e9da80f3b46f6ddaa953a) )
@@ -5908,7 +5908,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( mswordj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "msj_36.12f", 0x00000, 0x20000, CRC(04f0ef50) SHA1(76dac695732ade1873bb6da51834ef90c6595689) )
 	ROM_LOAD16_BYTE( "msj_42.12h", 0x00001, 0x20000, CRC(9fcbb9cd) SHA1(bfbf805ddecd3fa9e209a658526e1430ad9e459a) )
 	ROM_LOAD16_BYTE( "msj_37.13f", 0x40000, 0x20000, CRC(6c060d70) SHA1(7fe56f125bc11156955bf0defc956fe7c18a1c72) )
@@ -5958,7 +5958,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( cawing )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "cae_30a.11f",    0x00000, 0x20000, CRC(91fceacd) SHA1(4845999a96fee829264346ca399fdd64a8408001) )
 	ROM_LOAD16_BYTE( "cae_35a.11h",    0x00001, 0x20000, CRC(3ef03083) SHA1(297dfc9ec1e0f07d6083bf5efaa0de8d0fb361fa) )
 	ROM_LOAD16_BYTE( "cae_31a.12f",    0x40000, 0x20000, CRC(e5b75caf) SHA1(4d04220c78620867b7598deea5685bbe88298ae6) )
@@ -5993,7 +5993,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( cawingr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "cae_30.11f",     0x00000, 0x20000, CRC(23305cd5) SHA1(59cbcb79c171b433f278e128c73cdd3635876370) )
 	ROM_LOAD16_BYTE( "cae_35.11h",     0x00001, 0x20000, CRC(69419113) SHA1(cfbb6dbbe224ffaf7747fd70b65a7dbd4f696fe9) )
 	ROM_LOAD16_BYTE( "cae_31.12f",     0x40000, 0x20000, CRC(9008dfb3) SHA1(81fdd21606caabe9e0df773fc33377c958ab80f6) )
@@ -6028,7 +6028,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( cawingu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "cau_30a.11f",    0x00000, 0x20000, CRC(91fceacd) SHA1(4845999a96fee829264346ca399fdd64a8408001) ) // == cae_30a.11f
 	ROM_LOAD16_BYTE( "cau_35a.11h",    0x00001, 0x20000, CRC(f090d9b2) SHA1(261dc4ac79507299a7f9a1ad5edb8425345db06c) )
 	ROM_LOAD16_BYTE( "cau_31a.12f",    0x40000, 0x20000, CRC(e5b75caf) SHA1(4d04220c78620867b7598deea5685bbe88298ae6) ) // == cae_31a.12f
@@ -6063,7 +6063,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( cawingj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "caj_36a.12f", 0x00000, 0x20000, CRC(91fceacd) SHA1(4845999a96fee829264346ca399fdd64a8408001) )    // == cae_30a.11f
 	ROM_LOAD16_BYTE( "caj_42a.12h", 0x00001, 0x20000, CRC(039f8362) SHA1(3fc7a642ddeaf94abdfdd5788a4b3c3b1f1b4c5e) )
 	ROM_LOAD16_BYTE( "caj_37a.13f", 0x40000, 0x20000, CRC(e5b75caf) SHA1(4d04220c78620867b7598deea5685bbe88298ae6) )    // == cae_31a.12f
@@ -6113,7 +6113,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( nemo )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "nme_30a.11f",    0x00000, 0x20000, CRC(d2c03e56) SHA1(df468e3b5deba01a6825b742f1cc87bfb26c1981) )
 	ROM_LOAD16_BYTE( "nme_35a.11h",    0x00001, 0x20000, CRC(5fd31661) SHA1(12f92a7255e8cae6975452db956670cf72d51768) )
 	ROM_LOAD16_BYTE( "nme_31a.12f",    0x40000, 0x20000, CRC(b2bd4f6f) SHA1(82a59b5f36cb4c23dca05297e2a643842fc12609) )
@@ -6148,7 +6148,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( nemor1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "nme_30.11f",     0x00000, 0x20000, CRC(71b333db) SHA1(8bd8b62d8fef2ad9d2788ccf46e89da953e5817c) )
 	ROM_LOAD16_BYTE( "nme_35.11h",     0x00001, 0x20000, CRC(d153bc18) SHA1(2b4a9a50081d403a6485b7311e179a31b659b74d) )
 	ROM_LOAD16_BYTE( "nme_31.12f",     0x40000, 0x20000, CRC(7e83dbd2) SHA1(d4c7e3786faab4dd9ded3c1a8f6fea114d423e64) )
@@ -6183,7 +6183,7 @@ ROM_END
 
 /* B-Board 89625B-? */
 ROM_START( nemoj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "nmj_36a.12f", 0x00000, 0x20000, CRC(daeceabb) SHA1(ebd44922be9d07a3d3411af52edee8a60cb11dad) )
 	ROM_LOAD16_BYTE( "nmj_42a.12h", 0x00001, 0x20000, CRC(55024740) SHA1(4bacbd191bb435de5dc548ac7fa16ed286bd2d3b) )
 	ROM_LOAD16_BYTE( "nmj_37a.13f", 0x40000, 0x20000, CRC(619068b6) SHA1(2507c6f77a06a80f913c848dcb6816bcbf4bba8a) )
@@ -6233,7 +6233,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2e_30g.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )
 	ROM_LOAD16_BYTE( "sf2e_37g.11f", 0x00001, 0x20000, CRC(fb92cd74) SHA1(bf1ccfe7cc1133f0f65556430311108722add1f2) )
 	ROM_LOAD16_BYTE( "sf2e_31g.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )
@@ -6282,7 +6282,7 @@ ROM_END
 
 /* B-Board 90629B-2 */
 ROM_START( sf2eb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2e_30b.11e", 0x00000, 0x20000, CRC(57bd7051) SHA1(5e211e75b1649b07723cabc03cf15636dbbae595) )
 	ROM_LOAD16_BYTE( "sf2e_37b.11f", 0x00001, 0x20000, CRC(62691cdd) SHA1(328703c3e737ada544e67c36119eeb4a100ca740) )
 	ROM_LOAD16_BYTE( "sf2e_31b.12e", 0x40000, 0x20000, CRC(a673143d) SHA1(e565f0ec23d6deb543c72af5a83f070c07319477) )
@@ -6331,7 +6331,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2ed )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2e_30d.11e", 0x00000, 0x20000, CRC(4bb2657c) SHA1(b2d077296b77be7db371f953b7fc446a67d8a9d6) )
 	ROM_LOAD16_BYTE( "sf2e_37d.11f", 0x00001, 0x20000, CRC(102f4561) SHA1(2fc77cd3b2ecf8fadc4f8614cb200cf2cba4c616) )   //only rom different from sf2ud
 	ROM_LOAD16_BYTE( "sf2e_31d.12e", 0x40000, 0x20000, CRC(d57b67d7) SHA1(43d0b47c9fada8d9b445caa4b96ac8493061aa8b) )
@@ -6382,7 +6382,7 @@ ROM_END
 /* Note that this revision seems to be the only one that uses the IOB2 and C632B PALs instead of the IOB1 and C632,
    while STF29 PAL is confirmed to be the same as the other Street Fighter II: The World Warrior sets. */
 ROM_START( sf2ee )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2e_30e.11e", 0x00000, 0x20000, CRC(f37cd088) SHA1(48b71e44ce88d5f682ed679c737e7ec5262bb0df) )
 	ROM_LOAD16_BYTE( "sf2e_37e.11f", 0x00001, 0x20000, CRC(c39468e6) SHA1(0b1ce83dbc4dcf9b205c67fa6a4b074570baf59b) )
 	ROM_LOAD16_BYTE( "sf2e_31e.12e", 0x40000, 0x20000, CRC(7c4771b4) SHA1(6637b24194c86ec72a1775d4e976891243cd66fd) )
@@ -6431,7 +6431,7 @@ ROM_END
 
 /* B-Board 90629B-2 */
 ROM_START( sf2ua )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30a.11e", 0x00000, 0x20000, CRC(08beb861) SHA1(d47f16d0d692dc6405df0aecd7d9fc3f9718c0d1) )
 	ROM_LOAD16_BYTE( "sf2u_37a.11f", 0x00001, 0x20000, CRC(b7638d69) SHA1(b615a2e0e8772462fd875b2e8d2ccba82a8b3c47) )
 	ROM_LOAD16_BYTE( "sf2u_31a.12e", 0x40000, 0x20000, CRC(0d5394e0) SHA1(e1d88ff3669f1dbe1e3fbdf8aa9e2c63adbbcb48) )
@@ -6480,7 +6480,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2ub )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30b.11e", 0x00000, 0x20000, CRC(57bd7051) SHA1(5e211e75b1649b07723cabc03cf15636dbbae595) )   // == sf2e_30b.11e
 	ROM_LOAD16_BYTE( "sf2u_37b.11f", 0x00001, 0x20000, CRC(4a54d479) SHA1(eaff7a0d3c858a567c02086fde163850f0f5631e) )
 	ROM_LOAD16_BYTE( "sf2u_31b.12e", 0x40000, 0x20000, CRC(a673143d) SHA1(e565f0ec23d6deb543c72af5a83f070c07319477) )   // == sf2e_31b.12e
@@ -6529,7 +6529,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2uc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30c.11e", 0x00000, 0x20000, CRC(6cb59385) SHA1(37750e8369298b597590d956f5fb7319301e6c7d) )
 	ROM_LOAD16_BYTE( "sf2u_37c.11f", 0x00001, 0x20000, CRC(32e2c278) SHA1(6cc5e0a9179163136b8104a1583da85a53d537f4) )
 	ROM_LOAD16_BYTE( "sf2u_31c.12e", 0x40000, 0x20000, CRC(c4fff4a9) SHA1(4b593ace201fe7f5a00b5cd7f4e8fc3f8dd4ceed) )
@@ -6578,7 +6578,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2ud )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30d.11e", 0x00000, 0x20000, CRC(4bb2657c) SHA1(b2d077296b77be7db371f953b7fc446a67d8a9d6) )   // == sf2e_30d.11e
 	ROM_LOAD16_BYTE( "sf2u_37d.11f", 0x00001, 0x20000, CRC(b33b42f2) SHA1(2e0babc8734c79dc2b51a6be64433bb2411c3da5) )
 	ROM_LOAD16_BYTE( "sf2u_31d.12e", 0x40000, 0x20000, CRC(d57b67d7) SHA1(43d0b47c9fada8d9b445caa4b96ac8493061aa8b) )   // == sf2e_31d.12e
@@ -6629,7 +6629,7 @@ ROM_END
 /* Note that this revision seems to be the only one that uses the IOB2 and C632B PALs instead of the IOB1 and C632,
    while STF29 PAL is confirmed to be the same as the other Street Fighter II: The World Warrior sets. */
 ROM_START( sf2ue )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30e.11e", 0x00000, 0x20000, CRC(f37cd088) SHA1(48b71e44ce88d5f682ed679c737e7ec5262bb0df) )
 	ROM_LOAD16_BYTE( "sf2u_37e.11f", 0x00001, 0x20000, CRC(6c61a513) SHA1(6dc9ccd58fd5ef15ff9df20c865ff6c850f2b7dc) )
 	ROM_LOAD16_BYTE( "sf2u_31e.12e", 0x40000, 0x20000, CRC(7c4771b4) SHA1(6637b24194c86ec72a1775d4e976891243cd66fd) )
@@ -6678,7 +6678,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2uf )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30f.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )   // == sf2e_30g.11e
 	ROM_LOAD16_BYTE( "sf2u_37f.11f", 0x00001, 0x20000, CRC(169e7388) SHA1(c7cb2de529d94cea4a018ed3bd611037fe54abe7) )
 	ROM_LOAD16_BYTE( "sf2u_31f.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )   // == sf2e_31g.12e
@@ -6727,7 +6727,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2ug )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30g.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )   // == sf2e_30g.11e
 	ROM_LOAD16_BYTE( "sf2u_37g.11f", 0x00001, 0x20000, CRC(5886cae7) SHA1(8a621d267dfcf5d214b1bbec12b98a06153c86d3) )
 	ROM_LOAD16_BYTE( "sf2u_31g.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )   // == sf2e_31g.12e
@@ -6776,7 +6776,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2ui )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30i.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )   // == sf2e_30g.11e
 	ROM_LOAD16_BYTE( "sf2u_37i.11f", 0x00001, 0x20000, CRC(9df707dd) SHA1(b148ea450f9e96f3c20f487010a3c57f778e40c1) )
 	ROM_LOAD16_BYTE( "sf2u_31i.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )   // == sf2e_31g.12e
@@ -6825,7 +6825,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2uk )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2u_30k.11e", 0x00000, 0x20000, CRC(8f66076c) SHA1(f9653b36bb5012e6bde5fe3bcade4a6a7a7e7def) )
 	ROM_LOAD16_BYTE( "sf2u_37k.11f", 0x00001, 0x20000, CRC(4e1f6a83) SHA1(ee679b79ff3c3165979d3de23e0f668839cf465f) )
 	ROM_LOAD16_BYTE( "sf2u_31k.12e", 0x40000, 0x20000, CRC(f9f89f60) SHA1(c3b71482b85c83576518f300be768655412276b0) )
@@ -6874,7 +6874,7 @@ ROM_END
 
 /* B-Board 90629B */
 ROM_START( sf2j )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2j30.bin",    0x00000, 0x20000, CRC(79022b31) SHA1(b7cfe0498260cdd2779580c47829dd02435ffff4) )
 	ROM_LOAD16_BYTE( "sf2j37.bin",    0x00001, 0x20000, CRC(516776ec) SHA1(4f8b63c4d4265a105751fa72b50bd0fa538bf881) )
 	ROM_LOAD16_BYTE( "sf2j31.bin",    0x40000, 0x20000, CRC(fe15cb39) SHA1(383478524881ea70d9e04c9b6143b8735b637eee) )
@@ -6923,7 +6923,7 @@ ROM_END
 
 /* B-Board 90629B-2 */
 ROM_START( sf2ja )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2j_30a.11e", 0x00000, 0x20000, CRC(57bd7051) SHA1(5e211e75b1649b07723cabc03cf15636dbbae595) )   // == sf2e_30b.11e
 	ROM_LOAD16_BYTE( "sf2j_37a.11f", 0x00001, 0x20000, CRC(1e1f6844) SHA1(c80e5ac6a6cea39511c38e31ea55b6cd3888024f) )
 	ROM_LOAD16_BYTE( "sf2j_31a.12e", 0x40000, 0x20000, CRC(a673143d) SHA1(e565f0ec23d6deb543c72af5a83f070c07319477) )   // == sf2e_31b.12e
@@ -6972,7 +6972,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2jc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2j_30c.11e", 0x00000, 0x20000, CRC(8add35ec) SHA1(b08428ff262ca4feddd3c72058b4b674a5401aba) )
 	ROM_LOAD16_BYTE( "sf2j_37c.11f", 0x00001, 0x20000, CRC(0d74a256) SHA1(587fd0ee1c2ef54554237486eb5b0d1ec30c2868) )
 	ROM_LOAD16_BYTE( "sf2j_31c.12e", 0x40000, 0x20000, CRC(c4fff4a9) SHA1(4b593ace201fe7f5a00b5cd7f4e8fc3f8dd4ceed) )   // == sf2u_31c.12e
@@ -7021,7 +7021,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2jf )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2j_30f.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )   // == sf2e_30g.11e
 	ROM_LOAD16_BYTE( "sf2j_37f.11f", 0x00001, 0x20000, CRC(c1428cc6) SHA1(6a3f21de57c3dd60a7c991ca667dc2a77d813039) )
 	ROM_LOAD16_BYTE( "sf2j_31f.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )   // == sf2e_31g.12e
@@ -7070,7 +7070,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( sf2jh )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf2j_30h.11e", 0x00000, 0x20000, CRC(fe39ee33) SHA1(22558eb15e035b09b80935a32b8425d91cd79669) )   // == sf2e_30g.11e
 	ROM_LOAD16_BYTE( "sf2j_37h.11f", 0x00001, 0x20000, CRC(330304b0) SHA1(93bf761804228a79d16afa2fcfbe28e6942dff51) )
 	ROM_LOAD16_BYTE( "sf2j_31h.12e", 0x40000, 0x20000, CRC(69a0a301) SHA1(86a3954335310865b14ce8b4e0e4499feb14fc12) )   // == sf2e_31g.12e
@@ -7119,7 +7119,7 @@ ROM_END
 
 /* B-Board 90629B-2 */
 ROM_START( sf2jl )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "sf-2_30l.11e", 0x00000, 0x20000, CRC(34a1ce02) SHA1(6875813c49a92b8650f444c1857459adc86bc0d0) )   // These "L" revision roms are verified as being
 	ROM_LOAD16_BYTE( "sf-2_37l.11f", 0x00001, 0x20000, CRC(5b630ed2) SHA1(b14ef94b86f55c82391db8aca4d6f9487b9758a7) )   // labeled "SF-2" without "J" for Japan region
 	ROM_LOAD16_BYTE( "sf-2_31l.12e", 0x40000, 0x20000, CRC(64ebc8d2) SHA1(1817de5dcca47a1bb94838d26a9a3adf6b75c911) )
@@ -7194,7 +7194,7 @@ ROM_END
 
 */
 ROM_START( sf2ebbl )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "12.bin",   0x00000, 0x40000, CRC(a258b4d5) SHA1(3433b6493794c98bb35c1b27cc65bb5f13d52e9b) )
 	ROM_LOAD16_BYTE( "09.bin",   0x00001, 0x40000, CRC(59ccd474) SHA1(7bb28c28ee722435fdbb18eb73e52bd65b419103) )
 	ROM_LOAD16_BYTE( "11.bin",   0x80000, 0x40000, CRC(82097d63) SHA1(881e7ffb78197f6794b5d41f5c2c87da35e8cb15) )
@@ -7237,7 +7237,7 @@ ROM_START( sf2ebbl )
 ROM_END
 
 ROM_START( sf2ebbl2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "27c020.7",   0x00000, 0x40000, CRC(a258b4d5) SHA1(3433b6493794c98bb35c1b27cc65bb5f13d52e9b) )
 	ROM_LOAD16_BYTE( "27c020.5",   0x00001, 0x40000, CRC(59ccd474) SHA1(7bb28c28ee722435fdbb18eb73e52bd65b419103) )
 	ROM_LOAD16_BYTE( "27c020.6",   0x80000, 0x40000, CRC(82097d63) SHA1(881e7ffb78197f6794b5d41f5c2c87da35e8cb15) )
@@ -7278,7 +7278,7 @@ ROM_START( sf2ebbl2 )
 ROM_END
 
 ROM_START( sf2ebbl3 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ce91e-b.bin",   0x00000, 0x80000, CRC(963200d2) SHA1(3fa23fdee6d43f01066a94b4b01b1811168637a2) )
 	ROM_LOAD16_BYTE( "ce91e-a.bin",   0x00001, 0x80000, CRC(02e88ec7) SHA1(1898e110108301a08686945f449fd084e394fc17) )
 
@@ -7327,7 +7327,7 @@ ROM_END
 
 ROM_START( sf2stt )
 	/* the PCB is not working on real hardware */
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	/* do not move this outside comments, this is only for testing purpose
 	ROM_LOAD16_BYTE( "12.bin",   0x00000, 0x40000, CRC(a258b4d5) SHA1(3433b6493794c98bb35c1b27cc65bb5f13d52e9b) )
 	ROM_LOAD16_BYTE( "09.bin",   0x00001, 0x40000, CRC(59ccd474) SHA1(7bb28c28ee722435fdbb18eb73e52bd65b419103) )
@@ -7376,7 +7376,7 @@ ROM_END
 
 ROM_START( sf2rk ) /* unidentified bootleg, name based only on gfx chips label */
 	/* the PCB is not working on real hardware */
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	/* do not move this outside comments, this is only for testing purpose
 	ROM_LOAD16_BYTE( "12.bin",             0x000000, 0x40000, CRC(a258b4d5) SHA1(3433b6493794c98bb35c1b27cc65bb5f13d52e9b) )
 	ROM_LOAD16_BYTE( "09.bin",             0x000001, 0x40000, CRC(59ccd474) SHA1(7bb28c28ee722435fdbb18eb73e52bd65b419103) )
@@ -7429,7 +7429,7 @@ ROM_START( sf2rk ) /* unidentified bootleg, name based only on gfx chips label *
 ROM_END
 
 ROM_START( sf2qp1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "stfii-qkn-cps-17.33", 0x000000, 0x40000, CRC(3a9458ee) SHA1(cbf56115c22a45e5ce1cde313fa5a5ba496316eb) )
 	ROM_CONTINUE(              0xc0000, 0x40000 )
 	ROM_LOAD16_WORD_SWAP( "stfii-qkn-cps-17.34", 0x080000, 0x40000, CRC(4ed215d8) SHA1(b09075f883c3a4976ab47203acc04f8f993969a8) )
@@ -7466,7 +7466,7 @@ ROM_START( sf2qp1 )
 ROM_END
 
 ROM_START( sf2thndr )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "17_30.11e",     0x00000, 0x20000, CRC(d3cd6d18) SHA1(c7efe9e7a7dee29bfe40a571960145efa26ac22e) )
 	ROM_LOAD16_BYTE( "17_37.11f",     0x00001, 0x20000, CRC(e892716e) SHA1(b3836b33bc026a0bccc5ed7cdecf8d2ba2b5607a) )
 	ROM_LOAD16_BYTE( "sf2u_31b.12e",  0x40000, 0x20000, CRC(a673143d) SHA1(e565f0ec23d6deb543c72af5a83f070c07319477) )
@@ -7508,7 +7508,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( 3wonders )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "rte_30a.11f", 0x00000, 0x20000, CRC(ef5b8b33) SHA1(2313168e5f10505ceece5fdaada0d30df3ca146c) )
 	ROM_LOAD16_BYTE( "rte_35a.11h", 0x00001, 0x20000, CRC(7d705529) SHA1(b456629b5755b701cca8a438d24957367a260ec5) )
 	ROM_LOAD16_BYTE( "rte_31a.12f", 0x40000, 0x20000, CRC(32835e5e) SHA1(9ec530561030a75a1283ff2aacc21e55613b682b) )
@@ -7553,7 +7553,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( 3wondersr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "rte_30.11f", 0x00000, 0x20000, CRC(0d541519) SHA1(ce0f9ebaea038c98f8866624d3061c65c84cf20d) )
 	ROM_LOAD16_BYTE( "rte_35.11h", 0x00001, 0x20000, CRC(73dd0e20) SHA1(b4f4086574176befa70863a85a3c0a8fd6e4bd90) )
 	ROM_LOAD16_BYTE( "rte_31.12f", 0x40000, 0x20000, CRC(33e0337d) SHA1(53e5795baf307a789b4337f081a932359e569a98) )
@@ -7598,7 +7598,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( 3wondersu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "rtu_30a.11f", 0x00000, 0x20000, CRC(0b156fd8) SHA1(1ec811cd7cbd12066f876db7255394e754ceb25e) )
 	ROM_LOAD16_BYTE( "rtu_35a.11h", 0x00001, 0x20000, CRC(57350bf4) SHA1(33e8685cce82eee7bcb7c2787318a130764e97e2) )
 	ROM_LOAD16_BYTE( "rtu_31a.12f", 0x40000, 0x20000, CRC(0e723fcc) SHA1(91eeab6376a5aa852152af9920aef60bc7c689dd) )
@@ -7643,7 +7643,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( wonder3 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "rtj_36.12f", 0x00000, 0x20000, CRC(e3741247) SHA1(4deb0f667697631693fbefddaeb8cf98fd0b90ce) )
 	ROM_LOAD16_BYTE( "rtj_42.12h", 0x00001, 0x20000, CRC(b4baa117) SHA1(44486b3d50f9b0a8c32c2c2dc5f1a046aface7b6) )
 	ROM_LOAD16_BYTE( "rtj_37.13f", 0x40000, 0x20000, CRC(a1f677b0) SHA1(e1511ea0fa4a689d1355119ac37c075192880dde) )
@@ -7713,7 +7713,7 @@ ROM_END
 
 /* Three Wonders (bootleg) */
 ROM_START( 3wondersb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "274001.4", 0x00000, 0x80000, CRC(47887cf3) SHA1(cdb2df67c99fd698845484869608bfaafa782bd6) )
 	ROM_LOAD16_BYTE( "274001.3", 0x00001, 0x80000, CRC(e79eacb3) SHA1(cb2712b4e566d7d2ab5639f2e62f6e15244a7f09) )
 
@@ -7738,7 +7738,7 @@ ROM_END
 
 /* Three Wonders (hack) */
 ROM_START( 3wondersh )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "22.bin",      0x00000, 0x20000, CRC(e6071884) SHA1(5cf1a859739cf98846cb049b64fd083733acb29c) )
 	ROM_LOAD16_BYTE( "26.bin",      0x00001, 0x20000, CRC(a28447b7) SHA1(e3f11911f1d3d115c03edf1bb6c8a68fccd9e9b3) )
 	ROM_LOAD16_BYTE( "23.bin",      0x40000, 0x20000, CRC(fd3d6509) SHA1(0824ec397d12c2b832c9e694c23b59c2e489ed3b) )
@@ -7791,7 +7791,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( kod )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "kde_30a.11e", 0x00000, 0x20000, CRC(fcb5efe2) SHA1(6122e4852633876ff2ccd4b72296fce96446b3ee) )
 	ROM_LOAD16_BYTE( "kde_37a.11f", 0x00001, 0x20000, CRC(f22e5266) SHA1(2fbadce701218f4a56bfd6dfd758abacb34a2181) )
 	ROM_LOAD16_BYTE( "kde_31a.12e", 0x40000, 0x20000, CRC(c710d722) SHA1(a2e9b84d3e7d835a910ab9f584bdc64c2559995a) )
@@ -7837,7 +7837,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( kodr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "kde_30.11e", 0x00000, 0x20000, CRC(c7414fd4) SHA1(37d27fbe7c617a26b53bfdfcd532cf573d42f33b) )
 	ROM_LOAD16_BYTE( "kde_37.11f", 0x00001, 0x20000, CRC(a5bf40d2) SHA1(cd34dbeabd0974709411579e669f01d0d799c2a1) )
 	ROM_LOAD16_BYTE( "kde_31.12e", 0x40000, 0x20000, CRC(1fffc7bd) SHA1(822c9ad996ca51a99a2bb1fe08fa19e18413030d) )
@@ -7883,7 +7883,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( kodu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "kdu_30b.11e", 0x00000, 0x20000, CRC(825817f9) SHA1(250f61effcbe59f8b70baaf26eb8aef419fed66b) )
 	ROM_LOAD16_BYTE( "kdu_37b.11f", 0x00001, 0x20000, CRC(d2422dfb) SHA1(6e369a62012f3c480755b700d4d4f4c112c79483) )
 	ROM_LOAD16_BYTE( "kdu_31b.12e", 0x40000, 0x20000, CRC(9af36039) SHA1(f2645178a042689a387f916b4ecd7d1d859d758a) )
@@ -7929,7 +7929,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( kodj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "kdj_30a.11e",  0x00000, 0x20000, CRC(ebc788ad) SHA1(f4a297e409fcdbb2c15a13b39a16e4a83e7e060b) )
 	ROM_LOAD16_BYTE( "kdj_37a.11f",  0x00001, 0x20000, CRC(e55c3529) SHA1(a5254895499a53b4fbaac6fd50464b9e08175b8d) )
 	ROM_LOAD16_BYTE( "kdj_31a.12e",  0x40000, 0x20000, CRC(c710d722) SHA1(a2e9b84d3e7d835a910ab9f584bdc64c2559995a) )   // == kde_31a.12e
@@ -7973,7 +7973,7 @@ ROM_END
 /* B-Board 89625B-1 */
 /* Note that this set is equivalent to kodj, but each 4Mbit EPROM is replaced by 4 1Mbit EPROMs. */
 ROM_START( kodja )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "kdj_36a.12f", 0x00000, 0x20000, CRC(ebc788ad) SHA1(f4a297e409fcdbb2c15a13b39a16e4a83e7e060b) )    // == kdj_30a.11e
 	ROM_LOAD16_BYTE( "kdj_42a.12h", 0x00001, 0x20000, CRC(e55c3529) SHA1(a5254895499a53b4fbaac6fd50464b9e08175b8d) )    // == kdj_37a.11f
 	ROM_LOAD16_BYTE( "kdj_37a.13f", 0x40000, 0x20000, CRC(c710d722) SHA1(a2e9b84d3e7d835a910ab9f584bdc64c2559995a) )    // == kdj_31a.12e
@@ -8043,7 +8043,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( captcomm )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "cce_23f.8f", 0x000000, 0x80000, CRC(42c814c5) SHA1(60e6ae6b8a89cdaa1abf1749c60a5e3b3972e1ab) )
 	ROM_LOAD16_WORD_SWAP( "cc_22f.7f",  0x080000, 0x80000, CRC(0fd34195) SHA1(fb2b9a53af43507f13c4f94eaebbf0b538b2e754) )
 	ROM_LOAD16_BYTE( "cc_24f.9e",       0x100000, 0x20000, CRC(3a794f25) SHA1(7f3722a4ef0c1d7acb73e6bac9dd6ae7b35e6374) )
@@ -8086,7 +8086,7 @@ ROM_START( captcomm )
 ROM_END
 
 ROM_START( captcomm4p )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "cce_23f.8f", 0x000000, 0x80000, CRC(42c814c5) SHA1(60e6ae6b8a89cdaa1abf1749c60a5e3b3972e1ab) )
 	ROM_LOAD16_WORD_SWAP( "cc_22f.7f",  0x080000, 0x80000, CRC(0fd34195) SHA1(fb2b9a53af43507f13c4f94eaebbf0b538b2e754) )
 	ROM_LOAD16_BYTE( "cc_24f.9e",       0x100000, 0x20000, CRC(3a794f25) SHA1(7f3722a4ef0c1d7acb73e6bac9dd6ae7b35e6374) )
@@ -8130,7 +8130,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( captcommr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "cce_23d.8f", 0x000000, 0x80000, CRC(19c58ece) SHA1(6e23e87db29b2c5698b7cead99d1106a2e190648) )
 	ROM_LOAD16_WORD_SWAP( "cc_22d.7f",  0x080000, 0x80000, CRC(a91949b7) SHA1(c027af89cd8f6bd3aaed61114582322c42e0c74f) )
 	ROM_LOAD16_BYTE( "cc_24d.9e",       0x100000, 0x20000, CRC(680e543f) SHA1(cfa963ab6329f615807db213bf53841860ed3149) )
@@ -8173,7 +8173,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( captcommu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "ccu_23b.8f", 0x000000, 0x80000, CRC(03da44fd) SHA1(0bf382933b4b44082bbaf63e96acd83ab8808a34) )
 	ROM_LOAD16_WORD_SWAP( "ccu_22c.7f", 0x080000, 0x80000, CRC(9b82a052) SHA1(8247fe45fea8c47072a66d6707202bcdb8c62923) )
 	ROM_LOAD16_BYTE( "ccu_24b.9e",      0x100000, 0x20000, CRC(84ff99b2) SHA1(5b02c91f3d0f8fb46db9596136b683f5a22dc15f) )
@@ -8216,7 +8216,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( captcommj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "ccj_23f.8f", 0x000000, 0x80000, CRC(5b482b62) SHA1(c871aa1eb9ecc117c3079995d1f5212193bd2e12) )
 	ROM_LOAD16_WORD_SWAP( "ccj_22f.7f", 0x080000, 0x80000, CRC(0fd34195) SHA1(fb2b9a53af43507f13c4f94eaebbf0b538b2e754) )   // == cc_22f.7f
 	ROM_LOAD16_BYTE( "ccj_24f.9e",      0x100000, 0x20000, CRC(3a794f25) SHA1(7f3722a4ef0c1d7acb73e6bac9dd6ae7b35e6374) )   // == cc_24f.9e
@@ -8259,7 +8259,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( captcommjr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "ccj_23b.8f", 0x000000, 0x80000, CRC(e2a2d80e) SHA1(ec3c455974b77cd2e4357546aea4cb25690a041f) )
 	ROM_LOAD16_WORD_SWAP( "ccj_22c.7f", 0x080000, 0x80000, CRC(9b82a052) SHA1(8247fe45fea8c47072a66d6707202bcdb8c62923) )   // == ccu_22c.7f
 	ROM_LOAD16_BYTE( "ccj_24b.9e",      0x100000, 0x20000, CRC(84ff99b2) SHA1(5b02c91f3d0f8fb46db9596136b683f5a22dc15f) )   // == ccu_24b.9e
@@ -8325,7 +8325,7 @@ no PROMs
 */
 
 ROM_START( captcommb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "25.bin",        0x000000, 0x80000, CRC(cb71ed7a) SHA1(84f76b4861a3c7a59e67f38777f2d68749f19337) )
 	ROM_LOAD16_BYTE( "27.bin",        0x000001, 0x80000, CRC(47cb2e87) SHA1(8a990a3a122045b50dd73d2e7b02fe60ab9af0a3) )
 	ROM_LOAD16_BYTE( "24.bin",        0x100000, 0x40000, CRC(79794279) SHA1(5a43a4cef6653454ba9a81f2dd7f3f91c8a3354c) )
@@ -8359,7 +8359,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( knights )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "kr_23e.8f", 0x00000, 0x80000, CRC(1b3997eb) SHA1(724b68eff319fcdf0dd3bc1eb6662996c1f6ecd9) )
 	ROM_LOAD16_WORD_SWAP( "kr_22.7f",  0x80000, 0x80000, CRC(d0b671a9) SHA1(9865472c5fc3f617345e23b5de5a9ba177945b5a) )
 
@@ -8400,7 +8400,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( knightsu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "kr_23u.8f", 0x00000, 0x80000, CRC(252bc2ba) SHA1(4f4901c253bd64bbe68ea01994ae663fe2ccd056) )
 	ROM_LOAD16_WORD_SWAP( "kr_22.7f",  0x80000, 0x80000, CRC(d0b671a9) SHA1(9865472c5fc3f617345e23b5de5a9ba177945b5a) )
 
@@ -8441,7 +8441,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( knightsj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "kr_23j.8f", 0x00000, 0x80000, CRC(eae7417f) SHA1(2ec808265a9a231922e2397d7e8f3c3841a90859) )
 	ROM_LOAD16_WORD_SWAP( "kr_22.7f",  0x80000, 0x80000, CRC(d0b671a9) SHA1(9865472c5fc3f617345e23b5de5a9ba177945b5a) )
 
@@ -8483,7 +8483,7 @@ ROM_END
 /* B-Board 89625B-1 */
 /* Note that this set is equivalent to knightsj, but each 4Mbit EPROM is replaced by 4 1Mbit EPROMs. */
 ROM_START( knightsja )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "krj_36.12f", 0x00000, 0x20000, CRC(ad3d1a8e) SHA1(327f9e818f1500836fc549afeffbb2a3c5aafe8c) ) // == kr_23j.8f
 	ROM_LOAD16_BYTE( "krj_42.12h", 0x00001, 0x20000, CRC(e694a491) SHA1(5a4d27c879c10032c49880019501de3e45ab1b35) ) // == kr_23j.8f
 	ROM_LOAD16_BYTE( "krj_37.13f", 0x40000, 0x20000, CRC(85596094) SHA1(74ad294de63aa6b60aa8b885c45c3d41a07ce19a) ) // == kr_23j.8f
@@ -8553,7 +8553,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2ce )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92e_23b.8f", 0x000000, 0x80000, CRC(0aaa1a3a) SHA1(774a2b52f7c1876c0e10d8d57a0850ad2d016cf6) )
 	ROM_LOAD16_WORD_SWAP( "s92_22b.7f",  0x080000, 0x80000, CRC(2bbe15ed) SHA1(a8e2edef62fa99c5ef701b28bfb6bc42f3af183d) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8599,7 +8599,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2ceea )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92e_23a.8f", 0x000000, 0x80000, CRC(3f846b74) SHA1(c8d7a01b626771870123f1663a01a81f9c8fe582) )
 	ROM_LOAD16_WORD_SWAP( "s92_22a.7f",  0x080000, 0x80000, CRC(99f1cca4) SHA1(64111eba81d743fc3fd51d7a89cd0b2eefcc900d) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8645,7 +8645,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2ceua )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92u_23a.8f", 0x000000, 0x80000, CRC(ac44415b) SHA1(218f8b1886eb72b8547127042b5ae47600e18944) )
 	ROM_LOAD16_WORD_SWAP( "s92_22a.7f",  0x080000, 0x80000, CRC(99f1cca4) SHA1(64111eba81d743fc3fd51d7a89cd0b2eefcc900d) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8691,7 +8691,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2ceub )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92u_23b.8f", 0x000000, 0x80000, CRC(996a3015) SHA1(fdf45da54b1c14478a60f2b86e37ffe32a98b135) )
 	ROM_LOAD16_WORD_SWAP( "s92_22b.7f",  0x080000, 0x80000, CRC(2bbe15ed) SHA1(a8e2edef62fa99c5ef701b28bfb6bc42f3af183d) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8737,7 +8737,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2ceuc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92u_23c.8f", 0x000000, 0x80000, CRC(0a8b6aa2) SHA1(a19871271172119e1cf1ff47700bb1917b08514b) )
 	ROM_LOAD16_WORD_SWAP( "s92_22c.7f",  0x080000, 0x80000, CRC(5fd8630b) SHA1(f0ef9c5ab91a4b421fb4b1747eef99c964c15de3) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8783,7 +8783,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( sf2ceja )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92j_23a.8f", 0x000000, 0x80000, CRC(4f42bb5a) SHA1(59d0587c554e06ea45d4092ea4299ff086509d4b) )
 	ROM_LOAD16_WORD_SWAP( "s92j_22a.7f", 0x080000, 0x80000, CRC(c4f64bcd) SHA1(262c0419bf727da80c2ac52b877a19276d9aac3c) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8829,7 +8829,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( sf2cejb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92j_23b.8f", 0x000000, 0x80000, CRC(140876c5) SHA1(304630e6d8bae9f8d29090e05f7e013c7dafe9cc) )
 	ROM_LOAD16_WORD_SWAP( "s92j_22b.7f", 0x080000, 0x80000, CRC(2fbb3bfe) SHA1(e364564a12022730c2c0d0e8fd435e2c30ef9410) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.6f",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )  // could be s92j_21a.6f
@@ -8875,7 +8875,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( sf2cejc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s92j_23c.8f", 0x000000, 0x80000, CRC(f0120635) SHA1(5e4a9a4b0f65c6139e76ee4ffa02b9db245b1858) )
 	ROM_LOAD16_WORD_SWAP( "s92j_22c.7f", 0x080000, 0x80000, CRC(8c0b2ed6) SHA1(408db039b4dad72b41458723575ed5352b71e10b) )
 	ROM_LOAD16_WORD_SWAP( "s92j_21a.6f", 0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )  // == s92_21a.6f
@@ -8921,7 +8921,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2bhh )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "23",           0x000000, 0x40000, CRC(5cf63a9e) SHA1(af26165cacb4838572ddf1cd7a2ff22a5dddbf3c) ) // sldh
 	ROM_CONTINUE(                         0x0c0000, 0x40000 )
 	ROM_LOAD16_WORD_SWAP( "22",           0x080000, 0x40000, CRC(3ed72bca) SHA1(5565aee82e6b4734c4c0d06a73d8141abb1e4119) ) // sldh
@@ -8968,7 +8968,7 @@ ROM_START( sf2bhh )
 ROM_END
 
 ROM_START( sf2rb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD( "sf2d__23.rom",      0x000000, 0x80000, CRC(450532b0) SHA1(14d5ff44ce97247ef4c42147157856d16c5fb4b8) )
 	ROM_LOAD16_WORD( "sf2d__22.rom",      0x080000, 0x80000, CRC(fe9d9cf5) SHA1(91afb25d8c0fd1a721f982cebf8fdf563fe11760) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -8997,7 +8997,7 @@ ROM_START( sf2rb )
 ROM_END
 
 ROM_START( sf2rb2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "27.bin",            0x000000, 0x20000, CRC(40296ecd) SHA1(6006b9bc7e2e8ccec47f87b51791d3c0512620df) )
 	ROM_LOAD16_BYTE( "31.bin",            0x000001, 0x20000, CRC(87954a41) SHA1(67225f180e1f954f0bebba49b618f793a973af14) )
 	ROM_LOAD16_BYTE( "26.bin",            0x040000, 0x20000, CRC(a6974195) SHA1(f7e0fd43bd75229d49d5c330820bdc5c3b11ab03) )
@@ -9033,7 +9033,7 @@ ROM_END
 
 /* this rainbow set DOES NOT require a custom PLD to work, runs on standard board with roms replaced */
 ROM_START( sf2rb3 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sf2_ce_rb.23",      0x000000, 0x80000, CRC(202f9e50) SHA1(8f0259ade1bc4df65abf4ad0961db24ca27e3f4b) )
 	ROM_LOAD16_WORD_SWAP( "sf2_ce_rb.22",      0x080000, 0x80000, CRC(145e5219) SHA1(0b1251ad817a395f37f6c9acee393c3fce07777a) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",       0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -9062,7 +9062,7 @@ ROM_START( sf2rb3 )
 ROM_END
 
 ROM_START( sf2red )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sf2red.23",    0x000000, 0x80000, CRC(40276abb) SHA1(a991661f5a1a3116445594bcfed3150e36971dd7) )
 	ROM_LOAD16_WORD_SWAP( "sf2red.22",    0x080000, 0x80000, CRC(18daf387) SHA1(1a9e4c04ca54e8b33f19dd7bedbe05a200249701) )
 	ROM_LOAD16_WORD_SWAP( "sf2red.21",    0x100000, 0x80000, CRC(52c486bb) SHA1(b7df7b10faa4c9a2f86ebf64cd63ac148d62dd09) )
@@ -9091,7 +9091,7 @@ ROM_START( sf2red )
 ROM_END
 
 ROM_START( sf2v004 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sf2v004.23",   0x000000, 0x80000, CRC(52d19f2c) SHA1(6a77b9244dc9b7d9a0ca8a642d4257cc944ac566) )
 	ROM_LOAD16_WORD_SWAP( "sf2v004.22",   0x080000, 0x80000, CRC(4b26fde7) SHA1(48e3aacbf9147f2374a93e10f945291c87f24855) )
 	ROM_LOAD16_WORD_SWAP( "sf2red.21",    0x100000, 0x80000, CRC(52c486bb) SHA1(b7df7b10faa4c9a2f86ebf64cd63ac148d62dd09) )
@@ -9120,7 +9120,7 @@ ROM_START( sf2v004 )
 ROM_END
 
 ROM_START( sf2acc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sf2ca_23-c.bin", 0x000000, 0x80000, CRC(e7c8c5a6) SHA1(247fb38c041f4d516899db32545d8b4d8debc4cf) )
 	ROM_LOAD16_WORD_SWAP( "sf2ca_22-c.bin", 0x080000, 0x80000, CRC(99f1cca4) SHA1(64111eba81d743fc3fd51d7a89cd0b2eefcc900d) )
 	ROM_LOAD16_WORD_SWAP( "sf2ca_21-c.bin", 0x100000, 0x40000, CRC(cf7fcc8c) SHA1(47d338634dd72d1ef912fbdb8c1a7ae945ca1a5f) )
@@ -9151,7 +9151,7 @@ ROM_END
 
 
 ROM_START( sf2acca )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "23-c.8f", 0x000000, 0x80000, CRC(35f9517b) SHA1(0976870c65d69a6d8ca0232a48e042588a9ec5d8) )
 	ROM_LOAD16_WORD_SWAP( "22-c.7f", 0x080000, 0x80000, CRC(99f1cca4) SHA1(64111eba81d743fc3fd51d7a89cd0b2eefcc900d) )
 	ROM_LOAD16_WORD_SWAP( "21-c.6f", 0x100000, 0x80000, CRC(2ab2034f) SHA1(4dc90ba524e76529700945605e02068d49b56aba) )
@@ -9180,7 +9180,7 @@ ROM_START( sf2acca )
 ROM_END
 
 ROM_START( sf2accp2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sf2ca-23.bin", 0x000000, 0x80000, CRC(36c3ba2f) SHA1(a3ddc479b725ddb3521757c8efa7aed125004997) )
 	ROM_LOAD16_WORD_SWAP( "sf2ca-22.bin", 0x080000, 0x80000, CRC(0550453d) SHA1(f9efed86528dd10f142636278f098584d33ccde6) )
 	ROM_LOAD16_WORD_SWAP( "sf2ca-21.bin", 0x100000, 0x40000, CRC(4c1c43ba) SHA1(16abce268373eddd7c3b93fe8d44b200a8c140fe) )
@@ -9227,7 +9227,7 @@ Sound rom match various romset
 */
 
 ROM_START( sf2ceblp )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 
 	ROM_LOAD16_BYTE( "prg31.bin",      0x00000, 0x20000, CRC(ea78f9b4) SHA1(967f84615f6ef4d046df3593d5ffce0d43a3ac64) )
 	ROM_LOAD16_BYTE( "prg36.bin",      0x00001, 0x20000, CRC(d30c263e) SHA1(6d8b13f82dde3237115306d91f37ac95b8238e0a) )
@@ -9281,7 +9281,7 @@ ROM_END
 
 
 ROM_START( sf2cebltw )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "27.12e",           0x000000, 0x20000, CRC(035ee5d9) SHA1(9d268333db96dc6d1539ea938d3b213482e276c6) )
 	ROM_LOAD16_BYTE( "31.12f",           0x000001, 0x20000, CRC(353dbde1) SHA1(039785f8863fda945267fc8b9cf640d954ea9803) )
 	ROM_LOAD16_BYTE( "24.9e",            0x040000, 0x20000, CRC(005b54cc) SHA1(3d3d7742c11f31cc62d81931dc970cd1f4a26835) )
@@ -9322,7 +9322,7 @@ ROM_END
 
 ROM_START( sf2amf )
 	/* the PCB is not working on real hardware */
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "5.amf",          0x000000, 0x80000, CRC(03991fba) SHA1(6c42bf15248640fdb3e98fb01b0a870649deb410) )
 	ROM_LOAD16_BYTE( "4.amf",          0x000001, 0x80000, CRC(39f15a1e) SHA1(901c4fea76bf5bff7330ed07ffde54cdccdaa680) )
 	/* missing last part(s) of program roms, some gfx loading instructions are missing */
@@ -9370,7 +9370,7 @@ ROM_START( sf2amf )
 ROM_END
 
 ROM_START( sf2amf2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "m5m27c401.u222",          0x000000, 0x80000, CRC(03991fba) SHA1(6c42bf15248640fdb3e98fb01b0a870649deb410) ) // ==  5.amf                 sf2amf
 	ROM_LOAD16_BYTE( "m5m27c401.u196",          0x000001, 0x80000, CRC(39f15a1e) SHA1(901c4fea76bf5bff7330ed07ffde54cdccdaa680) ) // ==  4.amf                 sf2amf
 
@@ -9413,7 +9413,7 @@ ROM_START( sf2amf2 )
 ROM_END
 
 ROM_START( sf2dkot2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	/* The game reads values from 0x201201 and 0x281201 (at PC=E5452) and uses their difference to form a jump offset. */
 	/* This arrangement seems to work */
 	ROM_LOAD16_WORD_SWAP( "turboii.23", 0x000000, 0x80000, CRC(9bbfe420) SHA1(299ab5625f2d4ebc89bcf19a2b2d88edc8054747) )
@@ -9447,7 +9447,7 @@ ROM_START( sf2dkot2 )
 ROM_END
 
 ROM_START( sf2m2 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "ch222esp",          0x000000, 0x80000, CRC(9e6d058a) SHA1(8c9adca7b65dc929c325c0a62304d24dc0902c08) )
 	ROM_LOAD16_BYTE( "ch196esp",          0x000001, 0x80000, CRC(ed2ff437) SHA1(e76fc2953b6c800d5955c8fb442b80142e40e375) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -9476,7 +9476,7 @@ ROM_START( sf2m2 )
 ROM_END
 
 ROM_START( sf2m3 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "u222chp",           0x000000, 0x80000, CRC(db567b66) SHA1(315bfbf2786ef67a95afb87de836ab348523dbbe) )
 	ROM_LOAD16_BYTE( "u196chp",           0x000001, 0x80000, CRC(95ea597e) SHA1(5eb82feaa1de5611a96888e4670744bbb7d90393) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -9505,7 +9505,7 @@ ROM_START( sf2m3 )
 ROM_END
 
 ROM_START( sf2m4 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "u222ne",            0x000000, 0x80000, CRC(7133489e) SHA1(036ef100c64c6e912c911340b32eea0da0b6f6d9) )
 	ROM_LOAD16_BYTE( "u196ne",            0x000001, 0x80000, CRC(b07a4f90) SHA1(7a4a800bddc43cfa60f9097723b44a05c9d290ae) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -9534,7 +9534,7 @@ ROM_START( sf2m4 )
 ROM_END
 
 ROM_START( sf2m5 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "u222",              0x000000, 0x80000, CRC(03991fba) SHA1(6c42bf15248640fdb3e98fb01b0a870649deb410) )
 	ROM_LOAD16_BYTE( "u196",              0x000001, 0x80000, CRC(39f15a1e) SHA1(901c4fea76bf5bff7330ed07ffde54cdccdaa680) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -9563,7 +9563,7 @@ ROM_START( sf2m5 )
 ROM_END
 
 ROM_START( sf2m6 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "u222-6b",           0x000000, 0x80000, CRC(0a3692be) SHA1(7b937b7b0130e460b5f12188b19f464c55b507c9) )
 	ROM_LOAD16_BYTE( "u196-6b",           0x000001, 0x80000, CRC(80454da7) SHA1(64f6dba14d342c9933ce632aa7ca126b34b4ee8b) )
 	ROM_LOAD16_WORD_SWAP( "s92_21a.bin",  0x100000, 0x80000, CRC(925a7877) SHA1(1960dca35f0ca6f2b399a9fccfbc0132ac6425d1) )
@@ -9592,7 +9592,7 @@ ROM_START( sf2m6 )
 ROM_END
 
 ROM_START( sf2m7 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "u222-2i",           0x000000, 0x40000, CRC(1ca7adbd) SHA1(45e9dc05766ad156edcfc9e59a9804f74f90dc68) )
 	ROM_LOAD16_BYTE( "u196-2i",           0x000001, 0x40000, CRC(f758408c) SHA1(aac44a7287bb3b7ba35d68aff279e265dbd3f6d3) )
 	ROM_LOAD16_BYTE( "u222-2s",           0x080000, 0x40000, CRC(720cea3e) SHA1(ec4f22159d44a8abc40643b986b88a4f947d6aea) )
@@ -9625,7 +9625,7 @@ ROM_END
 ROM_START( sf2m8 )
 /* unconfirmed if working on real hardware */
 	/* this board has unsupported pals */
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "yyc-2.2", 0x000000, 0x80000, CRC(db567b66) SHA1(315bfbf2786ef67a95afb87de836ab348523dbbe) )
 	ROM_LOAD16_BYTE( "yyc-3.4", 0x000001, 0x80000, CRC(95ea597e) SHA1(5eb82feaa1de5611a96888e4670744bbb7d90393) )
 	ROM_LOAD16_BYTE( "yyc-4.1", 0x100000, 0x20000, CRC(1073b7b6) SHA1(81ca1eab65ceac69520584bb23a684ccb9d92f89) )
@@ -9717,7 +9717,7 @@ Notes:
 */
 
 ROM_START( sf2m10 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )
 	ROM_LOAD16_BYTE( "sf2h14.7", 0x000000, 0x80000, CRC(74803532) SHA1(c1f774bbc4c7b18fcac15417711a86eb852b9957) )
 	ROM_LOAD16_BYTE( "sf2h14.5", 0x000001, 0x80000, CRC(66c91972) SHA1(219aecad1feb60bb758190ea82223171075c858e) )
 	ROM_LOAD16_BYTE( "yyc-4.1", 0x100000, 0x20000, CRC(1073b7b6) SHA1(81ca1eab65ceac69520584bb23a684ccb9d92f89) )
@@ -9756,7 +9756,7 @@ ROM_START( sf2m10 )
 ROM_END
 
 ROM_START( sf2yyc )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "b12.rom", 0x000000, 0x80000, CRC(8f742fd5) SHA1(a78a00e686856481011d8b5f5e60ed18197a5225) )
 	ROM_LOAD16_BYTE( "b14.rom", 0x000001, 0x80000, CRC(8831ec7f) SHA1(0293ff189cbacf90098e734fb31fcbf3c3165e6b) )
 	ROM_LOAD16_BYTE( "b11.rom", 0x100000, 0x20000, CRC(94a46525) SHA1(2712b979ce2bfd87e74da3369e0fceaae2a0654c) )
@@ -9788,7 +9788,7 @@ ROM_START( sf2yyc )
 ROM_END
 
 ROM_START( sf2koryu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "u222.rom",   0x000000, 0x80000, CRC(9236a79a) SHA1(39c47b0b0ca2f5f569ff07ebb91040b95d0cb43b) )
 	ROM_LOAD16_BYTE( "u196.rom",   0x000001, 0x80000, CRC(b23a869d) SHA1(24247d412f20d069919cc8a7fff208af3f7aa1d2) )
 	ROM_LOAD16_BYTE( "u221.rom",   0x100000, 0x20000, CRC(64e6e091) SHA1(32ec05db955e538d4ada26d19ee50926f74b684f) )
@@ -9818,7 +9818,7 @@ ROM_START( sf2koryu )
 ROM_END
 
 ROM_START( sf2dongb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "1.8f",        0x000000, 0x80000, CRC(19fffa37) SHA1(db464c64de3aebe929c85ee167961de05d2c16be) )
 	ROM_LOAD16_WORD_SWAP( "1.7f",        0x080000, 0x80000, CRC(99f1cca4) SHA1(64111eba81d743fc3fd51d7a89cd0b2eefcc900d) ) // same as sf2ceea
 	ROM_LOAD16_WORD_SWAP( "1.6f",        0x100000, 0x80000, CRC(65c2c719) SHA1(d407cae5f04fc8d05776d478a6eb4363b3c36805) )
@@ -9849,7 +9849,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( cworld2j )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "q5_36.12f",        0x00000, 0x20000, CRC(38a08099) SHA1(961f733baa2bbf8419e4de70f18660098dba7d52) )
 	ROM_LOAD16_BYTE( "q5_42.12h",        0x00001, 0x20000, CRC(4d29b3a4) SHA1(bf40fc22c0161fe131ca69100b2a4d102e86bde6) )
 	ROM_LOAD16_BYTE( "q5_37.13f",        0x40000, 0x20000, CRC(eb547ebc) SHA1(fce470b05ce095badd180c3740677146f52f6080) )
@@ -9903,7 +9903,7 @@ ROM_END
 
 /* B-Board 90629B-3  - all roms have 90629B on the labels, no battery, possibly unofficial / desuicided with reproduction stickers */
 ROM_START( cworld2ja )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP("q5 - 34_90629b.8f", 0x00000, 0x80000, CRC(de54487f) SHA1(75b228a6c702c82d4d9a2a992933b5c3c420f6c2) )
 	ROM_LOAD16_WORD_SWAP("q5 - 33_90629b.6f", 0x80000, 0x80000, CRC(93248458) SHA1(9dcdc6838f52efc9a0a6333fd0d734946db12dbd) )
 
@@ -9938,7 +9938,7 @@ ROM_END
 
 /* B-Board 91634B-2  - all roms have 91634B on the labels */
 ROM_START( cworld2jb )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "q5 - 23_91634b.8f", 0x00000, 0x80000, CRC(709f577f) SHA1(3e0615d01f22eb1bf75cbd26dc80ca5a6d08120e) )
 	ROM_LOAD16_WORD_SWAP( "q5 - 22_91634b.7f", 0x80000, 0x80000, CRC(93248458) SHA1(9dcdc6838f52efc9a0a6333fd0d734946db12dbd) )
 
@@ -9975,7 +9975,7 @@ ROM_END
 
 /* B-Board 89624B-3 */
 ROM_START( varth )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "vae_30b.11f", 0x00000, 0x20000, CRC(adb8d391) SHA1(5e7160509e0315eb32cc390ddd7e4ef7a4a1a70a) )
 	ROM_LOAD16_BYTE( "vae_35b.11h", 0x00001, 0x20000, CRC(44e5548f) SHA1(17b4be1f4159f6b6803d8c2950823ece0bdde8b2) )
 	ROM_LOAD16_BYTE( "vae_31b.12f", 0x40000, 0x20000, CRC(1749a71c) SHA1(bd9bfd5bbe2d426c94df755c977faa92a28f16ab) )
@@ -10013,7 +10013,7 @@ ROM_END
 
 /* B-Board 89624B-? */
 ROM_START( varthr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "vae_30a.11f", 0x00000, 0x20000, CRC(7fcd0091) SHA1(7bed452736eda4a26c43c5dd54ec6799afa6e770) )
 	ROM_LOAD16_BYTE( "vae_35a.11h", 0x00001, 0x20000, CRC(35cf9509) SHA1(a189ca7740d77262413ec2891af034d0057892be) )
 	ROM_LOAD16_BYTE( "vae_31a.12f", 0x40000, 0x20000, CRC(15e5ee81) SHA1(6c6248b07f7e956a37d5dcb4b67d026f57fae13b) )
@@ -10051,7 +10051,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( varthu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "vau_23a.8f", 0x00000, 0x80000, CRC(fbe68726) SHA1(68917d366551d2203400adc3261355dd3b332bcb) )
 	ROM_LOAD16_WORD_SWAP( "vau_22a.7f", 0x80000, 0x80000, CRC(0ed71bbd) SHA1(e7f0f0edf0936a774e122842b09f5c5ce25a96ad) )
 
@@ -10084,7 +10084,7 @@ ROM_END
 
 /* B-Board 88622B-3 */
 ROM_START( varthj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "vaj_36b.12f", 0x00000, 0x20000, CRC(1d798d6a) SHA1(b12579e9dcb88416bc00653b143832d9347adbaf) )
 	ROM_LOAD16_BYTE( "vaj_42b.12h", 0x00001, 0x20000, CRC(0f720233) SHA1(2d9442ceafd5e2208aa8cd4bcb66861bff6aec47) )
 	ROM_LOAD16_BYTE( "vaj_37b.13f", 0x40000, 0x20000, CRC(24414b17) SHA1(6c0b24cf8045fc033217c737dba2c046d7d0a09a) )
@@ -10137,7 +10137,7 @@ ROM_END
 
 /* B-Board 91634B-2, Japan Resale Ver. */
 ROM_START( varthjr )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "vaj_23b.8f", 0x00000, 0x80000, CRC(ad3d3522) SHA1(db627233f9d8a03c2d4bb31614951a0cdc81600d) )
 	ROM_LOAD16_WORD_SWAP( "vaj_22b.7f", 0x80000, 0x80000, CRC(034e3e55) SHA1(eeb85a827cf18dafbdf0a2828aa39128352857f3) )
 
@@ -10173,7 +10173,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( qad )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "qdu_36a.12f", 0x00000, 0x20000, CRC(de9c24a0) SHA1(458962943e8d97d1f4e5a15ac1c8d3bcaa32918b) )
 	ROM_LOAD16_BYTE( "qdu_42a.12h", 0x00001, 0x20000, CRC(cfe36f0c) SHA1(370a47461b2dbb7807f547f5b4b33296572c5d78) )
 	ROM_LOAD16_BYTE( "qdu_37a.13f", 0x40000, 0x20000, CRC(10d22320) SHA1(73b2876d5447f50a850c466789d9297269f732d6) )
@@ -10214,7 +10214,7 @@ ROM_END
 
 /* B-Board 91634B-2, Japan Resale Ver. */
 ROM_START( qadjr )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "qad_23a.8f", 0x00000, 0x80000, CRC(4d3553de) SHA1(07eabcb02fbbe11397ce91405a2e6bb53b3d5d4f) )
 	ROM_LOAD16_WORD_SWAP( "qad_22a.7f", 0x80000, 0x80000, CRC(3191ddd0) SHA1(2806021a5dc809ca43692bbe9c4f5ef690c9ac14) )
 
@@ -10251,7 +10251,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( wof )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk2e_23c.8f", 0x000000, 0x80000, CRC(0d708505) SHA1(10b8cb53a4600e3e76f471a3eee8a600e93096fc) )
 	ROM_LOAD16_WORD_SWAP( "tk2e_22c.7f", 0x080000, 0x80000, CRC(608c17e3) SHA1(52c2d05279623d93b27856e6b76830796a089eae) )
 
@@ -10300,7 +10300,7 @@ ROM_END
 /* FIXME Probably this set uses a patched program ROM coming from a desuicided board, or simply the original C-Board
    is not a 92641C-1. A verification and a new fresh dump are needed to confirm if it's genuine or not. */
 ROM_START( wofr1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk2e_23b.8f", 0x000000, 0x80000, CRC(11fb2ed1) SHA1(19e09ad6f9edc7997b030cddfe1d9c96d88135f2) )  // patched?
 	ROM_LOAD16_WORD_SWAP( "tk2e_22b.7f", 0x080000, 0x80000, CRC(479b3f24) SHA1(9fb8ae06856fe115addfb6794c28978a4f6716ec) )
 
@@ -10347,7 +10347,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( wofu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk2u_23c.8f", 0x000000, 0x80000, CRC(29b89c12) SHA1(2b474b4f45a4ccb0db2a4d5e7ef30e28b5c6cc3a) )
 	ROM_LOAD16_WORD_SWAP( "tk2u_22c.7f", 0x080000, 0x80000, CRC(f5af4774) SHA1(f6d53cf5b330e6d68f84da3e8c831a475585b93e) )
 
@@ -10397,7 +10397,7 @@ ROM_END
 /* FIXME Probably this set uses a patched program ROM coming from a desuicided board, or simply the original C-Board
    is not a 92641C-1. A verification and a new fresh dump are needed to confirm if it's genuine or not. */
 ROM_START( wofa )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk2a_23c.8f", 0x000000, 0x80000, CRC(2e024628) SHA1(647f8700fe3b410d798a823bac2e4a89cc9ad8d5) )  // patched?
 	ROM_LOAD16_WORD_SWAP( "tk2a_22c.7f", 0x080000, 0x80000, CRC(900ad4cd) SHA1(988007447f93f3467029b9c29fd9670a7ecadaa3) )
 
@@ -10444,7 +10444,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( wofj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk2j_23c.8f", 0x000000, 0x80000, CRC(9b215a68) SHA1(fc83ed26441fbfb15e21b093c7a6bed44b586e51) )
 	ROM_LOAD16_WORD_SWAP( "tk2j_22c.7f", 0x080000, 0x80000, CRC(b74b09ac) SHA1(3a44d6db5f51e1b5d2b43ef0ad1191da21e48427) )
 
@@ -10491,7 +10491,7 @@ ROM_END
 
 /* Chinese bootleg board without QSound */
 ROM_START( wofhfh )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "23",       0x000000, 0x80000, CRC(6ae4b312) SHA1(fa39f69385d180d90bccd8c5dc9262edd04a6457) )
 	ROM_LOAD16_WORD_SWAP( "22",       0x080000, 0x80000, CRC(94e8d01a) SHA1(875763f6b22734c1a5a890e6c8063515c134045b) )
 
@@ -10516,7 +10516,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2hf )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s2te_23.8f", 0x000000, 0x80000, CRC(2dd72514) SHA1(4411353c389669299c27ac183c7e1caa3d4cec90) )
 	ROM_LOAD16_WORD_SWAP( "s2te_22.7f", 0x080000, 0x80000, CRC(aea6e035) SHA1(ce5fe961b2c1c95d231d1235bfc03b47de489f2a) )
 	ROM_LOAD16_WORD_SWAP( "s2te_21.6f", 0x100000, 0x80000, CRC(fd200288) SHA1(3817b67ab77c7b3d4a573a63f18671bea6905e26) )
@@ -10562,7 +10562,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( sf2hfu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s2tu_23.8f", 0x000000, 0x80000, CRC(89a1fc38) SHA1(aafb40fc311e318250973be8c6aa0d3f7902cb3c) )
 	ROM_LOAD16_WORD_SWAP( "s2tu_22.7f", 0x080000, 0x80000, CRC(aea6e035) SHA1(ce5fe961b2c1c95d231d1235bfc03b47de489f2a) )   // == s2te_22.7f
 	ROM_LOAD16_WORD_SWAP( "s2tu_21.6f", 0x100000, 0x80000, CRC(fd200288) SHA1(3817b67ab77c7b3d4a573a63f18671bea6905e26) )   // == s2te_21.6f
@@ -10608,7 +10608,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( sf2hfj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "s2tj_23.8f", 0x000000, 0x80000, CRC(ea73b4dc) SHA1(efbc73277d00bac86505755db35225e14ea25a36) )
 	ROM_LOAD16_WORD_SWAP( "s2tj_22.7f", 0x080000, 0x80000, CRC(aea6e035) SHA1(ce5fe961b2c1c95d231d1235bfc03b47de489f2a) )   // == s2te_22.7f
 	ROM_LOAD16_WORD_SWAP( "s2tj_21.6f", 0x100000, 0x80000, CRC(fd200288) SHA1(3817b67ab77c7b3d4a573a63f18671bea6905e26) )   // == s2te_21.6f
@@ -10654,7 +10654,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( dino )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "cde_23a.8f", 0x000000, 0x80000, CRC(8f4e585e) SHA1(55ecba3652066cdafad140c4524b1fc81228e69b) )
 	ROM_LOAD16_WORD_SWAP( "cde_22a.7f", 0x080000, 0x80000, CRC(9278aa12) SHA1(58cbbd53a98abe640ccb233f8dbd8ca6d63475e7) )
 	ROM_LOAD16_WORD_SWAP( "cde_21a.6f", 0x100000, 0x80000, CRC(66d23de2) SHA1(19b8a365f630411d524d055459020f4c8cf930f1) )
@@ -10702,7 +10702,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( dinou )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "cdu_23a.8f", 0x000000, 0x80000, CRC(7c2543cd) SHA1(6b7a90392fe4c31b2d57620b0ddcb3412401efc3) )
 	ROM_LOAD16_WORD_SWAP( "cdu_22a.7f", 0x080000, 0x80000, CRC(d19f981e) SHA1(acb951caba3867c21149286185b94beb37721bd2) )
 	ROM_LOAD16_WORD_SWAP( "cdu_21a.6f", 0x100000, 0x80000, CRC(66d23de2) SHA1(19b8a365f630411d524d055459020f4c8cf930f1) )   // == cde_21a.6f
@@ -10750,7 +10750,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( dinoj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "cdj_23a.8f", 0x000000, 0x80000, CRC(5f3ece96) SHA1(33ffb08ff8c5d3bfb2fa17fa00f254da2fc61f44) )
 	ROM_LOAD16_WORD_SWAP( "cdj_22a.7f", 0x080000, 0x80000, CRC(a0d8de29) SHA1(79d916f181804b6176581efe2a1b7f210ec79c07) )
 	ROM_LOAD16_WORD_SWAP( "cdj_21a.6f", 0x100000, 0x80000, CRC(66d23de2) SHA1(19b8a365f630411d524d055459020f4c8cf930f1) )   // == cde_21a.6f
@@ -10798,7 +10798,7 @@ ROM_END
 
 /* Chinese bootleg board */
 ROM_START( dinohunt )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "u23",  0x000000, 0x80000, CRC(8d5ddc5d) SHA1(3ed1da71d73425308d0c3ac1a01a7242e60b6677) )
 	ROM_LOAD16_WORD_SWAP( "u22",  0x080000, 0x80000, CRC(f72cd219) SHA1(a3f580bd328b54d2546ae7e94262c1a706d27172) )
 	ROM_LOAD16_WORD_SWAP( "u21",  0x100000, 0x80000, CRC(bc275b76) SHA1(1f7f7533b4ccb511dc479f531d9d6740d3ca6712) )
@@ -10825,7 +10825,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( punisher )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "pse_26.11e",    0x000000, 0x20000, CRC(389a99d2) SHA1(e97f4225554e4603cb0e3edd296a90bb2e467ca7) )
 	ROM_LOAD16_BYTE( "pse_30.11f",    0x000001, 0x20000, CRC(68fb06ac) SHA1(189e25ca7e4aaa80492c03ce06696952cc1b1553) )
 	ROM_LOAD16_BYTE( "pse_27.12e",    0x040000, 0x20000, CRC(3eb181c3) SHA1(a2442449f4bbe3be03d2be7d4e2cbb69f9741dac) )
@@ -10879,7 +10879,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( punisheru )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE ( "psu_26.11e",   0x000000, 0x20000, CRC(9236d121) SHA1(52d5d00009f61089157319943cde8f1a1ed48ad4) )
 	ROM_LOAD16_BYTE ( "psu_30.11f",   0x000001, 0x20000, CRC(8320e501) SHA1(bb3b74135df9dd494a277a1bc3bef2917351203f) )
 	ROM_LOAD16_BYTE ( "psu_27.12e",   0x040000, 0x20000, CRC(61c960a1) SHA1(f8fe651283cc1f138d013cab65b833505de6df9f) )
@@ -10933,7 +10933,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( punisherh )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "psh_26.11e",    0x000000, 0x20000, CRC(6ad2bb83) SHA1(c1c5e8922af948955f53eb56d1b9902dd8944a71) )
 	ROM_LOAD16_BYTE( "psh_30.11f",    0x000001, 0x20000, CRC(058d3659) SHA1(b3fad151f80e0cc21afff3ec00b7871f21d40437) )
 	ROM_LOAD16_BYTE( "psh_27.12e",    0x040000, 0x20000, CRC(579f4fd3) SHA1(5459da68e844db6e6249186aa31fe71aa72d9ff4) )
@@ -10987,7 +10987,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( punisherj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "psj_23.8f", 0x000000, 0x80000, CRC(6b2fda52) SHA1(5f95a79b7b802609ae9ddd6641cc52610d428bf4) )
 	ROM_LOAD16_WORD_SWAP( "psj_22.7f", 0x080000, 0x80000, CRC(e01036bc) SHA1(a01886014dabe8f9ab45619865c6bd9f27472eae) )
 	ROM_LOAD16_WORD_SWAP( "psj_21.6f", 0x100000, 0x80000, CRC(8affa5a9) SHA1(268760b83b1723ff50a019ec51ef7af2e49935bf) )    // == ps_21.6f
@@ -11035,7 +11035,7 @@ ROM_END
 
 /* Chinese bootleg board */
 ROM_START( punisherbz )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "23.096",   0x000000, 0x80000, CRC(bfa45d23) SHA1(56d04d02c9b9b22603205b1ce9e376874d2eaa05) )
 	ROM_LOAD16_WORD_SWAP( "22.096",   0x080000, 0x80000, CRC(092578a4) SHA1(c3c8f98f8b8fc9c71b33fb906b4c591067b4355b) )
 	ROM_LOAD16_WORD_SWAP( "21.096",   0x100000, 0x80000, CRC(d21ccddb) SHA1(295c886cd14ee54e12acfe3f1e8f13513442c8c0) )
@@ -11062,7 +11062,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( slammast )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "mbe_23e.8f", 0x000000, 0x80000, CRC(5394057a) SHA1(57f8b40c0a15e82c98ce5f0a8c4bdf60a1bc3107) )
 	ROM_LOAD16_BYTE( "mbe_24b.9e",      0x080000, 0x20000, CRC(95d5e729) SHA1(df3be896e55c92eb50887a4317178a3d11048433) )
 	ROM_LOAD16_BYTE( "mbe_28b.9f",      0x080001, 0x20000, CRC(b1c7cbcb) SHA1(cf5ad72be4a055db876e7347b1826325b9bf81d9) )
@@ -11125,7 +11125,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( slammastu )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "mbu_23e.8f", 0x000000, 0x80000, CRC(224f0062) SHA1(d961f2e7db7acac576539c24a69e7dd9bf8fc406) )
 	ROM_LOAD16_BYTE( "mbu_24b.9e",      0x080000, 0x20000, CRC(95d5e729) SHA1(df3be896e55c92eb50887a4317178a3d11048433) )   // == mbe_24b.9e
 	ROM_LOAD16_BYTE( "mbu_28b.9f",      0x080001, 0x20000, CRC(b1c7cbcb) SHA1(cf5ad72be4a055db876e7347b1826325b9bf81d9) )   // == mbe_28b.9f
@@ -11188,7 +11188,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( mbomberj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "mbj_23e.8f", 0x000000, 0x80000, CRC(0d06036a) SHA1(e1b102888038b4bb612a41ac94a43333d468a245) )
 	ROM_LOAD16_WORD_SWAP( "mbj_22b.7f", 0x080000, 0x80000, CRC(acd38478) SHA1(0bed74b52838006c6ec3661f92058dc2aa3e8193) )
 	ROM_LOAD16_WORD_SWAP( "mbj_21a.6f", 0x100000, 0x80000, CRC(d5007b05) SHA1(c55e55908aeda40ca2318c76ccbc05d333676875) )   // == mbe_21a.6f
@@ -11248,7 +11248,7 @@ ROM_END
 
 /* FIXME B-Board uncertain but should be 91635B from the program ROM names */
 ROM_START( mbombrd )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "mbde_26.11e",     0x000000, 0x20000, CRC(72b7451c) SHA1(380ef57bb00f1c92d2f29e551b0a670eb5a56cb7) )
 	ROM_LOAD16_BYTE( "mbde_30.11f",     0x000001, 0x20000, CRC(a036dc16) SHA1(a68cf74976f482dbc581734e143669511a9a4bee) )
 	ROM_LOAD16_BYTE( "mbde_27.12e",     0x040000, 0x20000, CRC(4086f534) SHA1(a2b949f00035b06cb1cd01185902daca3d89d0e3) )
@@ -11311,7 +11311,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( mbombrdj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "mbdj_26.11e",     0x000000, 0x20000, CRC(72b7451c) SHA1(380ef57bb00f1c92d2f29e551b0a670eb5a56cb7) )   // == mbde_26.11e
 	ROM_LOAD16_BYTE( "mbdj_30.11f",     0x000001, 0x20000, CRC(beff31cf) SHA1(8a3a1fa848fe8fad239d21aef1871e54bbcb582f) )
 	ROM_LOAD16_BYTE( "mbdj_27.12e",     0x040000, 0x20000, CRC(4086f534) SHA1(a2b949f00035b06cb1cd01185902daca3d89d0e3) )   // == mbde_27.12e
@@ -11374,7 +11374,7 @@ ROM_END
 
 /* B-Board 89625B-1 */
 ROM_START( pnickj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "pnij_36.12f", 0x00000, 0x20000, CRC(2d4ffb2b) SHA1(6e49cf89a36834fd1de8b4b860fe66f3d7d67a84) )
 	ROM_LOAD16_BYTE( "pnij_42.12h", 0x00001, 0x20000, CRC(c085dfaf) SHA1(a31ededc3413ec4f3f5e3a1fb615b60c6197f4a5) )
 
@@ -11422,7 +11422,7 @@ ROM_END
 
 /* B-Board 90629B-3 */
 ROM_START( qtono2j )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "tn2j_30.11e", 0x00000, 0x20000, CRC(9226eb5e) SHA1(91649974f9652caed90eb28ec6caf4fe61f5d279) )
 	ROM_LOAD16_BYTE( "tn2j_37.11f", 0x00001, 0x20000, CRC(d1d30da1) SHA1(7ca1695ed804b5860d4c15964cdbb922db3918ee) )
 	ROM_LOAD16_BYTE( "tn2j_31.12e", 0x40000, 0x20000, CRC(015e6a8a) SHA1(0835bec4867438a167bd01e3550090c88e7ae779) )
@@ -11468,7 +11468,7 @@ ROM_END
 
 /* B-Board 94916-10 */
 ROM_START( pang3 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "pa3e_17a.11l", 0x00000, 0x80000, CRC(a213fa80) SHA1(fee6b0b21e2ef573ebfb35eaa1785533101c9170) )
 	ROM_LOAD16_WORD_SWAP( "pa3e_16a.10l", 0x80000, 0x80000, CRC(7169ea67) SHA1(1076afaff7b05c9009798a0cea13e71fa27f2b7e) )
 
@@ -11505,7 +11505,7 @@ ROM_END
 
 /* B-Board 94916-10 */
 ROM_START( pang3r1 )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "pa3e_17.11l", 0x00000, 0x80000, CRC(d7041d32) SHA1(b021f3defe7fc58030ba907125c713f987724187) )
 	ROM_LOAD16_WORD_SWAP( "pa3e_16.10l", 0x80000, 0x80000, CRC(1be9a483) SHA1(6cff1dd15ca163237bc82fb4a3e1d469d35e7be8) )
 
@@ -11542,7 +11542,7 @@ ROM_END
 
 /* B-Board 94916-10 */
 ROM_START( pang3j )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "pa3j_17.11l", 0x00000, 0x80000, CRC(21f6e51f) SHA1(b447e05261f59b3b2e89bbc0f606d7136b29cb56) )
 	ROM_LOAD16_WORD_SWAP( "pa3j_16.10l", 0x80000, 0x80000, CRC(ca1d7897) SHA1(46aa9232e81a838f3eff1e9b992492a264914fd5) )
 
@@ -11582,7 +11582,7 @@ ROM_END
    original Capcom 92631C-6 C-Board. Mitchell mark has been erased, original 32 pin EPROM PA3_11.11F resized and replaced by
    one with 28 pin while the protection chip MACH215 mounted on the B-Board has been replaced by a 22 pin PAL. */
 ROM_START( pang3b )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "pa3w_17.11l", 0x00000, 0x80000, CRC(12138234) SHA1(956a2c847a3cfb94007d1a636167fd2bb9f826ec) )
 	ROM_LOAD16_WORD_SWAP( "pa3w_16.10l", 0x80000, 0x80000, CRC(d1ba585c) SHA1(c6d04441fe97abf0a72b23c917777a7b58e94a85) )
 
@@ -11619,7 +11619,7 @@ ROM_END
 /* B-Board 91635B-2 */
 /* Note that this USA set seems to be the only one where GFX are stored into EPROMs instead of the usual MASK ROMs. */
 ROM_START( megaman )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "rcmu_23b.8f", 0x000000, 0x80000, CRC(1cd33c7a) SHA1(687fb3b6d660d7350447193f1911c47972e7a020) )
 	ROM_LOAD16_WORD_SWAP( "rcmu_22b.7f", 0x080000, 0x80000, CRC(708268c4) SHA1(554e011cad285b95dd1b6aa19be61b2413662a3a) )
 	ROM_LOAD16_WORD_SWAP( "rcmu_21a.6f", 0x100000, 0x80000, CRC(4376ea95) SHA1(7370ceffca513aa9f68a74f6869d561476589200) )
@@ -11669,7 +11669,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( megamana )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "rcma_23b.8f", 0x000000, 0x80000, CRC(61e4a397) SHA1(a90b1cbef4206a4554398bc458a4b3e2c46d4c4f) )
 	ROM_LOAD16_WORD_SWAP( "rcma_22b.7f", 0x080000, 0x80000, CRC(708268c4) SHA1(554e011cad285b95dd1b6aa19be61b2413662a3a) )  // == rcmu_22b.7f
 	ROM_LOAD16_WORD_SWAP( "rcma_21a.6f", 0x100000, 0x80000, CRC(4376ea95) SHA1(7370ceffca513aa9f68a74f6869d561476589200) )  // == rcmu_21a.6f
@@ -11719,7 +11719,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( rockmanj )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "rcm_23a.8f", 0x000000, 0x80000, CRC(efd96cb2) SHA1(cbe81554f60d0c897f3f2ebc5bc966bb03cc23fe) )
 	ROM_LOAD16_WORD_SWAP( "rcm_22a.7f", 0x080000, 0x80000, CRC(8729a689) SHA1(14ddb34d8201c544ea9d3d8c2cc52d380bc72930) )
 	ROM_LOAD16_WORD_SWAP( "rcm_21a.6f", 0x100000, 0x80000, CRC(517ccde2) SHA1(492256c192f0c4814efa1ee1dd390453dd2e5865) )
@@ -11769,7 +11769,7 @@ ROM_END
 
 /* B-Board 91634B-2 */
 ROM_START( ganbare )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "mrnj_23d.8f", 0x00000, 0x80000, CRC(f929be72) SHA1(d175bdcace469277479ef85bf4e1b9d5a63cffde) )
 
 	ROM_REGION( 0x400000, "gfx", 0 )
@@ -11812,7 +11812,7 @@ ROM_END
 
 
 ROM_START( pokonyan )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_BYTE( "xmqq-12f.bin", 0x00000, 0x20000, CRC(196297bf) SHA1(4724c4ccb755d3d457f5224d4c4ea860664d3b10) )
 	ROM_LOAD16_BYTE( "xmqq-12h.bin", 0x00001, 0x20000, CRC(2d7ee2e9) SHA1(af9f8c346e36b4bd6284913129782187e242aa3f) )
 	ROM_LOAD16_BYTE( "xmqq-13f.bin", 0x40000, 0x20000, CRC(8f6abf26) SHA1(e9918abc5ca02c8b3f3b5b2410aedc350dc12ec2) )
@@ -11864,7 +11864,7 @@ ROM_END
 
 /* B-Board 91635B-2 */
 ROM_START( wofch )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "tk2(ch)_23.8f", 0x000000, 0x80000, CRC(4e0b8dee) SHA1(d2fb716d62b7a259f46bbc74c1976a18d56696ea) )
 	ROM_LOAD16_WORD_SWAP( "tk2(ch)_22.7f", 0x080000, 0x80000, CRC(d0937a8d) SHA1(01d7be446e2e3ef8ca767f59c178240dfd52dd93) )
 
@@ -11912,7 +11912,7 @@ ROM_START( wofch )
 ROM_END
 
 ROM_START( sfach )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sfach23",        0x000000, 0x80000, CRC(02a1a853) SHA1(d92b9e774844fdcc9d9946b3e892b021e672d876) )
 	ROM_LOAD16_WORD_SWAP( "sfza22",         0x080000, 0x80000, CRC(8d9b2480) SHA1(405305c1572908d00eab735f28676fbbadb4fac6) )
 	ROM_LOAD16_WORD_SWAP( "sfzch21",        0x100000, 0x80000, CRC(5435225d) SHA1(6b1156fd82d0710e244ede39faaae0847c598376) )
@@ -11950,7 +11950,7 @@ ROM_END
 
 /* FIXME B-Board uncertain but should be 91634B from the program ROM names */
 ROM_START( sfzch )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )  ROM_REGION( CODE_SIZE, "maincpu",0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )  ROM_REGION( CODE_SIZE, "maincpu",0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sfzch23",        0x000000, 0x80000, CRC(1140743f) SHA1(10bcedb5cca266f2aa3ed99ede6f9a64fc877539))
 	ROM_LOAD16_WORD_SWAP( "sfza22",         0x080000, 0x80000, CRC(8d9b2480) SHA1(405305c1572908d00eab735f28676fbbadb4fac6))
 	ROM_LOAD16_WORD_SWAP( "sfzch21",        0x100000, 0x80000, CRC(5435225d) SHA1(6b1156fd82d0710e244ede39faaae0847c598376))
@@ -11988,7 +11988,7 @@ ROM_END
 
 /* FIXME B-Board uncertain but should be 91634B from the program ROM names */
 ROM_START( sfzbch )
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )   ROM_REGION( CODE_SIZE, "maincpu", 0 )      /* 68000 code */
 	ROM_LOAD16_WORD_SWAP( "sfzbch23",       0x000000, 0x80000, CRC(53699f68) SHA1(d7f132faf8c31b5e79c32e6b0cce45377ec8d474) )
 	ROM_LOAD16_WORD_SWAP( "sfza22",         0x080000, 0x80000, CRC(8d9b2480) SHA1(405305c1572908d00eab735f28676fbbadb4fac6) )
 	ROM_LOAD16_WORD_SWAP( "sfzch21",        0x100000, 0x80000, CRC(5435225d) SHA1(6b1156fd82d0710e244ede39faaae0847c598376) )

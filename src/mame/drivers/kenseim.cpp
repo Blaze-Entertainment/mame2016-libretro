@@ -684,7 +684,7 @@ ROM_START( kenseim )
 	ROM_REGION( 0x08000, "gamecpu", 0 )
 	ROM_LOAD( "kensei_mogura_ver1.0.u2", 0x00000, 0x08000, CRC(725cfcfc) SHA1(5a4c6e6efe2ddb38bec3218e55a746ea0146209f) )
 
-	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
+	ROM_REGION( 0x800000, "bggfx", ROMREGION_ERASEFF )  ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF ) 
 ROM_END
 
 DRIVER_INIT_MEMBER(kenseim_state,kenseim)

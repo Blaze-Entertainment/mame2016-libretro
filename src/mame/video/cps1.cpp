@@ -1930,21 +1930,42 @@ void cps_state::cps1_get_video_base()
 	/* Re-calculate the VIDEO RAM base */
 	if (m_scroll1 != cps1_base(CPS1_SCROLL1_BASE, m_scroll_size))
 	{
-		m_scroll1 = cps1_base(CPS1_SCROLL1_BASE, m_scroll_size);
-		//printf("all dirty 0\n");
-		m_bg_tilemap[0]->mark_all_dirty();
+		uint16_t* newscroll = cps1_base(CPS1_SCROLL1_BASE, m_scroll_size);
+
+		if (m_scroll1 && newscroll)
+			for (int i=0;i<0x2000;i++)
+			{
+				if (m_scroll1[i] != newscroll[i])
+					m_bg_tilemap[0]->mark_tile_dirty(i / 2);
+			}
+
+		m_scroll1 = newscroll;
 	}
 	if (m_scroll2 != cps1_base(CPS1_SCROLL2_BASE, m_scroll_size))
 	{
-		m_scroll2 = cps1_base(CPS1_SCROLL2_BASE, m_scroll_size);
-		//printf("all dirty 1\n");
-		m_bg_tilemap[1]->mark_all_dirty();
+		uint16_t* newscroll = cps1_base(CPS1_SCROLL2_BASE, m_scroll_size);
+		
+		if (m_scroll2 && newscroll)
+			for (int i=0;i<0x2000;i++)
+			{
+				if (m_scroll2[i] != newscroll[i])
+					m_bg_tilemap[1]->mark_tile_dirty(i / 2);
+			}
+
+		m_scroll2 = newscroll;
 	}
 	if (m_scroll3 != cps1_base(CPS1_SCROLL3_BASE, m_scroll_size))
 	{
-		m_scroll3 = cps1_base(CPS1_SCROLL3_BASE, m_scroll_size);
-		//printf("all dirty 2\n");
-		m_bg_tilemap[2]->mark_all_dirty();
+		uint16_t* newscroll = cps1_base(CPS1_SCROLL3_BASE, m_scroll_size);
+		
+		if (m_scroll3 && newscroll)
+			for (int i=0;i<0x2000;i++)
+			{
+				if (m_scroll3[i] != newscroll[i])
+					m_bg_tilemap[2]->mark_tile_dirty(i / 2);
+			}
+
+		m_scroll3 = newscroll;
 	}
 
 	m_obj = cps1_base(CPS1_OBJ_BASE, m_obj_size);
@@ -2104,8 +2125,6 @@ TILE_GET_INFO_MEMBER(cps_state::get_tile2_info)
 	int code = m_scroll3[2 * tile_index] & 0x3fff;
 	int attr = m_scroll3[2 * tile_index + 1];
 
-	code = m_tile3codes[code];
-
 	SET_TILE_INFO_MEMBER(2,
 			code,
 			(attr & 0x1f) + 0x60,
@@ -2243,29 +2262,61 @@ VIDEO_START_MEMBER(cps_state,cps)
 	{
 		m_spritecodes[i] = gfxrom_bank_mapper(GFXTYPE_SPRITES, i);
 		m_tile2codes[i] = gfxrom_bank_mapper(GFXTYPE_SCROLL2, i);
-		m_tile3codes[i] = gfxrom_bank_mapper(GFXTYPE_SCROLL3, i);
 	}
 
-	uint8_t* gfxregion = (uint8_t*)memregion("txgfx")->base();
-	uint8_t* gfx2 = (uint8_t*)memregion("gfx")->base();
-	uint32_t gfx2size = memregion("gfx")->bytes() /64;
-	
-	if (!gfxregion)
-		fatalerror("nogfxregion");
-
-	if (!gfx2)
-		fatalerror("nogfx");
-
-
-	for (int i=0;i<0x10000;i++)
 	{
-		int code = gfxrom_bank_mapper(GFXTYPE_SCROLL1, i);
+		uint8_t* gfxregion = (uint8_t*)memregion("txgfx")->base();
+		uint8_t* gfx2 = (uint8_t*)memregion("gfx")->base();
+		uint32_t gfx2size = memregion("gfx")->bytes() /64;
+	
+		printf("size is %d\n", gfx2size);
 
-		if (code != -1)
+		if (!gfxregion)
+			fatalerror("nogfxregion");
+
+		if (!gfx2)
+			fatalerror("nogfx");
+
+
+		for (int i=0;i<0x10000;i++)
 		{
-			memcpy(&gfxregion[i*64], &gfx2[(code % (gfx2size))*64], 64);
-		}
+			int code = gfxrom_bank_mapper(GFXTYPE_SCROLL1, i);
 
+			if (code != -1)
+			{
+				memcpy(&gfxregion[i*64], &gfx2[(code % (gfx2size))*64], 64);
+			}
+		}
+	}
+
+	if (1)
+	{
+		uint8_t* gfxregion = (uint8_t*)memregion("bggfx")->base();
+
+		if (gfxregion)
+			printf("found_gfx\n");
+
+		uint8_t* gfx2 = (uint8_t*)memregion("gfx")->base();
+		uint32_t gfx2size = memregion("gfx")->bytes() /512;
+	
+		printf("size is %d\n", gfx2size);
+
+		if (!gfxregion)
+			fatalerror("nogfxregion");
+
+		if (!gfx2)
+			fatalerror("nogfx");
+
+
+		for (int i=0;i<0x4000;i++)
+		{
+			uint32_t code = gfxrom_bank_mapper(GFXTYPE_SCROLL3, i);
+
+			if (code != -1)
+			{
+				memcpy(&gfxregion[i*512], &gfx2[(code % (gfx2size))*512], 512);
+			}
+		}
 	}
 
 }
