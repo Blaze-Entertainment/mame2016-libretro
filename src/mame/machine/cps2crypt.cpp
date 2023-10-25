@@ -115,7 +115,7 @@ the decryption keys.
 #include "emu.h"
 #include "includes/cps1.h"
 
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 
 #include "ui/uimain.h"
 

@@ -14,7 +14,8 @@
 #include "sound/okim6295.h"
 #include "machine/gen_latch.h"
 #include "machine/timekpr.h"
-#include "cpu/m68000/m68000.h"
+//#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 
 // Video raw params
 // measured clocks:
@@ -234,7 +235,7 @@ public:
 	std::unique_ptr<UINT16[]> m_bootleg_work_ram;
 
 	/* devices */
-	required_device<m68000_base_device> m_maincpu;
+	required_device<simpletoaplan_m68000_base_device> m_maincpu;
 	required_region_ptr<UINT16> m_mainrom;
 	optional_device<cpu_device> m_audiocpu;
 	optional_device<okim6295_device> m_oki;
@@ -339,6 +340,11 @@ public:
 	void put_tile_data(bool is32, int tile, uint8_t* data);
 	void copy_tile_data(bool is32, int tile, int tile2);
 	void blank_tile_data(bool is32, int tile);
+
+	uint16_t m_palpens[0xc00];
+	int m_spritecodes[0x10000];
+	int m_tile2codes[0x10000];
+	int m_tile3codes[0x10000];
 
 	DECLARE_VIDEO_START(cps);
 	DECLARE_MACHINE_START(sf2m1);

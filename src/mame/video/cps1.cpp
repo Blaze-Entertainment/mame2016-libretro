@@ -1662,7 +1662,7 @@ CPS1 VIDEO RENDERER
 
 MACHINE_RESET_MEMBER(cps_state, cps1ram)
 {
-	printf("reset\n");
+	//printf("reset\n");
 	for (int i = 0; i < 0x8000; i++)
 		m_mainram[i] = 0x0000;
 
@@ -1700,26 +1700,6 @@ MACHINE_RESET_MEMBER(cps_state,cps)
 
 		m_game_config = pCFG;
 	}
-
-#if 0
-	if (strcmp(gamename, "sf2accp2") == 0)
-	{
-		/* Patch out a odd branch which would be incorrectly interpreted
-		   by the cpu core as a 32-bit branch. This branch would make the
-		   game crash (address error, since it would branch to an odd address)
-		   if location 180ca6 (outside ROM space) isn't 0. Protection check? */
-		UINT16 *rom = (UINT16 *)memregion("maincpu")->base();
-		rom[0x11756 / 2] = 0x4e71;
-	}
-	else if (strcmp(gamename, "ghouls") == 0)
-	{
-		/* Patch out self-test... it takes forever */
-		UINT16 *rom = (UINT16 *)memregion("maincpu")->base();
-		rom[0x61964 / 2] = 0x4ef9;
-		rom[0x61966 / 2] = 0x0000;
-		rom[0x61968 / 2] = 0x0400;
-	}
-#endif
 }
 
 
@@ -1754,7 +1734,9 @@ WRITE16_MEMBER(cps_state::cps1_cps_a_w)
 	fixes glitches in the ghouls intro, but it might happen at next vblank.
 	*/
 	if (offset == CPS1_PALETTE_BASE)
+	{
 		cps1_build_palette(cps1_base(CPS1_PALETTE_BASE, m_palette_align));
+	}
 
 	// pzloop2 write to register 24 on startup. This is probably just a bug.
 	if (offset == 0x24 / 2 && m_cps_version == 2)
@@ -1787,10 +1769,16 @@ READ16_MEMBER(cps_state::cps1_cps_b_r)
 				m_cps_b_regs[m_game_config->mult_factor2 / 2]) >> 16;
 
 	if (offset == m_game_config->in2_addr / 2)  /* Extra input ports (on C-board) */
+	{
+	//	printf("read2\n");
 		return ioport("IN2")->read();
+	}
 
 	if (offset == m_game_config->in3_addr / 2)  /* Player 4 controls (on C-board) ("Captain Commando") */
+	{
+	//	printf("read3\n");
 		return ioport("IN3")->read();
+	}
 
 	if (m_cps_version == 2)
 	{
@@ -1943,53 +1931,20 @@ void cps_state::cps1_get_video_base()
 	if (m_scroll1 != cps1_base(CPS1_SCROLL1_BASE, m_scroll_size))
 	{
 		m_scroll1 = cps1_base(CPS1_SCROLL1_BASE, m_scroll_size);
+		//printf("all dirty 0\n");
 		m_bg_tilemap[0]->mark_all_dirty();
 	}
 	if (m_scroll2 != cps1_base(CPS1_SCROLL2_BASE, m_scroll_size))
 	{
 		m_scroll2 = cps1_base(CPS1_SCROLL2_BASE, m_scroll_size);
+		//printf("all dirty 1\n");
 		m_bg_tilemap[1]->mark_all_dirty();
 	}
 	if (m_scroll3 != cps1_base(CPS1_SCROLL3_BASE, m_scroll_size))
 	{
 		m_scroll3 = cps1_base(CPS1_SCROLL3_BASE, m_scroll_size);
+		//printf("all dirty 2\n");
 		m_bg_tilemap[2]->mark_all_dirty();
-	}
-
-	/* Some of the sf2 hacks use only sprite port 0x9100 and the scroll layers are offset */
-	if (m_game_config->bootleg_kludge == 1)
-	{
-		m_cps_a_regs[CPS1_OBJ_BASE] = 0x9100;
-		scroll1xoff = -0x0c;
-		scroll2xoff = -0x0e;
-		scroll3xoff = -0x10;
-	}
-	else
-	if (m_game_config->bootleg_kludge == 2)
-	{
-		m_cps_a_regs[CPS1_OBJ_BASE] = 0x9100;
-		scroll1xoff = -0x0c;
-		scroll2xoff = -0x10;
-		scroll3xoff = -0x10;
-	}
-	else
-	if (m_game_config->bootleg_kludge == 3)
-	{
-		scroll1xoff = -0x08;
-		scroll2xoff = -0x0b;
-		scroll3xoff = -0x0c;
-	}
-	else
-	if (m_game_config->bootleg_kludge == 0x88) // 3wondersb
-	{
-		scroll1xoff = 0x4;
-		scroll2xoff = 0x6;
-		scroll3xoff = 0xa;
-		m_cps_b_regs[0x30/2] = 0x3f;
-		m_cps_a_regs[CPS1_VIDEOCONTROL] = 0x3e;
-		m_cps_a_regs[CPS1_SCROLL2_BASE] = 0x90c0;
-		m_cps_a_regs[CPS1_SCROLL3_BASE] = 0x9100;
-		m_cps_a_regs[CPS1_PALETTE_BASE] = 0x9140;
 	}
 
 	m_obj = cps1_base(CPS1_OBJ_BASE, m_obj_size);
@@ -2015,51 +1970,26 @@ void cps_state::cps1_get_video_base()
 	m_bg_tilemap[2]->enable((layercontrol & m_game_config->layer_enable_mask[2]) && (videocontrol & 8));
 	m_stars_enabled[0] = layercontrol & m_game_config->layer_enable_mask[3];
 	m_stars_enabled[1] = layercontrol & m_game_config->layer_enable_mask[4];
-
-#ifdef MAME_DEBUG
-{
-	int enablemask = 0;
-
-	if (m_game_config->layer_enable_mask[0] == m_game_config->layer_enable_mask[1])
-		enablemask = m_game_config->layer_enable_mask[0];
-
-	if (m_game_config->layer_enable_mask[0] == m_game_config->layer_enable_mask[2])
-		enablemask = m_game_config->layer_enable_mask[0];
-
-	if (m_game_config->layer_enable_mask[1] == m_game_config->layer_enable_mask[2])
-		enablemask = m_game_config->layer_enable_mask[1];
-
-	if (enablemask)
-	{
-		if (((layercontrol & enablemask) && (layercontrol & enablemask) != enablemask))
-			popmessage("layer %02x contact MAMEDEV", layercontrol & 0xc03f);
-	}
-
-	enablemask = m_game_config->layer_enable_mask[0] | m_game_config->layer_enable_mask[1]
-			| m_game_config->layer_enable_mask[2]
-			| m_game_config->layer_enable_mask[3] | m_game_config->layer_enable_mask[4];
-
-	if (((layercontrol & ~enablemask) & 0x003e) != 0)
-		popmessage("layer %02x contact MAMEDEV", layercontrol & 0xc03f);
-}
-#endif
-
 }
 
 
 WRITE16_MEMBER(cps_state::cps1_gfxram_w)
 {
+	uint16_t olddata = m_gfxram[offset]; 
 	int page = (offset >> 7) & 0x3c0;
 	COMBINE_DATA(&m_gfxram[offset]);
 
 	if (page == (m_cps_a_regs[CPS1_SCROLL1_BASE] & 0x3c0))
-		m_bg_tilemap[0]->mark_tile_dirty(offset / 2 & 0x0fff);
+		if (olddata != m_gfxram[offset])
+			m_bg_tilemap[0]->mark_tile_dirty(offset / 2 & 0x0fff);
 
 	if (page == (m_cps_a_regs[CPS1_SCROLL2_BASE] & 0x3c0))
-		m_bg_tilemap[1]->mark_tile_dirty(offset / 2 & 0x0fff);
+		if (olddata != m_gfxram[offset])
+			m_bg_tilemap[1]->mark_tile_dirty(offset / 2 & 0x0fff);
 
 	if (page == (m_cps_a_regs[CPS1_SCROLL3_BASE] & 0x3c0))
-		m_bg_tilemap[2]->mark_tile_dirty(offset / 2 & 0x0fff);
+		if (olddata != m_gfxram[offset])
+			m_bg_tilemap[2]->mark_tile_dirty(offset / 2 & 0x0fff);
 }
 
 
@@ -2100,10 +2030,6 @@ int cps_state::gfxrom_bank_mapper( int type, int code )
 		++range;
 	}
 
-#ifdef MAME_DEBUG
-//  popmessage("tile %02x/%04x out of range", type, code >> shift);
-#endif
-
 	return -1;
 }
 
@@ -2136,14 +2062,12 @@ TILE_GET_INFO_MEMBER(cps_state::get_tile0_info)
 {
 	int code = m_scroll1[2 * tile_index];
 	int attr = m_scroll1[2 * tile_index + 1];
-	int gfxset;
-
-	code = gfxrom_bank_mapper(GFXTYPE_SCROLL1, code);
+	int gfxset = 0;
 
 	/* allows us to reproduce a problem seen with a ffight board where USA and Japanese
 	     roms have been mixed to be reproduced (ffightub) -- it looks like each column
 	     should alternate between the left and right side of the 16x16 tiles */
-	gfxset = (tile_index & 0x20) >> 5;
+	//gfxset = (tile_index & 0x20) >> 5;
 
 	SET_TILE_INFO_MEMBER(gfxset,
 			code,
@@ -2162,9 +2086,9 @@ TILE_GET_INFO_MEMBER(cps_state::get_tile1_info)
 	int code = m_scroll2[2 * tile_index];
 	int attr = m_scroll2[2 * tile_index + 1];
 
-	code = gfxrom_bank_mapper(GFXTYPE_SCROLL2, code);
+	code = m_tile2codes[code];
 
-	SET_TILE_INFO_MEMBER(2,
+	SET_TILE_INFO_MEMBER(1,
 			code,
 			(attr & 0x1f) + 0x40,
 			TILE_FLIPYX((attr & 0x60) >> 5));
@@ -2180,9 +2104,9 @@ TILE_GET_INFO_MEMBER(cps_state::get_tile2_info)
 	int code = m_scroll3[2 * tile_index] & 0x3fff;
 	int attr = m_scroll3[2 * tile_index + 1];
 
-	code = gfxrom_bank_mapper(GFXTYPE_SCROLL3, code);
+	code = m_tile3codes[code];
 
-	SET_TILE_INFO_MEMBER(3,
+	SET_TILE_INFO_MEMBER(2,
 			code,
 			(attr & 0x1f) + 0x60,
 			TILE_FLIPYX((attr & 0x60) >> 5));
@@ -2238,6 +2162,9 @@ VIDEO_START_MEMBER(cps_state,cps)
 
 	/* create empty tiles */
 	memset(m_empty_tile, 0x0f, sizeof(m_empty_tile));
+
+	memset(m_palpens, 0x00, sizeof(m_palpens));
+	save_item(NAME(m_palpens));
 
 	/* front masks will change at runtime to handle sprite occluding */
 	cps1_update_transmasks();
@@ -2311,6 +2238,36 @@ VIDEO_START_MEMBER(cps_state,cps)
 	}
 
 	machine().save().register_postload(save_prepost_delegate(FUNC(cps_state::cps1_get_video_base), this));
+
+	for (int i=0;i<0x10000;i++)
+	{
+		m_spritecodes[i] = gfxrom_bank_mapper(GFXTYPE_SPRITES, i);
+		m_tile2codes[i] = gfxrom_bank_mapper(GFXTYPE_SCROLL2, i);
+		m_tile3codes[i] = gfxrom_bank_mapper(GFXTYPE_SCROLL3, i);
+	}
+
+	uint8_t* gfxregion = (uint8_t*)memregion("txgfx")->base();
+	uint8_t* gfx2 = (uint8_t*)memregion("gfx")->base();
+	uint32_t gfx2size = memregion("gfx")->bytes() /64;
+	
+	if (!gfxregion)
+		fatalerror("nogfxregion");
+
+	if (!gfx2)
+		fatalerror("nogfx");
+
+
+	for (int i=0;i<0x10000;i++)
+	{
+		int code = gfxrom_bank_mapper(GFXTYPE_SCROLL1, i);
+
+		if (code != -1)
+		{
+			memcpy(&gfxregion[i*64], &gfx2[(code % (gfx2size))*64], 64);
+		}
+
+	}
+
 }
 
 VIDEO_START_MEMBER(cps_state,cps1)
@@ -2344,25 +2301,37 @@ void cps_state::cps1_build_palette( const UINT16* const palette_base )
 	register. Note that if the first palette pages are skipped, all
 	the following pages are scaled down.
 	*/
+
+	//printf("updating palette %d ctrl is %02x\n", m_screen->vpos(), ctrl);
+
+
 	for (page = 0; page < 6; ++page)
 	{
 		if (BIT(ctrl, page))
 		{
 			for (offset = 0; offset < 0x200; ++offset)
 			{
-				int palette = *(palette_ram++);
-				int r, g, b, bright;
+				uint16_t palette = *(palette_ram++);
 
-				// from my understanding of the schematics, when the 'brightness'
-				// component is set to 0 it should reduce brightness to 1/3
+				uint16_t oldpen = m_palpens[0x200 * page + offset];
 
-				bright = 0x0f + ((palette >> 12) << 1);
+				if (palette != oldpen)
+				{
+					int r, g, b, bright;
 
-				r = ((palette >> 8) & 0x0f) * 0x11 * bright / 0x2d;
-				g = ((palette >> 4) & 0x0f) * 0x11 * bright / 0x2d;
-				b = ((palette >> 0) & 0x0f) * 0x11 * bright / 0x2d;
+					// from my understanding of the schematics, when the 'brightness'
+					// component is set to 0 it should reduce brightness to 1/3
 
-				m_palette->set_pen_color (0x200 * page + offset, rgb_t(r, g, b));
+					bright = 0x0f + ((palette >> 12) << 1);
+
+					r = ((palette >> 8) & 0x0f) * 0x11 * bright / 0x2d;
+					g = ((palette >> 4) & 0x0f) * 0x11 * bright / 0x2d;
+					b = ((palette >> 0) & 0x0f) * 0x11 * bright / 0x2d;
+
+					m_palette->set_pen_color (0x200 * page + offset, rgb_t(r, g, b));
+					m_palpens[0x200 * page + offset] = palette;
+				}
+
 			}
 		}
 		else
@@ -2449,14 +2418,14 @@ void cps_state::cps1_render_sprites( screen_device &screen, bitmap_ind16 &bitmap
 #define DRAWSPRITE(CODE,COLOR,FLIPX,FLIPY,SX,SY)                    \
 {                                                                   \
 	if (flip_screen())                                           \
-		m_gfxdecode->gfx(2)->prio_transpen(bitmap,\
+		m_gfxdecode->gfx(1)->prio_transpen(bitmap,\
 				cliprect,                            \
 				CODE,                                               \
 				COLOR,                                              \
 				!(FLIPX),!(FLIPY),                                  \
 				512-16-(SX),256-16-(SY),    screen.priority(),0x02,15);                   \
 	else                                                            \
-		m_gfxdecode->gfx(2)->prio_transpen(bitmap,\
+		m_gfxdecode->gfx(1)->prio_transpen(bitmap,\
 				cliprect,                            \
 				CODE,                                               \
 				COLOR,                                              \
@@ -2489,8 +2458,7 @@ void cps_state::cps1_render_sprites( screen_device &screen, bitmap_ind16 &bitmap
 
 //      x -= 0x20;
 //      y += 0x20;
-
-		code = gfxrom_bank_mapper(GFXTYPE_SPRITES, code);
+		code = m_spritecodes[code];
 
 		if (code != -1)
 		{
@@ -2682,14 +2650,14 @@ void cps_state::cps2_render_sprites( screen_device &screen, bitmap_ind16 &bitmap
 #define DRAWSPRITE(CODE,COLOR,FLIPX,FLIPY,SX,SY)                                    \
 {                                                                                   \
 	if (flip_screen())                                                           \
-		m_gfxdecode->gfx(2)->prio_transpen(bitmap,\
+		m_gfxdecode->gfx(1)->prio_transpen(bitmap,\
 				cliprect,                                            \
 				CODE,                                                               \
 				COLOR,                                                              \
 				!(FLIPX),!(FLIPY),                                                  \
 				512-16-(SX),256-16-(SY), screen.priority(),primasks[priority],15);                 \
 	else                                                                            \
-		m_gfxdecode->gfx(2)->prio_transpen(bitmap,\
+		m_gfxdecode->gfx(1)->prio_transpen(bitmap,\
 				cliprect,                                            \
 				CODE,                                                               \
 				COLOR,                                                              \
@@ -2701,13 +2669,6 @@ void cps_state::cps2_render_sprites( screen_device &screen, bitmap_ind16 &bitmap
 	UINT16 *base = m_cps2_buffered_obj.get();
 	int xoffs = 64 - m_output[CPS2_OBJ_XOFFS /2];
 	int yoffs = 16 - m_output[CPS2_OBJ_YOFFS /2];
-
-#ifdef MAME_DEBUG
-	if (machine().input().code_pressed(KEYCODE_Z) && machine().input().code_pressed(KEYCODE_R))
-	{
-		return;
-	}
-#endif
 
 	for (i = m_cps2_last_sprite_offset; i >= 0; i -= 4)
 	{

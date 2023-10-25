@@ -87,7 +87,7 @@ slampic: no sound. A priority problem between sprites and crowd.
 
 #include "emu.h"
 #include "cpu/z80/z80.h"
-#include "cpu/m68000/m68000.h"
+#include "cpu/simpletoaplan_m68000/m68000.h"
 #include "includes/cps1.h"
 #include "sound/2203intf.h"
 #include "sound/msm5205.h"
@@ -1555,7 +1555,7 @@ MACHINE_RESET_MEMBER(cps_state,fcrash)
 static MACHINE_CONFIG_START( fcrash, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 10000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 10000000)
 	MCFG_CPU_PROGRAM_MAP(fcrash_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state,  cps1_interrupt)
 
@@ -1619,7 +1619,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( kodb, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 10000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 10000000)
 	MCFG_CPU_PROGRAM_MAP(fcrash_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state,  cps1_interrupt)
 
@@ -1661,7 +1661,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( sf2mdt, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 12000000)
 	MCFG_CPU_PROGRAM_MAP(sf2mdt_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state,  irq4_line_hold) /* triggers the sprite ram and scroll writes */
 
@@ -1715,7 +1715,7 @@ MACHINE_CONFIG_END
 static MACHINE_CONFIG_START( knightsb, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 24000000 / 2)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 24000000 / 2)
 	MCFG_CPU_PROGRAM_MAP(knightsb_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state, cps1_interrupt)
 
@@ -1801,6 +1801,8 @@ ROM_START( fcrash )
 
 	ROM_REGION( 0x8000, "gfx2", 0 )
 	ROM_COPY( "gfx", 0x000000, 0x000000, 0x8000 )   /* stars */
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 ROM_START( ffightbl )
@@ -1820,6 +1822,8 @@ ROM_START( ffightbl )
 
 	ROM_REGION( 0x8000, "gfx2", 0 )
 	ROM_COPY( "gfx", 0x000000, 0x000000, 0x8000 )   /* stars */
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 // this is identical to the Final Crash bootleg but without the modified gfx.
@@ -1861,6 +1865,8 @@ ROM_START( ffightbla )
 
 	ROM_REGION( 0x8000, "gfx2", 0 )
 	ROM_COPY( "gfx", 0x000000, 0x000000, 0x8000 )   /* stars */
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 
@@ -1926,6 +1932,8 @@ ROM_START( kodb )
 
 	ROM_REGION( 0x40000, "oki", 0 ) /* Samples */
 	ROM_LOAD( "2.ic19",      0x00000, 0x40000, CRC(a2db1575) SHA1(1a4a29e4b045af50700adf1665697feab12cc234) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )		
 ROM_END
 
 DRIVER_INIT_MEMBER(cps_state, kodb)
@@ -2010,6 +2018,8 @@ ROM_START( knightsb )
 	ROM_REGION( 0x50000, "audiocpu", 0 ) /* 64k for the audio CPU (+banks) */
 	ROM_LOAD( "1.ic26",     0x00000, 0x40000, CRC(bd6f9cc1) SHA1(9f33cccef224d2204736a9eae761196866bd6e41) )
 	ROM_RELOAD(            0x10000, 0x40000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 
@@ -2030,6 +2040,8 @@ ROM_START( cawingbl )
 	ROM_REGION( 0x30000, "audiocpu", 0 ) /* 64k for the audio CPU (+banks) */
 	ROM_LOAD( "caw3.bin",  0x00000, 0x20000, CRC(ffe16cdc) SHA1(8069ea69f0b89d61c35995c8040a4989d7be9c1f) )
 	ROM_RELOAD(            0x10000, 0x20000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 ROM_START( cawingb2 )
@@ -2064,6 +2076,8 @@ ROM_START( cawingb2 )
 	ROM_REGION( 0x30000, "audiocpu", 0 ) /* 64k for the audio CPU (+banks) */
 	ROM_LOAD( "5.a",       0x00000, 0x20000, CRC(ffe16cdc) SHA1(8069ea69f0b89d61c35995c8040a4989d7be9c1f) )
 	ROM_RELOAD(            0x10000, 0x20000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 DRIVER_INIT_MEMBER(cps_state, cawingbl)
@@ -2097,7 +2111,7 @@ MACHINE_START_MEMBER(cps_state, dinopic)
 static MACHINE_CONFIG_START( dinopic, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 12000000)
 	MCFG_CPU_PROGRAM_MAP(dinopic_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state, cps1_interrupt)
 
@@ -2174,6 +2188,8 @@ ROM_START( dinopic )
 
 	ROM_REGION( 0x80000, "oki", 0 ) /* OKI6295 samples */
 	ROM_LOAD( "1.bin",      0x000000, 0x80000,  CRC(7d921309) SHA1(d51e60e904d302c2516b734189e141aa171b2b82) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 /* this is basically the same set as above, from a different bootleg pcb, with a few extra pal dumps etc.
@@ -2237,6 +2253,8 @@ ROM_START( dinopic2 )
 	ROM_LOAD( "gal20v8a-3.bin",      0x600, 0x157,  CRC(049b7f4f) SHA1(6c6ea03d9a293db69a8bd10e042ee75e3c01313c) )
 	ROM_LOAD( "palce16v8h-1.bin",    0x800, 0x117,  CRC(48253c66) SHA1(8c94e655b768c45c3edf6ef39e62e3b7a4e57530) )
 	ROM_LOAD( "palce16v8h-2.bin",    0xa00, 0x117,  CRC(9ae375ba) SHA1(6f227c2a5b1170a41e6419f12d1e1f98edc6f8e5) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 DRIVER_INIT_MEMBER(cps_state, dinopic)
@@ -2256,7 +2274,7 @@ DRIVER_INIT_MEMBER(cps_state, dinopic)
 
 static MACHINE_CONFIG_START( sgyxz, cps_state )
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 12000000)
 	MCFG_CPU_PROGRAM_MAP(sgyxz_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state,  cps1_interrupt)
 
@@ -2327,6 +2345,8 @@ ROM_START( sgyxz )
 
 	ROM_REGION( 0x040000, "oki", 0 ) /* Samples */
 	ROM_LOAD( "sgyxz_snd1.bin", 0x00000, 0x40000,  CRC(c15ac0f2) SHA1(8d9e5519d9820e4ac4f70555088c80e64d052c9d) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 
@@ -2350,7 +2370,7 @@ MACHINE_START_MEMBER(cps_state, punipic)
 static MACHINE_CONFIG_START( punipic, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 12000000)
 	MCFG_CPU_PROGRAM_MAP(punipic_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state, cps1_interrupt)
 
@@ -2416,6 +2436,8 @@ ROM_START( punipic )
 
 	ROM_REGION( 0x200000, "oki", 0 ) /* OKI6295 */
 	ROM_LOAD( "sound.bin",      0x000000, 0x80000, CRC(aeec9dc6) SHA1(56fd62e8db8aa96cdd242d8c705849a413567780) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 /* alt bootleg with PIC, same program roms as above, bigger GFX roms
@@ -2487,6 +2509,8 @@ ROM_START( punipic2 )
 
 	ROM_REGION( 0x200000, "user1", 0 ) /* other */
 	ROM_LOAD( "93c46.bin",      0x00, 0x80, CRC(36ab4e7d) SHA1(60bea43051d86d9aefcbb7a390cf0c7d8b905a4b) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 /* the readme doesn't actually state this has a PIC, and there's no sound rom
@@ -2514,6 +2538,8 @@ ROM_START( punipic3 )
 
 	ROM_REGION( 0x200000, "oki", ROMREGION_ERASE00 ) /* OKI6295 */
 	//ROM_LOAD( "sound.bin",      0x000000, 0x80000, CRC(aeec9dc6) SHA1(56fd62e8db8aa96cdd242d8c705849a413567780) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )	
 ROM_END
 
 DRIVER_INIT_MEMBER(cps_state, punipic)
@@ -2545,7 +2571,7 @@ DRIVER_INIT_MEMBER(cps_state, punipic3)
 static MACHINE_CONFIG_START( sf2m1, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, XTAL_12MHz )
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, XTAL_12MHz )
 	MCFG_CPU_PROGRAM_MAP(sf2m1_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state, cps1_interrupt)
 
@@ -2604,6 +2630,8 @@ ROM_START( sf2m1 )
 	ROM_REGION( 0x40000, "oki", 0 ) /* Samples */
 	ROM_LOAD( "s92_18.bin",    0x00000, 0x20000, CRC(7f162009) SHA1(346bf42992b4c36c593e21901e22c87ae4a7d86d) )
 	ROM_LOAD( "s92_19.bin",    0x20000, 0x20000, CRC(beade53f) SHA1(277c397dc12752719ec6b47d2224750bd1c07f79) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 DRIVER_INIT_MEMBER(cps_state, sf2m1)
@@ -2671,6 +2699,8 @@ ROM_START( sf2mdt )
 	ROM_REGION( 0x30000, "audiocpu", 0 ) /* Sound program + samples  */
 	ROM_LOAD( "5.ic26",    0x00000, 0x20000, CRC(17d5ba8a) SHA1(6ff3b8860d7e1fdee3561846f645eb4d3a8965ec) )
 	ROM_RELOAD(            0x10000, 0x20000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 ROM_START( sf2mdta )
@@ -2692,6 +2722,8 @@ ROM_START( sf2mdta )
 	ROM_REGION( 0x30000, "audiocpu", 0 ) /* Sound program + samples  */
 	ROM_LOAD( "1.ic28",    0x00000, 0x20000, CRC(d5bee9cc) SHA1(e638cb5ce7a22c18b60296a7defe8b03418da56c) )
 	ROM_RELOAD(            0x10000, 0x20000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 ROM_START( sf2mdtb )
@@ -2718,6 +2750,8 @@ ROM_START( sf2mdtb )
 	ROM_REGION( 0x30000, "audiocpu", 0 ) /* Sound program + samples  */
 	ROM_LOAD( "5.ic28",    0x00000, 0x20000, CRC(d5bee9cc) SHA1(e638cb5ce7a22c18b60296a7defe8b03418da56c) )
 	ROM_RELOAD(            0x10000, 0x20000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 ROM_START( sf2b )
@@ -2735,6 +2769,8 @@ ROM_START( sf2b )
 	ROM_REGION( 0x30000, "audiocpu", 0 ) /* Sound program + samples  */
 	ROM_LOAD( "3snd.ic28",    0x00000, 0x20000, CRC(d5bee9cc) SHA1(e638cb5ce7a22c18b60296a7defe8b03418da56c) )
 	ROM_RELOAD(            0x10000, 0x20000 )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 
@@ -2784,6 +2820,7 @@ ROM_START( sf2m9 )
 	ROM_REGION( 0x00c8d, "pld", 0 ) /* pal/gal */
 	ROM_LOAD( "gal20v8.68kadd",    0x00000, 0x00c8d, CRC(27cdd376) SHA1(9fb5844b33002bec80fb92d3e5d1bbc779087300) )//68k address decoder
 
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 DRIVER_INIT_MEMBER(cps_state, sf2mdt)
@@ -2878,7 +2915,7 @@ MACHINE_START_MEMBER(cps_state, slampic)
 static MACHINE_CONFIG_START( slampic, cps_state )
 
 	/* basic machine hardware */
-	MCFG_CPU_ADD("maincpu", M68000, 12000000)
+	MCFG_CPU_ADD("maincpu", SIMPLETOAPLAN_M68000, 12000000)
 	MCFG_CPU_PROGRAM_MAP(slampic_map)
 	MCFG_CPU_VBLANK_INT_DRIVER("screen", cps_state, cps1_interrupt)
 
@@ -2952,6 +2989,8 @@ ROM_START( slampic )
 
 	ROM_REGION( 0x20000, "user1", 0 ) // not in the dump, but needed for protection
 	ROM_LOAD( "mb_qa.5k",   0x00000, 0x20000, CRC(e21a03c4) SHA1(98c03fd2c9b6bf8a4fc25a4edca87fff7c3c3819) )
+
+	ROM_REGION( 0x400000, "txgfx", ROMREGION_ERASEFF )
 ROM_END
 
 
