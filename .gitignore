@@ -54,3 +54,4 @@ regtests/jedutil/output
 !/src/devices/cpu/simpletoaplan_m68000/m68kmake.cpp
 
 !/*.sh
+!/.gitlab-ci.yml
