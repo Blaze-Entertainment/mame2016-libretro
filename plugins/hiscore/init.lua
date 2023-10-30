@@ -27,16 +27,42 @@ function hiscore.startplugin()
 	if (hiscore_path == nil or hiscore_path == '') then
 		hiscore_path = "hi"
 	end
-	emu.print_verbose("hiscore save directory: " .. hiscore_path);
+	emu.print_verbose("hiscore: Save directory: " .. hiscore_path);
+	local config_path = hiscore_plugin_path .. "/hiscore.ini";
 
 	local current_checksum = 0;
 	local default_checksum = 0;
 
+	local config_read = false;
 	local scores_have_been_read = false;
 	local mem_check_passed = false;
 	local found_hiscore_entry = false;
+	local timed_save = true;
 
 	local positions = {};
+
+	local function read_config()
+	  if config_read then return true end;
+	  local file = io.open( config_path, "r" );
+	  if file then
+		file:close()
+		emu.print_verbose("hiscore: Config found");
+		local _conf = {}
+		for line in io.lines(config_path) do
+		  token, value = string.match(line, '([^ ]+) ([^ ]+)');
+		  _conf[token] = value;
+		end
+		timed_save = _conf["only_save_at_exit"] ~= "1"
+		if timed_save then
+		  emu.print_verbose("hiscore: Timed saves enabled")
+		else
+		  emu.print_verbose("hiscore: Saves will be written on exit")
+		end
+		return true
+	  end
+	  return false
+	end
+
 
 	local function parse_table ( dsting )
 	  local _table = {};
@@ -70,7 +96,7 @@ function hiscore.startplugin()
 	   file = io.open( hiscore_plugin_path .. "/hiscore.dat", "r" );
 	  end
 	  if not file then
-	   emu.print_error("Failed to open hiscore dat file: " .. hiscore_plugin_path .. "/hiscore.dat");
+	   emu.print_error("hiscore: Failed to open hiscore dat file: " .. hiscore_plugin_path .. "/hiscore.dat");
 	  end
 	  if emu.softname() ~= "" then
 		rm_match = '^' .. emu.romname() .. ',' .. emu.softname() .. ':';
@@ -136,14 +162,14 @@ function hiscore.startplugin()
 
 
 	local function write_scores ( posdata )
-	  emu.print_verbose("write_scores")
+	  emu.print_info("hiscore: Writing scores")
 	  local output = io.open(get_file_name(), "wb");
 	  if not output then
 		-- attempt to create the directory, and try again
 		lfs.mkdir( hiscore_path );
 		output = io.open(get_file_name(), "wb");
 	  end
-	  emu.print_verbose("write_scores output")
+	  emu.print_verbose("hiscore: write_scores output")
 	  if output then
 		for ri,row in ipairs(posdata) do
 		  t = {};
@@ -154,7 +180,7 @@ function hiscore.startplugin()
 		end
 		output:close();
 	  end
-	  emu.print_verbose("write_scores end")
+	  emu.print_verbose("hiscore: write_scores end")
 	end
 
 
@@ -191,10 +217,10 @@ function hiscore.startplugin()
 		if check_mem( positions ) then
 		  default_checksum = check_scores( positions );
 		  if read_scores( positions ) then
-			emu.print_verbose( "scores read", "OK" );
+			emu.print_info( "hiscore: Scores read", "OK" );
 		  else
 			-- likely there simply isn't a .hi file around yet
-			emu.print_verbose( "scores read", "FAIL" );
+			emu.print_info( "hiscore: Scores read", "FAIL" );
 		  end
 		  scores_have_been_read = true;
 		  current_checksum = check_scores( positions );
@@ -212,7 +238,7 @@ function hiscore.startplugin()
 	  -- set up scores if they have been
 	  init();
 	  -- only allow save check to run when 
-	  if mem_check_passed then
+	  if mem_check_passed and timed_save then
 		-- The reason for this complicated mess is that
 		-- MAME does expose a hook for "exit". Once it does,
 		-- this should obviously just be done when the emulator
@@ -226,7 +252,7 @@ function hiscore.startplugin()
 			write_scores( positions );
 			current_checksum = checksum;
 			last_write_time = emu.time();
-			-- emu.print_verbose( "SAVE SCORES EVENT!", last_write_time );
+			-- emu.print_verbose( "hiscore: SAVE SCORES EVENT!", last_write_time );
 		  end
 		end
 	  end
@@ -250,13 +276,14 @@ function hiscore.startplugin()
 		mem_check_passed = false
 	   	scores_have_been_read = false;
 		last_write_time = -10
-	  	emu.print_verbose("Starting " .. emu.gamename())
+	  	emu.print_verbose("hiscore: Starting " .. emu.gamename())
+	  	config_read = read_config();
 		local dat = read_hiscore_dat()
 		if dat and dat ~= "" then
-			emu.print_verbose( "found hiscore.dat entry for " .. emu.romname() );
+			emu.print_info( "hiscore: Found hiscore.dat entry for " .. emu.romname() );
 			positions = parse_table( dat );
 			if not positions then
-				emu.print_error("hiscore.dat parse error");
+				emu.print_error("hiscore: hiscore.dat parse error");
 				return;
 			end
 			found_hiscore_entry = true
