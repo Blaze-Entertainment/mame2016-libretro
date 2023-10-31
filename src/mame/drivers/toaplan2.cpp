@@ -386,6 +386,9 @@ static const gfx_layout vdp_spritelayout =
 	GFXDECODE_ENTRY( "gp9001", 0, vdp_tilelayout,   0, 0x1000 ) \
 	GFXDECODE_ENTRY( "gp9001", 0, vdp_spritelayout, 0, 0x1000 ) \
 
+#define SECOND_VDP_GFXDECODE \
+	GFXDECODE_ENTRY( "gp9001_1", 0, vdp_tilelayout,   0, 0x1000 ) \
+	GFXDECODE_ENTRY( "gp9001_1", 0, vdp_spritelayout, 0, 0x1000 ) \
 
 
 /***************************************************************************
@@ -450,10 +453,12 @@ MACHINE_START_MEMBER(toaplan2_state, dogyuun)
 
 MACHINE_START_MEMBER(toaplan2_state, batsugun)
 {
-#if 0
+#if 1
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
+	m_v25audiocpu->set_clock_scale(0.5f);
+
 #endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
@@ -546,6 +551,10 @@ MACHINE_RESET_MEMBER(toaplan2_state,ghox)
 DRIVER_INIT_MEMBER(toaplan2_state,dogyuun)
 {
 	m_v25_reset_line = 0x20;
+
+	int sprite = 0;
+
+//	const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
 }
 
 READ8_MEMBER(toaplan2_state::tekipaki_sound_skip_r)
@@ -1274,7 +1283,7 @@ static ADDRESS_MAP_START( dogyuun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
 	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
-	AM_RANGE(0x500000, 0x50000d) AM_DEVREADWRITE("gp9001_1", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x500000, 0x50000d) AM_READWRITE( second_gp9001_vdp_r, second_gp9001_vdp_w)
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)         // test bit 8
 ADDRESS_MAP_END
 
@@ -1484,9 +1493,12 @@ static ADDRESS_MAP_START( batsugun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
 	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
-	AM_RANGE(0x500000, 0x50000d) AM_DEVREADWRITE("gp9001_1", gp9001vdp_device, gp9001_vdp_r, gp9001_vdp_w)
+	AM_RANGE(0x500000, 0x50000d) AM_READWRITE( second_gp9001_vdp_r, second_gp9001_vdp_w)
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
 ADDRESS_MAP_END
+
+
+
 
 static ADDRESS_MAP_START( pwrkick_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
@@ -3501,6 +3513,12 @@ static GFXDECODE_START( toaplan2 )
 	VDP_GFXDECODE
 GFXDECODE_END
 
+static GFXDECODE_START( toaplan2_twin )
+	VDP_GFXDECODE
+	SECOND_VDP_GFXDECODE
+GFXDECODE_END
+
+
 static GFXDECODE_START( truxton2 )
 	VDP_GFXDECODE
 	GFXDECODE_ENTRY( nullptr,   0, truxton2_tx_tilelayout, 64*16, 64 )
@@ -3533,9 +3551,10 @@ TIMER_DEVICE_CALLBACK_MEMBER(toaplan2_state::toaplan2_scanline)
 			set_status(1);
 			machine().scheduler().trigger(54321);
 		//}
-		if (m_vdp1)
+		//if (m_vdp1)
 		{
-			m_vdp1->set_status(1);
+			second_set_status(1);
+		//	m_vdp1->set_status(1);
 		}
 	}
 
@@ -3546,8 +3565,11 @@ TIMER_DEVICE_CALLBACK_MEMBER(toaplan2_state::toaplan2_scanline)
 			set_status(0);
 			machine().scheduler().trigger(54312);
 		//}
-		if (m_vdp1)
-			m_vdp1->set_status(0);
+		//if (m_vdp1)
+		{
+			second_set_status(0);
+		//	m_vdp1->set_status(0);
+		}
 	}
 
 
@@ -3778,13 +3800,13 @@ static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2_twin)
 
 	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
 	//MCFG_GFX_PALETTE("palette")
 
-	MCFG_DEVICE_ADD("gp9001_1", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001_1", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 
@@ -4232,13 +4254,13 @@ static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 	MCFG_PALETTE_ADD_INIT_BLACK("palette", T2PALETTE_LENGTH)
 	MCFG_PALETTE_FORMAT(xBBBBBGGGGGRRRRR)
 
-	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2)
+	MCFG_GFXDECODE_ADD("gfxdecode", "palette", toaplan2_twin)
 
 	//MCFG_DEVICE_ADD("gp9001", GP9001_VDP, 0)
 	//MCFG_GFX_PALETTE("palette")
 
-	MCFG_DEVICE_ADD("gp9001_1", GP9001_VDP, 0)
-	MCFG_GFX_PALETTE("palette")
+	//MCFG_DEVICE_ADD("gp9001_1", GP9001_VDP, 0)
+	//MCFG_GFX_PALETTE("palette")
 
 	MCFG_VIDEO_START_OVERRIDE(toaplan2_state,toaplan2)
 

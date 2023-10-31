@@ -74,6 +74,7 @@ void toaplan2_state::truxton2_postload()
 VIDEO_START_MEMBER(toaplan2_state,toaplan2)
 {
 	vdp_start();
+	second_vdp_start();
 	/*
 	for (int col = 0; col < 0x10000; col++)
 	{
@@ -84,6 +85,7 @@ VIDEO_START_MEMBER(toaplan2_state,toaplan2)
 
 	/* our current VDP implementation needs this bitmap to work with */
 	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
+	m_screen->register_screen_bitmap(second_m_custom_priority_bitmap);
 
 	//if (m_vdp0 != nullptr)
 	//{
@@ -91,11 +93,12 @@ VIDEO_START_MEMBER(toaplan2_state,toaplan2)
 		custom_priority_bitmap = &m_custom_priority_bitmap;
 	//}
 
-	if (m_vdp1 != nullptr)
-	{
+//	if (m_vdp1 != nullptr)
+//	{
 		m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-		m_vdp1->custom_priority_bitmap = &m_custom_priority_bitmap;
-	}
+//		m_vdp1->custom_priority_bitmap = &m_custom_priority_bitmap;
+		second_custom_priority_bitmap = &m_custom_priority_bitmap;
+//	}
 }
 
 VIDEO_START_MEMBER(toaplan2_state,truxton2)
@@ -237,16 +240,16 @@ WRITE16_MEMBER(toaplan2_state::batrider_objectbank_w)
 // Dogyuun doesn't appear to require fancy mixing?
 UINT32 toaplan2_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	if (m_vdp1)
+	//if (m_vdp1)
 	{
 		bitmap.fill(0, cliprect);
 		m_custom_priority_bitmap.fill(0, cliprect);
-		m_vdp1->gp9001_render_vdp(bitmap, cliprect);
+		second_gp9001_render_vdp(bitmap, cliprect);
 	}
 	//if (m_vdp0)
 	//{
 	//  bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0xffff, cliprect);
+		m_custom_priority_bitmap.fill(0, cliprect);
 		gp9001_render_vdp(bitmap, cliprect);
 	//}
 
@@ -267,11 +270,11 @@ UINT32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind1
 		m_custom_priority_bitmap.fill(0, cliprect);
 		gp9001_render_vdp(bitmap, cliprect);
 	//}
-	if (m_vdp1)
+	//if (m_vdp1)
 	{
 		m_secondary_render_bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0xffff, cliprect);
-		m_vdp1->gp9001_render_vdp(m_secondary_render_bitmap, cliprect);
+		second_m_custom_priority_bitmap.fill(0, cliprect);
+		second_gp9001_render_vdp(m_secondary_render_bitmap, cliprect);
 	}
 
 
@@ -287,7 +290,7 @@ UINT32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind1
 	//
 
 #if 1
-	if (m_vdp1)
+	//if (m_vdp1)
 	{
 		int width = screen.width();
 		int height = screen.height();
@@ -414,7 +417,7 @@ void toaplan2_state::screen_eof_toaplan2(screen_device &screen, bool state)
 	if (state)
 	{
 		gp9001_screen_eof();
-		if (m_vdp1) m_vdp1->gp9001_screen_eof();
+		second_gp9001_screen_eof();
 	}
 }
 
@@ -1914,7 +1917,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			for (int xx = 0; xx != 8; xx += 1) \
+			for (int xx = 0; xx != 16; xx += 1) \
 			{ \
 				int drawxx = xx + sx; \
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
@@ -2604,3 +2607,1876 @@ void toaplan2_state::gp9001_screen_eof(void)
 	if (sp.use_sprite_buffer) memcpy(sp.vram16_buffer.get(),m_spriteram,GP9001_SPRITERAM_SIZE);
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+// 2nd VDP copy!
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+void toaplan2_state::second_create_tilemaps()
+{
+}
+
+
+void toaplan2_state::second_vdp_start()
+{
+	second_sp.vram16_buffer = make_unique_clear<UINT16[]>(GP9001_SPRITERAM_SIZE/2);
+
+	second_create_tilemaps();
+
+	save_pointer(NAME(second_sp.vram16_buffer.get()), GP9001_SPRITERAM_SIZE/2);
+
+	save_item(NAME(second_m_vram_bg));
+	save_item(NAME(second_m_vram_fg));
+	save_item(NAME(second_m_vram_top));
+	save_item(NAME(second_m_spriteram));
+	save_item(NAME(second_m_unkram));
+
+	save_item(NAME(second_gp9001_scroll_reg));
+	save_item(NAME(second_gp9001_voffs));
+	save_item(NAME(second_bg.realscrollx));
+	save_item(NAME(second_bg.realscrolly));
+	save_item(NAME(second_bg.scrollx));
+	save_item(NAME(second_bg.scrolly));
+	save_item(NAME(second_fg.realscrollx));
+	save_item(NAME(second_fg.realscrolly));
+	save_item(NAME(second_fg.scrollx));
+	save_item(NAME(second_fg.scrolly));
+	save_item(NAME(second_top.realscrollx));
+	save_item(NAME(second_top.realscrolly));
+	save_item(NAME(second_top.scrollx));
+	save_item(NAME(second_top.scrolly));
+	save_item(NAME(second_sp.scrollx));
+	save_item(NAME(second_sp.scrolly));
+	save_item(NAME(second_bg.flip));
+	save_item(NAME(second_fg.flip));
+	save_item(NAME(second_top.flip));
+	save_item(NAME(second_sp.flip));
+
+	second_gp9001_gfxrom_is_banked = 0;
+	second_gp9001_gfxrom_bank_dirty = 0;
+	save_item(NAME(second_gp9001_gfxrom_bank));
+
+	// default layer offsets used by all original games
+	second_bg.extra_xoffset.normal  = -0x1d6;
+	second_bg.extra_xoffset.flipped = -0x229;
+	second_bg.extra_yoffset.normal  = -0x1ef;
+	second_bg.extra_yoffset.flipped = -0x210;
+
+	second_fg.extra_xoffset.normal  = -0x1d8;
+	second_fg.extra_xoffset.flipped = -0x227;
+	second_fg.extra_yoffset.normal  = -0x1ef;
+	second_fg.extra_yoffset.flipped = -0x210;
+
+	second_top.extra_xoffset.normal = -0x1da;
+	second_top.extra_xoffset.flipped= -0x225;
+	second_top.extra_yoffset.normal = -0x1ef;
+	second_top.extra_yoffset.flipped= -0x210;
+
+	second_sp.extra_xoffset.normal  = -0x1cc;
+	second_sp.extra_xoffset.flipped = -0x17b;
+	second_sp.extra_yoffset.normal  = -0x1ef;
+	second_sp.extra_yoffset.flipped = -0x108;
+
+	second_sp.use_sprite_buffer = 1;
+}
+
+void toaplan2_state::second_vdp_reset()
+{
+	second_gp9001_voffs = 0;
+	second_gp9001_scroll_reg = 0;
+	second_bg.scrollx = bg.scrolly = 0;
+	second_fg.scrollx = fg.scrolly = 0;
+	second_top.scrollx = top.scrolly = 0;
+	second_sp.scrollx = sp.scrolly = 0;
+
+	second_bg.flip = 0;
+	second_fg.flip = 0;
+	second_top.flip = 0;
+	second_sp.flip = 0;
+
+	second_m_status = 0;
+
+	second_init_scroll_regs();
+}
+
+
+void toaplan2_state::second_gp9001_voffs_w(UINT16 data, UINT16 mem_mask)
+{
+	COMBINE_DATA(&second_gp9001_voffs);
+}
+
+int toaplan2_state::second_gp9001_videoram16_r()
+{
+	int offs = second_gp9001_voffs;
+	second_gp9001_voffs++;
+//	return space().read_word(offs*2);
+	offs &= 0x1fff;
+
+	if (offs < 0x1000 / 2)
+	{
+		return second_m_vram_bg[offs];
+	}
+	else if (offs < 0x2000 / 2)
+	{
+		offs -= 0x1000 / 2;
+		return second_m_vram_fg[offs];
+	}
+	else if (offs < 0x3000 / 2)
+	{
+		offs -= 0x2000 / 2;
+		return second_m_vram_top[offs];
+	}
+	else if (offs < 0x4000/2)
+	{
+		offs -= 0x3000 / 2;
+		return second_m_spriteram[offs&0x3ff];
+	}
+
+	return 0;
+}
+
+
+void toaplan2_state::second_gp9001_videoram16_w(UINT16 data, UINT16 mem_mask)
+{
+	int offs = second_gp9001_voffs;
+	second_gp9001_voffs++;
+
+	offs &= 0x1fff;
+
+	switch (offs & 0x1800)
+	{
+	case 0x1800:
+	{
+		offs &= 0x3ff;
+		COMBINE_DATA(&second_m_spriteram[offs & 0x3ff]);
+		break;
+	}
+	case 0x1000:
+	{
+		offs &= 0x7ff;
+		COMBINE_DATA(&second_m_vram_top[offs]);
+		break;
+	}
+
+	case 0x800:
+	{
+		offs &= 0x7ff;
+		COMBINE_DATA(&second_m_vram_fg[offs]);
+		break;
+	}
+	case 0x000:
+	{
+		COMBINE_DATA(&second_m_vram_bg[offs]);
+		break;
+	}
+	}
+
+}
+
+
+UINT16 toaplan2_state::second_gp9001_vdpstatus_r()
+{
+	return second_m_status;
+	//return ((m_screen->vpos() + 15) % 262) >= 245;
+}
+
+void toaplan2_state::second_gp9001_scroll_reg_select_w(UINT16 data, UINT16 mem_mask)
+{
+	if (ACCESSING_BITS_0_7)
+	{
+		second_gp9001_scroll_reg = data & 0x8f;
+		if (data & 0x70)
+			logerror("Hmmm, selecting unknown LSB video control register (%04x)\n",second_gp9001_scroll_reg);
+	}
+	else
+	{
+		logerror("Hmmm, selecting unknown MSB video control register (%04x)\n",second_gp9001_scroll_reg);
+	}
+}
+
+static void second_gp9001_set_scrollx_and_flip_reg(gp9001tilemaplayerx* layer, UINT16 data, UINT16 mem_mask, int flip)
+{
+	COMBINE_DATA(&layer->scrollx);
+
+	if (flip)
+	{
+		layer->flip |= TILEMAP_FLIPX;
+		layer->realscrollx = -(layer->scrollx+layer->extra_xoffset.flipped);
+	}
+	else
+	{
+		layer->flip &= (~TILEMAP_FLIPX);
+		layer->realscrollx = layer->scrollx+layer->extra_xoffset.normal;
+	}
+	//layer->tmap->set_flip(layer->flip);
+}
+
+static void second_gp9001_set_scrolly_and_flip_reg(gp9001tilemaplayerx* layer, UINT16 data, UINT16 mem_mask, int flip)
+{
+	COMBINE_DATA(&layer->scrolly);
+
+	if (flip)
+	{
+		layer->flip |= TILEMAP_FLIPY;
+		layer->realscrolly = -(layer->scrolly+layer->extra_yoffset.flipped);
+
+	}
+	else
+	{
+		layer->flip &= (~TILEMAP_FLIPY);
+		layer->realscrolly = layer->scrolly+layer->extra_yoffset.normal;
+	}
+
+	//layer->tmap->set_flip(layer->flip);
+}
+
+static void second_gp9001_set_sprite_scrollx_and_flip_reg(gp9001spritelayerx* layer, UINT16 data, UINT16 mem_mask, int flip)
+{
+	if (flip)
+	{
+		data += layer->extra_xoffset.flipped;
+		COMBINE_DATA(&layer->scrollx);
+		if (layer->scrollx & 0x8000) layer->scrollx |= 0xfe00;
+		else layer->scrollx &= 0x1ff;
+		layer->flip |= GP9001_SPRITE_FLIPX;
+	}
+	else
+	{
+		data += layer->extra_xoffset.normal;
+		COMBINE_DATA(&layer->scrollx);
+
+		if (layer->scrollx & 0x8000) layer->scrollx |= 0xfe00;
+		else layer->scrollx &= 0x1ff;
+		layer->flip &= (~GP9001_SPRITE_FLIPX);
+	}
+}
+
+static void second_gp9001_set_sprite_scrolly_and_flip_reg(gp9001spritelayerx* layer, UINT16 data, UINT16 mem_mask, int flip)
+{
+	if (flip)
+	{
+		data += layer->extra_yoffset.flipped;
+		COMBINE_DATA(&layer->scrolly);
+		if (layer->scrolly & 0x8000) layer->scrolly |= 0xfe00;
+		else layer->scrolly &= 0x1ff;
+		layer->flip |= GP9001_SPRITE_FLIPY;
+	}
+	else
+	{
+		data += layer->extra_yoffset.normal;
+		COMBINE_DATA(&layer->scrolly);
+		if (layer->scrolly & 0x8000) layer->scrolly |= 0xfe00;
+		else layer->scrolly &= 0x1ff;
+		layer->flip &= (~GP9001_SPRITE_FLIPY);
+	}
+}
+
+void toaplan2_state::second_gp9001_scroll_reg_data_w(UINT16 data, UINT16 mem_mask)
+{
+	/************************************************************************/
+	/***** layer X and Y flips can be set independently, so emulate it ******/
+	/************************************************************************/
+
+	// writes with 8x set turn on flip for the specified layer / axis
+	int flip = second_gp9001_scroll_reg & 0x80;
+
+	switch(second_gp9001_scroll_reg&0x7f)
+	{
+		case 0x00: second_gp9001_set_scrollx_and_flip_reg(&second_bg, data, mem_mask, flip); break;
+		case 0x01: second_gp9001_set_scrolly_and_flip_reg(&second_bg, data, mem_mask, flip); break;
+
+		case 0x02: second_gp9001_set_scrollx_and_flip_reg(&second_fg, data, mem_mask, flip); break;
+		case 0x03: second_gp9001_set_scrolly_and_flip_reg(&second_fg, data, mem_mask, flip); break;
+
+		case 0x04: second_gp9001_set_scrollx_and_flip_reg(&second_top,data, mem_mask, flip); break;
+		case 0x05: second_gp9001_set_scrolly_and_flip_reg(&second_top,data, mem_mask, flip); break;
+
+		case 0x06: second_gp9001_set_sprite_scrollx_and_flip_reg(&second_sp, data,mem_mask,flip); break;
+		case 0x07: second_gp9001_set_sprite_scrolly_and_flip_reg(&second_sp, data,mem_mask,flip); break;
+
+
+		case 0x0e:  /******* Initialise video controller register ? *******/
+
+		case 0x0f:  break;
+
+
+		default:    logerror("second_ Hmmm, writing %08x to unknown video control register (%08x) !!!\n",data,gp9001_scroll_reg);
+					break;
+	}
+}
+
+void toaplan2_state::second_init_scroll_regs()
+{
+	second_gp9001_set_scrollx_and_flip_reg(&second_bg, 0, 0xffff, 0);
+	second_gp9001_set_scrolly_and_flip_reg(&second_bg, 0, 0xffff, 0);
+	second_gp9001_set_scrollx_and_flip_reg(&second_fg, 0, 0xffff, 0);
+	second_gp9001_set_scrolly_and_flip_reg(&second_fg, 0, 0xffff, 0);
+	second_gp9001_set_scrollx_and_flip_reg(&second_top,0, 0xffff, 0);
+	second_gp9001_set_scrolly_and_flip_reg(&second_top,0, 0xffff, 0);
+	second_gp9001_set_sprite_scrollx_and_flip_reg(&second_sp, 0,0xffff,0);
+	second_gp9001_set_sprite_scrolly_and_flip_reg(&second_sp, 0,0xffff,0);
+}
+
+
+
+READ16_MEMBER( toaplan2_state::second_gp9001_vdp_r )
+{
+	switch (offset & (0xc/2))
+	{
+		case 0x04/2:
+			return second_gp9001_videoram16_r();
+
+		case 0x0c/2:
+			return second_gp9001_vdpstatus_r();
+
+		default:
+			logerror("second_gp9001_vdp_r: read from unhandled offset %04x\n",offset*2);
+	}
+
+	return 0xffff;
+}
+
+WRITE16_MEMBER( toaplan2_state::second_gp9001_vdp_w )
+{
+	switch (offset & (0xc/2))
+	{
+		case 0x00/2:
+			second_gp9001_voffs_w(data, mem_mask);
+			break;
+
+		case 0x04/2:
+			second_gp9001_videoram16_w(data, mem_mask);
+			break;
+
+		case 0x08/2:
+			second_gp9001_scroll_reg_select_w(data, mem_mask);
+			break;
+
+		case 0x0c/2:
+			second_gp9001_scroll_reg_data_w(data, mem_mask);
+			break;
+	}
+
+}
+
+/* batrider and bbakraid invert the register select lines */
+READ16_MEMBER( toaplan2_state::second_gp9001_vdp_alt_r )
+{
+	switch (offset & (0xc/2))
+	{
+		case 0x0/2:
+			return second_gp9001_vdpstatus_r();
+
+		case 0x8/2:
+			return second_gp9001_videoram16_r();
+
+		default:
+			logerror("second_gp9001_vdp_alt_r: read from unhandled offset %04x\n",offset*2);
+	}
+
+	return 0xffff;
+}
+
+WRITE16_MEMBER( toaplan2_state::second_gp9001_vdp_alt_w )
+{
+	switch (offset & (0xc/2))
+	{
+		case 0x0/2:
+			second_gp9001_scroll_reg_data_w(data, mem_mask);
+			break;
+
+		case 0x4/2:
+			second_gp9001_scroll_reg_select_w(data, mem_mask);
+			break;
+
+		case 0x8/2:
+			second_gp9001_videoram16_w(data, mem_mask);
+			break;
+
+		case 0xc/2:
+			second_gp9001_voffs_w(data, mem_mask);
+			break;
+	}
+}
+
+
+
+/***************************************************************************/
+/**************** PIPIBIBI bootleg interface into this video driver ********/
+
+WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_scroll_w )
+{
+	if (ACCESSING_BITS_8_15 && ACCESSING_BITS_0_7)
+	{
+		switch(offset)
+		{
+			case 0x00:  data -= 0x01f; break;
+			case 0x01:  data += 0x1ef; break;
+			case 0x02:  data -= 0x01d; break;
+			case 0x03:  data += 0x1ef; break;
+			case 0x04:  data -= 0x01b; break;
+			case 0x05:  data += 0x1ef; break;
+			case 0x06:  data += 0x1d4; break;
+			case 0x07:  data += 0x1f7; break;
+			default:    logerror("second_PIPIBIBI writing %04x to unknown scroll register %04x",data, offset);
+		}
+
+		second_gp9001_scroll_reg = offset;
+		second_gp9001_scroll_reg_data_w(data, mem_mask);
+	}
+}
+
+READ16_MEMBER( toaplan2_state::second_pipibibi_bootleg_videoram16_r )
+{
+	second_gp9001_voffs_w(offset, 0xffff);
+	return second_gp9001_videoram16_r();
+}
+
+WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_videoram16_w )
+{
+	second_gp9001_voffs_w(offset, 0xffff);
+	second_gp9001_videoram16_w(data, mem_mask);
+}
+
+READ16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_r )
+{
+	second_gp9001_voffs_w((0x1800 + offset), 0);
+	return second_gp9001_videoram16_r();
+}
+
+WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
+{
+	second_gp9001_voffs_w((0x1800 + offset), mem_mask);
+	second_gp9001_videoram16_w(data, mem_mask);
+}
+
+/***************************************************************************
+    Sprite Handlers
+***************************************************************************/
+
+
+#define second_HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+	}
+
+
+#define second_HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_FLIPY_CLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+		DO_PIX_REV; \
+	}
+
+#define second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+			DO_PIX_REV; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+		DO_PIX; \
+	}
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+			DO_PIX; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
+
+
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+	}
+
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+		OPAQUE_DOPIX_REV; \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx + 7; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+			OPAQUE_DOPIX_REV; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+		OPAQUE_DOPIX; \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+			OPAQUE_DOPIX; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
+
+
+#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+		OPAQUE_DO_TILEMAP_PIX; \
+	}
+
+#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+			OPAQUE_DO_TILEMAP_PIX; \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 16; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					OPAQUE_DO_TILEMAP_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 16; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				OPAQUE_DO_TILEMAP_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+
+
+#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+		DO_TILEMAP_PIX; \
+	}
+
+#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+			DO_TILEMAP_PIX; \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 16; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_TILEMAP_PIX_NOINC; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 16; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->second_custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_TILEMAP_PIX_NOINC; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+void toaplan2_state::second_draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect )
+{
+	const UINT16 primask = (GP9001_PRIMASK << 8);
+
+	UINT16 *source;
+
+	if (second_sp.use_sprite_buffer) source = second_sp.vram16_buffer.get();
+	else source = &second_m_spriteram[0];
+	int total_elements = m_gfxdecode->gfx(3)->elements();
+
+	int old_x = (-(sp.scrollx)) & 0x1ff;
+	int old_y = (-(sp.scrolly)) & 0x1ff;
+
+	for (int offs = 0; offs < (GP9001_SPRITERAM_SIZE/2); offs += 4)
+	{
+		const int attrib = source[offs];
+		const UINT16 priority = ((attrib & primask) >> 8) << 12;// << 3;
+			
+	//	priority+=1;
+
+		if ((attrib & 0x8000))
+		{
+			int sprite;
+			if (!second_gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
+			{
+				sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
+			}
+			else        /* Batrider Sprite select bank switching required */
+			{
+				const int sprite_num = source[offs + 1] & 0x7fff;
+				const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+				sprite = (second_gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
+			}
+			const int color = ((attrib >> 2) & 0x3f) << 4;
+
+			/***** find out sprite size *****/
+			const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
+			const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
+
+			/***** find position to display sprite *****/
+			int sx_base, sy_base;
+			if (!(attrib & 0x4000))
+			{
+				sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
+				sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
+
+			} else {
+				sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
+				sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
+			}
+
+			old_x = sx_base;
+			old_y = sy_base;
+
+			int flipx = attrib & GP9001_SPRITE_FLIPX;
+			int flipy = attrib & GP9001_SPRITE_FLIPY;
+
+			if (flipx)
+			{
+				/***** Wrap sprite position around *****/
+				sx_base -= 7;
+				if (sx_base >= 0x1c0) sx_base -= 0x200;
+			}
+			else
+			{
+				if (sx_base >= 0x180) sx_base -= 0x200;
+			}
+
+			if (flipy)
+			{
+				sy_base -= 7;
+				if (sy_base >= 0x1c0) sy_base -= 0x200;
+			}
+			else
+			{
+				if (sy_base >= 0x180) sy_base -= 0x200;
+			}
+
+			/***** Flip the sprite layer in any active X or Y flip *****/
+			if (second_sp.flip)
+			{
+				if (sp.flip & GP9001_SPRITE_FLIPX)
+					sx_base = 320 - sx_base;
+				if (sp.flip & GP9001_SPRITE_FLIPY)
+					sy_base = 240 - sy_base;
+			}
+
+			/***** Cancel flip, if it, and sprite layer flip are active *****/
+			flipx = (flipx ^ (second_sp.flip & GP9001_SPRITE_FLIPX));
+			flipy = (flipy ^ (second_sp.flip & GP9001_SPRITE_FLIPY));
+
+			/***** Draw the complete sprites using the dimension info *****/
+			for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
+			{
+
+
+
+				int sy;
+				if (flipy) sy = sy_base - dim_y;
+				else       sy = sy_base + dim_y;
+
+				if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
+				{
+					sprite+=sprite_sizex >> 3;
+					continue;
+				}
+
+				for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+				{
+					int sx;
+					if (flipx) sx = sx_base - dim_x;
+					else       sx = sx_base + dim_x;
+
+
+
+					if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
+					{
+						sprite++;
+						continue;
+					}
+
+					sprite &= total_elements-1;
+
+					if (m_gfxdecode->gfx(3)->has_pen_usage())
+					{
+						// fully transparent; do nothing
+						UINT32 usage = m_gfxdecode->gfx(3)->pen_usage(sprite);
+						if ((usage & ~(1 << 0)) == 0)
+						{
+							sprite++;
+							continue;
+						}
+
+						if ((usage & (1 << 0)) == 0) // full opaque
+						{
+							const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
+
+							if (flipy) // FLIPY 
+							{
+								if (flipx) // FLIPY AND FLIP X
+								{
+									// --------------------------
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x unclipped
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+											second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY;
+										}
+										else
+										{ // x unclipped, y clipped
+											second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY;
+										}
+									}
+									else
+									{  // FLIPY AND FLIP X fully clipped
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY;
+										}
+									}
+
+									// --------------------------
+								}
+								else // FLIPY AND NO FLIPX
+								{
+									// --------------------------
+
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x doesn't need clipping
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+#if 1
+											second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+#endif
+										}
+										else
+										{  // y needs clipping
+#if 1
+											second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY;
+#endif
+										}
+
+									}
+									else // with clipping
+									{
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY;
+										}
+									}
+
+									// --------------------------
+								}
+							}
+							else  // NO FLIP Y
+							{
+								if (flipx)  // NO FLIP Y, FLIP X
+								{
+									// -------------------------
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x doesn't need clipping
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+#if 1
+											second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+#endif
+										}
+										else // x not clipped, y is
+										{
+#if 1
+											second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+#endif
+										}
+									}
+									else // clipping required
+									{
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY;
+										}
+									}
+									// -------------------
+								}
+								else  // NO FLIP Y, NO FLIP X
+								{
+									// -------------------------
+
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x doesn't need clipping
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+#if 1
+											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+#endif
+										}
+										else
+										{ // y needs clipping
+#if 1
+											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+#endif
+										}
+
+									}
+									else // with clipping
+									{
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+										}
+									}
+
+									// -------------------
+								}
+							}
+						}
+						else
+						{ // has transparent bits
+							const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
+
+							if (flipy) // FLIPY 
+							{
+								if (flipx) // FLIPY AND FLIP X
+								{
+									// --------------------------
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x unclipped
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+											second_HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY;
+										}
+										else
+										{ // x unclipped, y clipped
+											second_HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY;
+										}
+									}
+									else
+									{  // FLIPY AND FLIP X fully clipped
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_HANDLE_FLIPX_FLIPY_CLIPX_CLIPY;
+										}
+									}
+
+									// --------------------------
+								}
+								else // FLIPY AND NO FLIPX
+								{
+									// --------------------------
+
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x doesn't need clipping
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+#if 1
+											second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+#endif
+										}
+										else
+										{  // y needs clipping
+#if 1
+											second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY;
+#endif
+										}
+
+									}
+									else // with clipping
+									{
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY;
+										}
+									}
+
+									// --------------------------
+								}
+							}
+							else  // NO FLIP Y
+							{
+								if (flipx)  // NO FLIP Y, FLIP X
+								{
+									// -------------------------
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x doesn't need clipping
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+#if 1
+											second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+#endif
+										}
+										else // x not clipped, y is
+										{
+#if 1
+											second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY;
+#endif
+										}
+									}
+									else // clipping required
+									{
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY;
+										}
+									}
+									// -------------------
+								}
+								else  // NO FLIP Y, NO FLIP X
+								{
+									// -------------------------
+
+									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+									{ // x doesn't need clipping
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{  // fully unclipped
+#if 1
+											second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+#endif
+										}
+										else
+										{ // y needs clipping
+#if 1
+											second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+#endif
+										}
+
+									}
+									else // with clipping
+									{
+										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+										{
+											second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										}
+										else
+										{
+											second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
+										}
+									}
+
+									// -------------------
+								}
+							}
+						}
+					}
+					sprite++;
+				}
+			}
+		}
+	}
+}
+
+
+/***************************************************************************
+    Draw the game screen in the given bitmap_ind16.
+***************************************************************************/
+
+void toaplan2_state::second_draw_tmap_tile(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color)
+{
+	sprite &= m_gfxdecode->gfx(2)->elements() - 1;
+
+	if (m_gfxdecode->gfx(2)->has_pen_usage())
+	{
+		//fully transparent; do nothing
+		UINT32 usage = m_gfxdecode->gfx(2)->pen_usage(sprite);
+		if ((usage & ~(1 << 0)) == 0)
+			return;
+
+		if ((usage & (1 << 0)) == 0) // full opaque
+		{
+			const UINT8* srcdata = m_gfxdecode->gfx(2)->get_data(sprite);
+
+			if ((sx >= cliprect.min_x) && (sx + 15 <= cliprect.max_x))
+			{ // x doesn't need clipping
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{  // fully unclipped
+					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+				}
+				else
+				{ // y needs clipping
+					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+				}
+			}
+			else // with clipping
+			{
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{
+					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+				}
+				else
+				{
+					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+				}
+			}
+		}
+		else
+		{ // has transparent bits
+			const UINT8* srcdata = m_gfxdecode->gfx(2)->get_data(sprite);
+
+			if ((sx >= cliprect.min_x) && (sx + 15 <= cliprect.max_x))
+			{ // x doesn't need clipping
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{  // fully unclipped
+					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+				}
+				else
+				{ // y needs clipping
+					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+				}
+			}
+			else // with clipping
+			{
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{
+					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+				}
+				else
+				{
+					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
+				}
+			}
+		}
+	}
+}
+
+void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
+{
+	int scrollxfg = tmap->realscrollx;
+	int scrollyfg = tmap->realscrolly;
+
+	int ydraw = -(scrollyfg & 0xf);
+	int xsource_base = (scrollxfg >> 4);
+	int xdrawbase = -(scrollxfg & 0xf);
+
+	int ysourcetile= (scrollyfg >> 4);
+
+	for (int y = 0; y < 16; y++, ydraw += 16, ysourcetile++)
+	{
+		ysourcetile &= 0x1f;
+
+		int xdraw = xdrawbase;
+		int xsourcetile  = xsource_base;
+
+		for (int x = 0; x < 21; x++, xdraw += 16, xsourcetile++)
+		{
+			xsourcetile &= 0x1f;
+
+			int tile_number, attrib;
+			int tile_index = ((ysourcetile * 32) + xsourcetile);
+				
+			attrib = vram[2*tile_index];
+
+			tile_number = vram[2*tile_index+1];
+
+			if (second_gp9001_gfxrom_is_banked)
+			{
+				tile_number = ( second_gp9001_gfxrom_bank[(tile_number >> 13) & 7] << 13 ) | ( tile_number & 0x1fff );
+			}
+
+			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
+			int priority = (attrib & 0x0f00) << 4;
+
+			second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+		}
+	}
+
+}
+
+
+
+
+void toaplan2_state::second_gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &cliprect)
+{
+	if (second_gp9001_gfxrom_is_banked && second_gp9001_gfxrom_bank_dirty)
+	{
+		second_gp9001_gfxrom_bank_dirty = 0;
+	}
+
+	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_bg, second_m_vram_bg);
+	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_fg, second_m_vram_fg);
+	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_top, second_m_vram_top);
+	second_draw_sprites(bitmap,cliprect);
+
+}
+
+
+void toaplan2_state::second_gp9001_screen_eof(void)
+{
+	/** Shift sprite RAM buffers  ***  Used to fix sprite lag **/
+	if (second_sp.use_sprite_buffer) memcpy(second_sp.vram16_buffer.get(),second_m_spriteram,GP9001_SPRITERAM_SIZE);
+}

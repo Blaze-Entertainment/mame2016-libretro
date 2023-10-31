@@ -94,6 +94,8 @@ public:
 		m_palette(*this, "palette") { }
 
 
+	///////////// one VDP!!
+
 	void set_status(int status) { m_status = status; }
 	UINT16 gp9001_voffs;
 	UINT16 gp9001_scroll_reg;
@@ -160,6 +162,76 @@ public:
 	inline void gp9001_scroll_reg_data_w(UINT16 data, UINT16 mem_mask);
 
 
+	// ------------------------------
+
+	///////////// one VDP!!
+
+	void second_set_status(int status) { second_m_status = status; }
+	UINT16 second_gp9001_voffs;
+	UINT16 second_gp9001_scroll_reg;
+
+	gp9001tilemaplayerx second_bg, second_top, second_fg;
+	gp9001spritelayerx second_sp;
+
+	// technically this is just rom banking, allowing the chip to see more graphic ROM, however it's easier to handle it
+	// in the chip implementation than externally for now (which would require dynamic decoding of the entire charsets every
+	// time the bank was changed)
+	int second_gp9001_gfxrom_is_banked;
+	int second_gp9001_gfxrom_bank_dirty;       /* dirty flag of object bank (for Batrider) */
+	UINT16 second_gp9001_gfxrom_bank[8];       /* Batrider object bank */
+
+
+	void second_draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect );
+	void second_gp9001_render_vdp( bitmap_ind16 &bitmap, const rectangle &cliprect);
+	void second_gp9001_screen_eof(void);
+	void second_create_tilemaps(void);
+	void second_init_scroll_regs(void);
+
+	bitmap_ind16 *second_custom_priority_bitmap;
+
+	// access to VDP
+	DECLARE_READ16_MEMBER( second_gp9001_vdp_r );
+	DECLARE_WRITE16_MEMBER( second_gp9001_vdp_w );
+	DECLARE_READ16_MEMBER( second_gp9001_vdp_alt_r );
+	DECLARE_WRITE16_MEMBER( second_gp9001_vdp_alt_w );
+
+	// this bootleg has strange access
+	DECLARE_READ16_MEMBER( second_pipibibi_bootleg_videoram16_r );
+	DECLARE_WRITE16_MEMBER( second_pipibibi_bootleg_videoram16_w );
+	DECLARE_READ16_MEMBER( second_pipibibi_bootleg_spriteram16_r );
+	DECLARE_WRITE16_MEMBER( second_pipibibi_bootleg_spriteram16_w );
+	DECLARE_WRITE16_MEMBER( second_pipibibi_bootleg_scroll_w );
+
+	// internal handlers
+	DECLARE_WRITE16_MEMBER( second_gp9001_bg_tmap_w );
+	DECLARE_WRITE16_MEMBER( second_gp9001_fg_tmap_w );
+	DECLARE_WRITE16_MEMBER( second_gp9001_top_tmap_w );
+	
+	UINT16 second_gp9001_vdpstatus_r(void);
+
+
+	void second_vdp_start();
+	void second_vdp_reset();
+
+
+	UINT16 second_m_vram_bg[0x800];
+	UINT16 second_m_vram_fg[0x800];
+	UINT16 second_m_vram_top[0x800];
+	UINT16 second_m_spriteram[0x800];
+	UINT16 second_m_unkram[0x800];
+	void second_draw_tmap_tile(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
+	void second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx* tmap, UINT16* vram);
+	void second_draw_tmap_tile_noclip(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
+
+	int second_m_status;
+
+	inline void second_gp9001_voffs_w(UINT16 data, UINT16 mem_mask);
+	inline int second_gp9001_videoram16_r(void);
+	inline void second_gp9001_videoram16_w(UINT16 data, UINT16 mem_mask);
+	inline void second_gp9001_scroll_reg_select_w(UINT16 data, UINT16 mem_mask);
+	inline void second_gp9001_scroll_reg_data_w(UINT16 data, UINT16 mem_mask);
+
+
 	TIMER_DEVICE_CALLBACK_MEMBER(toaplan2_scanline);
 	required_region_ptr<UINT16> m_mainrom;
 	optional_ioport m_in1;
@@ -222,6 +294,8 @@ public:
 	UINT8 m_z80_busreq;
 
 	bitmap_ind16 m_custom_priority_bitmap;
+	bitmap_ind16 second_m_custom_priority_bitmap;
+
 	bitmap_ind16 m_secondary_render_bitmap;
 
 	tilemap_t *m_tx_tilemap;    /* Tilemap for extra-text-layer */
