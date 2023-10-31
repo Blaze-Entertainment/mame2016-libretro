@@ -605,7 +605,11 @@ void retro_deinit(void)
 {
     osd_printf_info("RETRO DEINIT\n");
 
-    if(retro_load_ok)retro_finish();
+    if (retro_load_ok)
+    {
+       retro_finish();
+       retro_load_ok = false;
+    }
 
     libretro_mapping_deinit();
 }
@@ -822,25 +826,17 @@ static void write_dip_list(void)
 
 void retro_run (void)
 {  
-   static int mfirst=1;
    bool updated = false;
+
+   if (!retro_load_ok)
+   {
+      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+      return;
+   }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
       check_variables();
       update_runtime_variables();
-   }
-
-   if(mfirst==1)
-   {
-      mfirst=0;
-      mmain(1,RPATH);
-      retro_load_ok=true;
-      update_runtime_variables();
-#if defined(EVERCADE_DEBUG)
-      if (dump_dip_list)
-         write_dip_list();
-#endif
-      return;
    }
 
    if (NEWGAME_FROM_OSD == 1)
@@ -1051,6 +1047,19 @@ bool retro_load_game(const struct retro_game_info *info)
        */
     if (!environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
        return false;
+#endif
+
+    /* Must initialise MAME backend before returning from
+     * retro_load_game(), otherwise retro_get_system_av_info()
+     * will report invalid parameters */
+    if (mmain(1, RPATH) != 1)
+       return false;
+
+    retro_load_ok = true;
+    update_runtime_variables();
+#if defined(EVERCADE_DEBUG)
+    if (dump_dip_list)
+        write_dip_list();
 #endif
 
     return true;
