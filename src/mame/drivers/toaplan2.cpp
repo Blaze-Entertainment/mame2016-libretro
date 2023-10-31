@@ -457,8 +457,8 @@ MACHINE_START_MEMBER(toaplan2_state, batsugun)
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
-	m_v25audiocpu->set_clock_scale(0.5f);
 
+	m_v25audiocpu->set_clock_scale(0.5f);
 #endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
@@ -552,9 +552,8 @@ DRIVER_INIT_MEMBER(toaplan2_state,dogyuun)
 {
 	m_v25_reset_line = 0x20;
 
-	int sprite = 0;
-
-//	const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
+	//int sprite = 0;
+	//const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
 }
 
 READ8_MEMBER(toaplan2_state::tekipaki_sound_skip_r)

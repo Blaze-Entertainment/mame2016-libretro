@@ -294,7 +294,6 @@ public:
 	UINT8 m_z80_busreq;
 
 	bitmap_ind16 m_custom_priority_bitmap;
-	bitmap_ind16 second_m_custom_priority_bitmap;
 
 	bitmap_ind16 m_secondary_render_bitmap;
 
