@@ -103,6 +103,7 @@ const char *retro_system_directory;
 const char *retro_content_directory;
 
 retro_log_printf_t log_cb;
+int retro_core_log_level = RETRO_OSD_OUTPUT_INFO;
 
 static bool draw_this_frame;
 
@@ -433,6 +434,25 @@ static void check_variables(void)
          dump_dip_list = true;
    }
 #endif
+
+   var.key   = MAME_OPT(log_level);
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "none"))
+         retro_core_log_level = RETRO_OSD_OUTPUT_NONE;
+      else if (!strcmp(var.value, "error"))
+         retro_core_log_level = RETRO_OSD_OUTPUT_ERROR;
+      else if (!strcmp(var.value, "warning"))
+         retro_core_log_level = RETRO_OSD_OUTPUT_WARNING;
+      else if (!strcmp(var.value, "info"))
+         retro_core_log_level = RETRO_OSD_OUTPUT_INFO;
+      else if (!strcmp(var.value, "verbose"))
+         retro_core_log_level = RETRO_OSD_OUTPUT_VERBOSE;
+      else if (!strcmp(var.value, "debug"))
+         retro_core_log_level = RETRO_OSD_OUTPUT_DEBUG;
+   }
 
    libretro_update_turbo_btn_map();
 

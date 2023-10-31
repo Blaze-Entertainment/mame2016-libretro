@@ -282,6 +282,24 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       "disabled"
    },
    {
+      MAME_OPT(log_level),
+      "Logging Output Level",
+      NULL,
+      "Specify 'verbosity' of core-generated system logs.",
+      NULL,
+      "system",
+      {
+         { "none",    "None" },
+         { "error",   "Error" },
+         { "warning", "Warning" },
+         { "info",    "Info" },
+         { "verbose", "Verbose" },
+         { "debug",   "Debug" },
+         { NULL, NULL },
+      },
+      "info"
+   },
+   {
       MAME_OPT(softlists_enable),
       "Load Content From Softlists",
       NULL,

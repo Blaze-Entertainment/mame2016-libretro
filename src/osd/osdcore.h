@@ -895,6 +895,18 @@ enum osd_output_channel
 	OSD_OUTPUT_CHANNEL_COUNT
 };
 
+#if defined(__LIBRETRO__)
+enum retro_osd_output_level
+{
+	RETRO_OSD_OUTPUT_NONE = 0,
+	RETRO_OSD_OUTPUT_ERROR,
+	RETRO_OSD_OUTPUT_WARNING,
+	RETRO_OSD_OUTPUT_INFO,
+	RETRO_OSD_OUTPUT_VERBOSE,
+	RETRO_OSD_OUTPUT_DEBUG
+};
+#endif
+
 class osd_output
 {
 public:

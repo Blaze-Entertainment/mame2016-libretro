@@ -12,6 +12,7 @@
 #if defined(__LIBRETRO__)
 #include <libretro.h>
 extern retro_log_printf_t log_cb;
+extern int retro_core_log_level;
 #endif
 
 static const int MAXSTACK = 10;
@@ -70,13 +71,16 @@ void CLIB_DECL osd_printf_error(const char *format, ...)
 #if defined(SDLMAME_ANDROID)
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, format, argptr);
 #elif defined(__LIBRETRO__)
-   char msg_buf[512];
-   msg_buf[0] = '\0';
-   vsprintf(msg_buf, format, argptr);
-   if (log_cb)
-      log_cb(RETRO_LOG_ERROR, "[MAME2016] %s", msg_buf);
-   else
-      fprintf(stderr, "[MAME2016] %s", msg_buf);
+	if (retro_core_log_level >= RETRO_OSD_OUTPUT_ERROR)
+	{
+		char msg_buf[512];
+		msg_buf[0] = '\0';
+		vsprintf(msg_buf, format, argptr);
+		if (log_cb)
+			log_cb(RETRO_LOG_ERROR, "[MAME2016] %s", msg_buf);
+		else
+			fprintf(stderr, "[MAME2016] %s", msg_buf);
+	}
 #else
 	if (m_ptr >= 0) m_stack[m_ptr]->output_callback(OSD_OUTPUT_CHANNEL_ERROR, format, argptr);
 #endif
@@ -98,13 +102,16 @@ void CLIB_DECL osd_printf_warning(const char *format, ...)
 #if defined(SDLMAME_ANDROID)
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, format, argptr);
 #elif defined(__LIBRETRO__)
-   char msg_buf[512];
-   msg_buf[0] = '\0';
-   vsprintf(msg_buf, format, argptr);
-   if (log_cb)
-      log_cb(RETRO_LOG_WARN, "[MAME2016] %s", msg_buf);
-   else
-      fprintf(stderr, "[MAME2016] %s", msg_buf);
+	if (retro_core_log_level >= RETRO_OSD_OUTPUT_WARNING)
+	{
+		char msg_buf[512];
+		msg_buf[0] = '\0';
+		vsprintf(msg_buf, format, argptr);
+		if (log_cb)
+			log_cb(RETRO_LOG_WARN, "[MAME2016] %s", msg_buf);
+		else
+			fprintf(stderr, "[MAME2016] %s", msg_buf);
+	}
 #else
 	if (m_ptr >= 0) m_stack[m_ptr]->output_callback(OSD_OUTPUT_CHANNEL_WARNING, format, argptr);
 #endif
@@ -126,13 +133,16 @@ void CLIB_DECL osd_printf_info(const char *format, ...)
 #if defined(SDLMAME_ANDROID)
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, format, argptr);
 #elif defined(__LIBRETRO__)
-   char msg_buf[512];
-   msg_buf[0] = '\0';
-   vsprintf(msg_buf, format, argptr);
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "[MAME2016] %s", msg_buf);
-   else
-      fprintf(stdout, "[MAME2016] %s", msg_buf);
+	if (retro_core_log_level >= RETRO_OSD_OUTPUT_INFO)
+	{
+		char msg_buf[512];
+		msg_buf[0] = '\0';
+		vsprintf(msg_buf, format, argptr);
+		if (log_cb)
+			log_cb(RETRO_LOG_INFO, "[MAME2016] %s", msg_buf);
+		else
+			fprintf(stdout, "[MAME2016] %s", msg_buf);
+	}
 #else
 	if (m_ptr >= 0) m_stack[m_ptr]->output_callback(OSD_OUTPUT_CHANNEL_INFO, format, argptr);
 #endif
@@ -154,13 +164,16 @@ void CLIB_DECL osd_printf_verbose(const char *format, ...)
 #if defined(SDLMAME_ANDROID)
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_VERBOSE, format, argptr);
 #elif defined(__LIBRETRO__)
-   char msg_buf[512];
-   msg_buf[0] = '\0';
-   vsprintf(msg_buf, format, argptr);
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "[MAME2016] %s", msg_buf);
-   else
-      fprintf(stdout, "[MAME2016] %s", msg_buf);
+	if (retro_core_log_level >= RETRO_OSD_OUTPUT_VERBOSE)
+	{
+		char msg_buf[512];
+		msg_buf[0] = '\0';
+		vsprintf(msg_buf, format, argptr);
+		if (log_cb)
+			log_cb(RETRO_LOG_INFO, "[MAME2016] %s", msg_buf);
+		else
+			fprintf(stdout, "[MAME2016] %s", msg_buf);
+	}
 #else
 	if (m_ptr >= 0) m_stack[m_ptr]->output_callback(OSD_OUTPUT_CHANNEL_VERBOSE, format, argptr);
 #endif
@@ -182,13 +195,16 @@ void CLIB_DECL osd_printf_debug(const char *format, ...)
 #if defined(SDLMAME_ANDROID)
 	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG, format, argptr);
 #elif defined(__LIBRETRO__)
-   char msg_buf[512];
-   msg_buf[0] = '\0';
-   vsprintf(msg_buf, format, argptr);
-   if (log_cb)
-      log_cb(RETRO_LOG_DEBUG, "[MAME2016] %s", msg_buf);
-   else
-      fprintf(stdout, "[MAME2016] %s", msg_buf);
+	if (retro_core_log_level >= RETRO_OSD_OUTPUT_DEBUG)
+	{
+		char msg_buf[512];
+		msg_buf[0] = '\0';
+		vsprintf(msg_buf, format, argptr);
+		if (log_cb)
+			log_cb(RETRO_LOG_DEBUG, "[MAME2016] %s", msg_buf);
+		else
+			fprintf(stdout, "[MAME2016] %s", msg_buf);
+	}
 #else
 	if (m_ptr >= 0) m_stack[m_ptr]->output_callback(OSD_OUTPUT_CHANNEL_DEBUG, format, argptr);
 #endif
