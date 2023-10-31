@@ -575,12 +575,12 @@ static void initInput(running_machine &machine)
 
 static void Input_Binding(running_machine &machine)
 {
-   fprintf(stderr, "SOURCE FILE: %s\n", machine.system().source_file);
-   fprintf(stderr, "PARENT: %s\n", machine.system().parent);
-   fprintf(stderr, "NAME: %s\n", machine.system().name);
-   fprintf(stderr, "DESCRIPTION: %s\n", machine.system().description);
-   fprintf(stderr, "YEAR: %s\n", machine.system().year);
-   fprintf(stderr, "MANUFACTURER: %s\n", machine.system().manufacturer);
+   osd_printf_info("SOURCE FILE: %s\n", machine.system().source_file);
+   osd_printf_info("PARENT: %s\n", machine.system().parent);
+   osd_printf_info("NAME: %s\n", machine.system().name);
+   osd_printf_info("DESCRIPTION: %s\n", machine.system().description);
+   osd_printf_info("YEAR: %s\n", machine.system().year);
+   osd_printf_info("MANUFACTURER: %s\n", machine.system().manufacturer);
 
    Buttons_mapping[0]=RETROPAD_A;
    Buttons_mapping[1]=RETROPAD_B;
@@ -1121,39 +1121,31 @@ static int getGameInfo(char* gameName, int* rotation, int* driverIndex,bool *Arc
    int gameFound = 0;
    int num = driver_list::find(gameName);
 
-   if (log_cb)
-      log_cb(RETRO_LOG_DEBUG, "Searching for driver %s\n",gameName);
+   osd_printf_debug("Searching for driver %s\n", gameName);
 
    if (num != -1)
    {
       if (driver_list::driver(num).flags & MACHINE_TYPE_ARCADE)
       {
          *Arcade=TRUE;
-         if (log_cb)
-            log_cb(RETRO_LOG_DEBUG, "System type: ARCADE\n");
+         osd_printf_debug("System type: ARCADE\n");
       }
       else if(driver_list::driver(num).flags& MACHINE_TYPE_CONSOLE)
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_DEBUG, "System type: CONSOLE\n");
+         osd_printf_debug("System type: CONSOLE\n");
       }
       else if(driver_list::driver(num).flags& MACHINE_TYPE_COMPUTER)
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_DEBUG, "System type: COMPUTER\n");
+         osd_printf_debug("System type: COMPUTER\n");
       }
       gameFound = 1;
 
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "Game name: %s, Game description: %s\n",
-               driver_list::driver(num).name,
-               driver_list::driver(num).description);
+      osd_printf_info("Game name: %s, Game description: %s\n",
+            driver_list::driver(num).name,
+            driver_list::driver(num).description);
    }
    else
-   {
-      if (log_cb)
-         log_cb(RETRO_LOG_WARN, "Driver %s not found %i\n",gameName,num);
-   }
+      osd_printf_warning("Driver %s not found %i\n", gameName, num);
 
    return gameFound;
 }
@@ -1171,8 +1163,7 @@ void Extract_AllPath(char *srcpath)
    {
       strcpy(MgameName,srcpath);
       result_value|=1;
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "Error parsing game path: %s\n",srcpath);
+      osd_printf_error("Error parsing game path: %s\n", srcpath);
    }
 
    /* Split the path to directory and
@@ -1182,8 +1173,7 @@ void Extract_AllPath(char *srcpath)
    {
       strcpy(MsystemName,srcpath );
       result_value|=2;
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "Error parsing system name: %s\n",srcpath);
+      osd_printf_error("Error parsing system name: %s\n", srcpath);
    }
 
    /* Get the parent path. */
@@ -1193,19 +1183,14 @@ void Extract_AllPath(char *srcpath)
    {
       strcpy(MparentPath,srcpath );
       result_value|=4;
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "Error parsing parent path: %s\n",srcpath);
+      osd_printf_error("Error parsing parent path: %s\n", srcpath);
    }
 
-   if (log_cb)
-   {
-      log_cb(RETRO_LOG_DEBUG, "Path extraction result: File name=%s\n",srcpath);
-      log_cb(RETRO_LOG_DEBUG, "Path extraction result: Game name=%s\n",MgameName);
-      log_cb(RETRO_LOG_DEBUG, "Path extraction result: System name=%s\n",MsystemName);
-      log_cb(RETRO_LOG_DEBUG, "Path extraction result: Game path=%s\n",MgamePath);
-      log_cb(RETRO_LOG_DEBUG, "Path extraction result: Parent path=%s\n",MparentPath);
-   }
-
+   osd_printf_debug("Path extraction result: File name=%s\n", srcpath);
+   osd_printf_debug("Path extraction result: Game name=%s\n", MgameName);
+   osd_printf_debug("Path extraction result: System name=%s\n", MsystemName);
+   osd_printf_debug("Path extraction result: Game path=%s\n", MgamePath);
+   osd_printf_debug("Path extraction result: Parent path=%s\n", MparentPath);
 }
 
 static void Add_Option(const char* option)
@@ -1332,12 +1317,11 @@ static int execute_game(char* path)
     * Otherwise, exit. */
    if (getGameInfo(MgameName, &gameRot, &driverIndex,&arcade) == 0)
    {
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "Driver not found %s\n",MgameName);
+      osd_printf_error("Driver not found %s\n", MgameName);
+
       if (getGameInfo(MsystemName, &gameRot, &driverIndex,&arcade) == 0)
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_ERROR, "System not found: %s\n",MsystemName);
+         osd_printf_error("System not found: %s\n", MsystemName);
          return -2;
       }
    }
@@ -1345,8 +1329,7 @@ static int execute_game(char* path)
    /* Handle case where Arcade game exists and game on a System also. */
    if(arcade == true)
    {
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "System not found: %s\n",MsystemName);
+      osd_printf_error("System not found: %s\n", MsystemName);
 
       // test system
       if (getGameInfo(MsystemName, &gameRot, &driverIndex,&arcade) != 0)
@@ -1372,11 +1355,8 @@ static int execute_game(char* path)
       }
    }
 
-   if (log_cb)
-   {
-      log_cb(RETRO_LOG_INFO, "Creating frontend for game: %s\n",MgameName);
-      log_cb(RETRO_LOG_INFO, "Softlists: %d\n",softlist_enable);
-   }
+   osd_printf_info("Creating frontend for game: %s\n", MgameName);
+   osd_printf_info("Softlists: %d\n", softlist_enable);
 
    Set_Default_Option();
 
@@ -1526,8 +1506,7 @@ static int execute_game_cmd(char* path)
    /* split the path to directory and the name without the zip extension */
    if (parsePath(Only1Arg?path:ARGUV[ARGUC-1], MgamePath, MgameName) == 0)
    {
-      if (log_cb)
-      log_cb(RETRO_LOG_ERROR, "parse path failed! path=%s.\n", path);
+      osd_printf_error("parse path failed! path=%s.\n", path);
       strcpy(MgameName,path );
    }
 
@@ -1536,8 +1515,7 @@ static int execute_game_cmd(char* path)
       /* split the path to directory and the name without the zip extension */
       if (parseSystemName(path, MsystemName) ==0)
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_ERROR, "parse systemname failed! path=%s\n", path);
+         osd_printf_error("parse systemname failed! path=%s\n", path);
          strcpy(MsystemName,path );
       }
    }
@@ -1548,21 +1526,18 @@ static int execute_game_cmd(char* path)
       /* handle -cc/-createconfig case */
       if(CreateConf)
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_INFO, "Create an %s config\n", core);
+         osd_printf_info("Create an %s config\n", core);
       }
       else
       {
-         if (log_cb)
-            log_cb(RETRO_LOG_WARN, "Game not found: %s\n", MgameName);
+         osd_printf_warning("Game not found: %s\n", MgameName);
 
          if(Only1Arg)
          {
             //test if system exist (based on parent path)
             if (getGameInfo(MsystemName, &gameRot, &driverIndex,&arcade) == 0)
             {
-               if (log_cb)
-                  log_cb(RETRO_LOG_ERROR, "Driver not found: %s\n", MsystemName);
+               osd_printf_error("Driver not found: %s\n", MsystemName);
                return -2;
             }
          }
@@ -1579,13 +1554,11 @@ static int execute_game_cmd(char* path)
          /* test system */
          if (getGameInfo(MsystemName, &gameRot, &driverIndex,&arcade) == 0)
          {
-            if (log_cb)
-               log_cb(RETRO_LOG_ERROR, "System not found: %s\n", MsystemName);
+            osd_printf_error("System not found: %s\n", MsystemName);
          }
          else
          {
-            if (log_cb)
-               log_cb(RETRO_LOG_INFO, "System found: %s\n", MsystemName);
+            osd_printf_info("System found: %s\n", MsystemName);
             arcade=false;
          }
       }
@@ -1669,8 +1642,7 @@ int mmain(int argc, const char *argv)
    if(i==1)
    {
       parse_cmdline(CMDFILE);
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "Starting game from command line:%s\n",CMDFILE);
+      osd_printf_info("Starting game from command line:%s\n", CMDFILE);
 
       result = execute_game_cmd(ARGUV[ARGUC-1]);      
 
@@ -1679,29 +1651,25 @@ int mmain(int argc, const char *argv)
    if(experimental_cmdline)
    {
       parse_cmdline(argv);
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "Starting game from command line:%s\n",gameName);
+      osd_printf_info("Starting game from command line:%s\n", gameName);
 
       result = execute_game_cmd(ARGUV[ARGUC-1]);
    }
    else
    {
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "Starting game:%s\n",gameName);
+      osd_printf_info("Starting game:%s\n", gameName);
       result = execute_game(gameName);
    }
 
    if (result < 0)
       return result;
 
-   if (log_cb)
-      log_cb(RETRO_LOG_DEBUG, "Parameters:\n");
+   osd_printf_debug("Parameters:\n");
 
    for (i = 0; i < PARAMCOUNT; i++)
    {
       xargv_cmd[i] = (char*)(XARGV[i]);
-      if (log_cb)
-         log_cb(RETRO_LOG_DEBUG, " %s\n",XARGV[i]);
+      osd_printf_debug(" %s\n",XARGV[i]);
    }
 
   retro_global_osd= global_alloc(retro_osd_interface(retro_global_options));
@@ -1746,8 +1714,7 @@ retro_osd_interface::~retro_osd_interface()
 
 void retro_osd_interface::osd_exit()
 {
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "OSD exit called\n");
+   osd_printf_info("OSD exit called\n");
 
 #if defined(HAVE_GL)
    destroy_all_textures();
@@ -1783,8 +1750,9 @@ void retro_osd_interface::init(running_machine &machine)
 
 	initInput(machine);
 
-	if (log_cb)
-		log_cb(RETRO_LOG_INFO, "Screen orientation: %s\n",(machine.system().flags & ORIENTATION_SWAP_XY) ? "VERTICAL" : "HORIZONTAL");
+   osd_printf_info("Screen orientation: %s\n",
+         (machine.system().flags & ORIENTATION_SWAP_XY) ?
+               "VERTICAL" : "HORIZONTAL");
 
     orient  = (machine.system().flags & ORIENTATION_MASK);
 	vertical = (machine.system().flags & ORIENTATION_SWAP_XY);
@@ -1815,13 +1783,12 @@ void retro_osd_interface::init(running_machine &machine)
 	if(machine.first_screen()!= nullptr)
 		retro_fps    = ATTOSECONDS_TO_HZ(machine.first_screen()->refresh_attoseconds());
 
-	if (log_cb)
-		log_cb(RETRO_LOG_DEBUG, "Screen width=%d height=%d, aspect=%f\n", fb_width, fb_height,  retro_aspect);
+   osd_printf_debug("Screen width=%d height=%d, aspect=%f\n",
+         fb_width, fb_height, retro_aspect);
 
 	//NEWGAME_FROM_OSD=1;
 
-	if (log_cb)
-		log_cb(RETRO_LOG_INFO, "OSD initialization complete\n");
+   osd_printf_info("OSD initialization complete\n");
 
    //retro_switch_to_main_thread();
 }

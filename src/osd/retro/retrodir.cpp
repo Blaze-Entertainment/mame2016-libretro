@@ -167,7 +167,8 @@ osd_directory *osd_opendir(const char *dirname)
          strcat(tmpstr, &envstr[i]);
       }
       else
-         fprintf(stderr, "Warning: osd_opendir environment variable %s not found.\n", envstr);
+         osd_printf_warning("osd_opendir environment variable %s not found.\n", envstr);
+
       osd_free(envstr);
    }
 

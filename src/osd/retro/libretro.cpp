@@ -497,26 +497,24 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_width  = fb_width;
    info->geometry.max_height = fb_height;
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "AV_INFO: width=%d height=%d\n",info->geometry.base_width,info->geometry.base_height);
+   osd_printf_info("AV_INFO: width=%d height=%d\n",
+         info->geometry.base_width, info->geometry.base_height);
 
    max_width   = fb_width;
    max_height  = fb_height;
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "AV_INFO: max_width=%d max_height=%d\n",info->geometry.max_width,info->geometry.max_height);
+   osd_printf_info("AV_INFO: max_width=%d max_height=%d\n",
+         info->geometry.max_width, info->geometry.max_height);
 
    info->geometry.aspect_ratio = retro_aspect;
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "AV_INFO: aspect_ratio = %f\n",info->geometry.aspect_ratio);
+   osd_printf_info("AV_INFO: aspect_ratio = %f\n", info->geometry.aspect_ratio);
 
    info->timing.fps            = retro_fps;
    info->timing.sample_rate    = 48000.0;
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "AV_INFO: fps = %f sample_rate = %f\n",info->timing.fps,info->timing.sample_rate);
-
+   osd_printf_info("AV_INFO: fps = %f sample_rate = %f\n",
+      info->timing.fps, info->timing.sample_rate);
 }
 
 void retro_init (void)
@@ -542,8 +540,7 @@ void retro_init (void)
       retro_system_directory = system_dir;
    }
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "SYSTEM_DIRECTORY: %s", retro_system_directory);
+   osd_printf_info("SYSTEM_DIRECTORY: %s", retro_system_directory);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_CONTENT_DIRECTORY, &content_dir) && content_dir)
    {
@@ -551,9 +548,7 @@ void retro_init (void)
       retro_content_directory=content_dir;
    }
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "CONTENT_DIRECTORY: %s", retro_content_directory);
-
+   osd_printf_info("CONTENT_DIRECTORY: %s", retro_content_directory);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) && save_dir)
    {
@@ -569,13 +564,12 @@ void retro_init (void)
        * is not implemented by the frontend. */
       retro_save_directory=retro_system_directory;
    }
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "SAVE_DIRECTORY: %s", retro_save_directory);
+
+   osd_printf_info("SAVE_DIRECTORY: %s", retro_save_directory);
 
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "pixel format not supported");
+      osd_printf_error("pixel format not supported");
       exit(0);
    }
 
@@ -589,7 +583,8 @@ extern void retro_finish();
 
 void retro_deinit(void)
 {
-    printf("RETRO DEINIT\n");
+    osd_printf_info("RETRO DEINIT\n");
+
     if(retro_load_ok)retro_finish();
 
     libretro_mapping_deinit();
@@ -836,15 +831,14 @@ void retro_run (void)
 
       environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &ninfo);
 
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "ChangeAV: w:%d h:%d ra:%f.\n",
-               ninfo.geometry.base_width, ninfo.geometry.base_height, ninfo.geometry.aspect_ratio);
+      osd_printf_info("ChangeAV: w:%d h:%d ra:%f.\n",
+            ninfo.geometry.base_width, ninfo.geometry.base_height, ninfo.geometry.aspect_ratio);
 
       NEWGAME_FROM_OSD=0;
    }
    else if (NEWGAME_FROM_OSD == 2){
       update_geometry();
-      printf("w:%d h:%d a:%f\n",fb_width,fb_height,retro_aspect);
+      osd_printf_info("w:%d h:%d a:%f\n", fb_width, fb_height, retro_aspect);
       NEWGAME_FROM_OSD=0;
    }
 
@@ -992,8 +986,7 @@ bool retro_load_game(const struct retro_game_info *info)
         path_is_valid(override_path) &&
         (option_overrides = config_file_new_from_path_to_string(override_path)))
     {
-        if (log_cb)
-            log_cb(RETRO_LOG_INFO, "Reading option overrides from: %s\n", override_path);
+        osd_printf_info("Reading option overrides from: %s\n", override_path);
 
         /* Override default option values */
         for (option_def = option_defs_us; option_def->key; option_def++)
