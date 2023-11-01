@@ -561,7 +561,7 @@ Pipi & Bibis     | Fix Eight        | V-Five           | Snow Bros. 2     |
 
 */
 #define GP9001_PRIMASK (0x000f)
-#define GP9001_PRIMASK_TMAPS (0x000e)
+#define GP9001_PRIMASK_TMAPS (0x0e00)
 
 
 
@@ -2886,13 +2886,9 @@ void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle
 			}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & 0x0f00) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
 
-			//if (priority != 0xf000)
-				draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
-			//else
-			//	draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
-
+			draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
 	}
 
@@ -2933,7 +2929,7 @@ void toaplan2_state::gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rec
 			}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & 0x0f00) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
 
 			draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
@@ -4684,7 +4680,7 @@ void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const re
 			//}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & 0x0f00) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
 
 			second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
@@ -4727,12 +4723,9 @@ void toaplan2_state::second_gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, co
 			//}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & 0x0f00) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
 
-			//if (priority != 0xf000)
-				second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
-			//else
-			//	second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
 	}
 

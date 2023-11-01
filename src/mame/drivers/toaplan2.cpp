@@ -765,6 +765,16 @@ READ16_MEMBER(toaplan2_state::video_count_r)
 
 	int video_status = 0xff00;    // Set signals inactive
 
+	int pc = m_maincpu->pc;
+	if (pc == 0x670)
+	{
+		if ((vpos<256) && (hpos < 325))
+		{
+			space.device().execute().spin_until_time(m_screen->time_until_pos(vpos, 325));
+			return 0x0000;
+		}
+	}
+
 	vpos = (vpos + 15);// % 262;
 	if (vpos > 262)
 		vpos -= 262;
@@ -784,9 +794,6 @@ READ16_MEMBER(toaplan2_state::video_count_r)
 		video_status |= (vpos & 0xff);
 	else
 		video_status |= 0xff;
-
-//  logerror("VC: vpos=%04x hpos=%04x VBL=%04x\n",vpos,hpos,m_screen->vblank());
-
 
 	return video_status;
 }
@@ -1449,6 +1456,38 @@ READ16_MEMBER(toaplan2_state::v5_vdp_status_r)
 
 }
 
+
+READ16_MEMBER(toaplan2_state::batsugun_vdp_status_r)
+{
+	/*
+
+	0008E8: jsr     $94d6.l
+	0094D6: btst    #$0, $30000d.l
+	0094DE: bne     $94d6
+	0094E0: btst    #$0, $30000d.l
+	0094E8: beq     $94e0
+	0094E0: btst    #$0, $30000d.l
+	0094E8: beq     $94e0
+
+	*/
+
+
+	UINT16 result = gp9001_vdpstatus_r();
+	cpu_device* mcpu = (cpu_device*)m_maincpu;
+
+	int pc = mcpu->pc();
+
+	if (pc == 0x094e8)
+	{
+		if (result == 0)
+			space.device().execute().spin_until_trigger(54321);
+	}
+
+	return result;
+
+}
+
+
 	
 
 WRITE16_MEMBER(toaplan2_state::v5_shared_ram_w)
@@ -1482,9 +1521,6 @@ static ADDRESS_MAP_START( vfive_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x700000, 0x700001) AM_READ(video_count_r)
 ADDRESS_MAP_END
 
-
-
-
 static ADDRESS_MAP_START( batsugun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x000000, 0x07ffff) AM_ROM
 	AM_RANGE(0x100000, 0x10ffff) AM_RAM
@@ -1493,6 +1529,7 @@ static ADDRESS_MAP_START( batsugun_68k_mem, AS_PROGRAM, 16, toaplan2_state )
 	AM_RANGE(0x200018, 0x200019) AM_READ_PORT("SYS")
 	AM_RANGE(0x20001c, 0x20001d) AM_WRITE(toaplan2_v25_coin_word_w) // Coin count/lock + v25 reset line
 	AM_RANGE(0x210000, 0x21ffff) AM_READWRITE(shared_ram_r, shared_ram_w )
+	AM_RANGE(0x30000c, 0x30000d) AM_READ(batsugun_vdp_status_r)
 	AM_RANGE(0x300000, 0x30000d) AM_READWRITE( gp9001_vdp_r, gp9001_vdp_w)
 	AM_RANGE(0x400000, 0x400fff) AM_RAM_WRITE(toaplan2_palette_w) AM_SHARE("paletteram")
 	AM_RANGE(0x500000, 0x50000d) AM_READWRITE( second_gp9001_vdp_r, second_gp9001_vdp_w)

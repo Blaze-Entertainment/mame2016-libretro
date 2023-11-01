@@ -280,6 +280,7 @@ public:
 	DECLARE_READ16_MEMBER(ghox_vdp_status_r);
 	DECLARE_READ16_MEMBER(kbash_vdp_status_r);
 	DECLARE_READ16_MEMBER(v5_vdp_status_r);
+	DECLARE_READ16_MEMBER(batsugun_vdp_status_r);
 	DECLARE_WRITE16_MEMBER(toaplan2_palette_w);
 	// Teki Paki sound
 	uint8_t m_cmdavailable;
