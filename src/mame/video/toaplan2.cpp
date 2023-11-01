@@ -86,9 +86,7 @@ VIDEO_START_MEMBER(toaplan2_state,toaplan2)
 	m_secondary_render_bitmap.reset();
 
 	/* our current VDP implementation needs this bitmap to work with */
-	m_screen->register_screen_bitmap(m_custom_priority_bitmap);
 	m_screen->register_screen_bitmap(m_secondary_render_bitmap);
-	custom_priority_bitmap = &m_custom_priority_bitmap;
 
 }
 
@@ -233,17 +231,43 @@ UINT32 toaplan2_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16
 {
 	//if (m_vdp1)
 	{
-		bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
-		second_gp9001_render_vdp(bitmap, cliprect);
+		m_secondary_render_bitmap.fill(0, cliprect);
+		second_gp9001_render_vdp(m_secondary_render_bitmap, cliprect);
 	}
 	//if (m_vdp0)
 	//{
-	//  bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
+		bitmap.fill(0, cliprect);
 		gp9001_render_vdp(bitmap, cliprect);
 	//}
 
+	{
+		int width = screen.width();
+		int height = screen.height();
+		int y,x;
+		UINT16* src_vdp0; // output buffer of vdp0
+		UINT16* src_vdp1; // output buffer of vdp1
+
+		for (y=0;y<height;y++)
+		{
+			src_vdp0 = &bitmap.pix16(y);
+			src_vdp1 = &m_secondary_render_bitmap.pix16(y);
+
+			for (x=0;x<width;x++)
+			{
+				UINT16 GPU0_LUTaddr = src_vdp0[x];
+				UINT16 GPU1_LUTaddr = src_vdp1[x];
+
+				if (GPU0_LUTaddr & 0x000f)
+				{
+					src_vdp0[x] = GPU0_LUTaddr;
+				}
+				else
+				{
+					src_vdp0[x] = GPU1_LUTaddr;
+				}
+			}
+		}
+	}
 
 	return 0;
 }
@@ -253,18 +277,15 @@ UINT32 toaplan2_state::screen_update_dogyuun(screen_device &screen, bitmap_ind16
 UINT32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 //  bitmap.fill(0, cliprect);
-//  gp9001_custom_priority_bitmap->fill(0, cliprect);
 
 	//if (m_vdp0)
 	//{
 		bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
 		gp9001_render_vdp(bitmap, cliprect);
 	//}
 	//if (m_vdp1)
 	{
 		m_secondary_render_bitmap.fill(0, cliprect);
-		m_custom_priority_bitmap.fill(0, cliprect);
 		second_gp9001_render_vdp(m_secondary_render_bitmap, cliprect);
 	}
 
@@ -353,7 +374,6 @@ UINT32 toaplan2_state::screen_update_batsugun(screen_device &screen, bitmap_ind1
 UINT32 toaplan2_state::screen_update_toaplan2(screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
 	bitmap.fill(0, cliprect);
-	m_custom_priority_bitmap.fill(0, cliprect);
 	gp9001_render_vdp(bitmap, cliprect);
 
 	return 0;
@@ -375,7 +395,6 @@ UINT32 toaplan2_state::screen_update_truxton2(screen_device &screen, bitmap_ind1
 {
 
 	bitmap.fill(0, cliprect);
-	m_custom_priority_bitmap.fill(0, cliprect);
 
 	gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &bg, m_vram_bg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
@@ -1027,58 +1046,58 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define DO_PIX \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr++ = pix | color; \
-			*dstpri++ = priority; \
+			*dstptr++ = pix | color | priority; \
+			/**dstpri++ = priority;*/ \
 		} \
 		else \
 		{ \
 			dstptr++; \
-			dstpri++; \
+			/*dstpri++; */\
 		} \
 	} \
 	else \
 	{ \
 		dstptr++; \
-		dstpri++; \
+		/*dstpri++; */\
 		srcdata++; \
 	}
 
 
 #define DO_PIX_REV \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr-- = pix | color; \
-			*dstpri-- = priority; \
+			*dstptr-- = pix | color | priority; \
+			/**dstpri-- = priority;*/ \
 		} \
 		else \
 		{ \
 			dstptr--; \
-			dstpri--; \
+			/*dstpri--;*/ \
 		} \
 	} \
 	else \
 	{ \
 		dstptr--; \
-		dstpri--; \
+		/*dstpri--;*/ \
 		srcdata++; \
 	}
 
 #define DO_PIX_NOINC \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr = pix | color; \
-			*dstpri = priority;	\
+			*dstptr = pix | color | priority; \
+			/**dstpri = priority;*/	\
 		} \
 	}
 
@@ -1087,7 +1106,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		DO_PIX_REV; \
 		DO_PIX_REV; \
@@ -1106,7 +1124,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			DO_PIX_REV; \
 			DO_PIX_REV; \
@@ -1135,7 +1152,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1151,7 +1167,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		DO_PIX; \
 		DO_PIX; \
@@ -1169,7 +1184,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			DO_PIX; \
 			DO_PIX; \
@@ -1198,7 +1212,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1215,7 +1228,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		DO_PIX_REV; \
 		DO_PIX_REV; \
@@ -1233,7 +1245,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			DO_PIX_REV; \
 			DO_PIX_REV; \
@@ -1262,7 +1273,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1279,7 +1289,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		DO_PIX; \
 		DO_PIX; \
@@ -1297,7 +1306,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			DO_PIX; \
 			DO_PIX; \
@@ -1326,7 +1334,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1348,7 +1355,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1365,7 +1371,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1382,7 +1387,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1399,7 +1403,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1417,42 +1420,42 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define OPAQUE_DOPIX \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
-		*dstptr++ = pix | color; \
-		*dstpri++ = priority; \
+		*dstptr++ = pix | color | priority; \
+		/**dstpri++ = priority;*/ \
 	} \
 	else \
 	{ \
 		srcdata++; \
 		dstptr++; \
-		dstpri++; \
+		/*dstpri++; */\
 	}
 
 
 #define OPAQUE_DOPIX_REV \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
-		*dstptr-- = pix | color; \
-		*dstpri-- = priority; \
+		*dstptr-- = pix | color | priority; \
+		/**dstpri-- = priority;*/ \
 	} \
 	else \
 	{ \
 		srcdata++; \
 		dstptr--; \
-		dstpri--; \
+		/*dstpri--;*/ \
 	}
 
 #define OPAQUE_DOPIX_NOINC \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr = pix | color; \
-			*dstpri = priority;	\
+			*dstptr = pix | color | priority; \
+			/**dstpri = priority;*/	\
 		} \
 	}
 
@@ -1461,7 +1464,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		OPAQUE_DOPIX_REV; \
 		OPAQUE_DOPIX_REV; \
@@ -1480,7 +1482,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			OPAQUE_DOPIX_REV; \
 			OPAQUE_DOPIX_REV; \
@@ -1509,7 +1510,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1525,7 +1525,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		OPAQUE_DOPIX; \
 		OPAQUE_DOPIX; \
@@ -1543,7 +1542,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			OPAQUE_DOPIX; \
 			OPAQUE_DOPIX; \
@@ -1572,7 +1570,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1589,7 +1586,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		OPAQUE_DOPIX_REV; \
 		OPAQUE_DOPIX_REV; \
@@ -1607,7 +1603,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			OPAQUE_DOPIX_REV; \
 			OPAQUE_DOPIX_REV; \
@@ -1636,7 +1631,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1653,7 +1647,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		OPAQUE_DOPIX; \
 		OPAQUE_DOPIX; \
@@ -1671,7 +1664,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			OPAQUE_DOPIX; \
 			OPAQUE_DOPIX; \
@@ -1700,7 +1692,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1722,7 +1713,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1739,7 +1729,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1756,7 +1745,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1773,7 +1761,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1787,61 +1774,61 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 /////////////////////////////////////////////////////////////////
 
 #define DO_TILEMAP_PIX \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr++ = pix | color; \
-			*dstpri++ = priority; \
+			*dstptr++ = pix | color | priority; \
+			/**dstpri++ = priority;*/ \
 		} \
 		else \
 		{ \
 			dstptr++; \
-			dstpri++; \
+			/*dstpri++; */\
 		} \
 	} \
 	else \
 	{ \
 		dstptr++; \
-		dstpri++; \
+		/*dstpri++; */\
 		srcdata++; \
 	}
 
 #define DO_TILEMAP_PIX_NOINC \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr = pix | color; \
-			*dstpri = priority;	\
+			*dstptr = pix | color | priority; \
+			/**dstpri = priority;*/	\
 		} \
 	}
 
 #define OPAQUE_DO_TILEMAP_PIX \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
-		*dstptr++ = pix | color; \
-		*dstpri++ = priority; \
+		*dstptr++ = pix | color | priority; \
+		/**dstpri++ = priority;*/ \
 	} \
 	else \
 	{ \
 		srcdata++; \
 		dstptr++; \
-		dstpri++; \
+		/*dstpri++; */\
 	}
 
 
 #define OPAQUE_DO_TILEMAP_PIX_NOINC \
-	if (priority >= *dstpri) \
+	if (priority >= (*dstptr & 0xf000)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
 		{ \
-			*dstptr = pix | color; \
-			*dstpri = priority;	\
+			*dstptr = pix | color | priority; \
+			/**dstpri = priority;*/	\
 		} \
 	}
 
@@ -1852,13 +1839,13 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	const UINT8 pix = *srcdata++; \
 	if (pix & 0xf) \
 	{ \
-		*dstptr++ = pix | color; \
-		*dstpri++ = priority; \
+		*dstptr++ = pix | color | priority; \
+		/**dstpri++ = priority;*/ \
 	} \
 	else \
 	{ \
 		dstptr++; \
-		dstpri++; \
+		/*dstpri++; */\
 	} \
 	}
 
@@ -1868,8 +1855,8 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	UINT8 pix = *srcdata; \
 	if (pix & 0xf) \
 	{ \
-		*dstptr = pix | color; \
-		*dstpri = priority;	\
+		*dstptr = pix | color | priority; \
+		/**dstpri = priority;*/	\
 	} \
 	}
 
@@ -1877,8 +1864,8 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 #define OPAQUE_DO_TILEMAP_PIX_NOPRI \
 	{ \
 	const UINT8 pix = *srcdata++; \
-	*dstptr++ = pix | color; \
-	*dstpri++ = priority; \
+	*dstptr++ = pix | color | priority; \
+	/**dstpri++ = priority;*/ \
 	}
 
 #define OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI \
@@ -1886,8 +1873,8 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	UINT8 pix = *srcdata; \
 	if (pix & 0xf) \
 	{ \
-		*dstptr = pix | color; \
-		*dstpri = priority;	\
+		*dstptr = pix | color | priority; \
+		/**dstpri = priority;*/	\
 	} \
 	}
 
@@ -1898,7 +1885,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 16; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		OPAQUE_DO_TILEMAP_PIX; \
 		OPAQUE_DO_TILEMAP_PIX; \
@@ -1924,7 +1910,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			OPAQUE_DO_TILEMAP_PIX; \
 			OPAQUE_DO_TILEMAP_PIX; \
@@ -1961,7 +1946,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DO_TILEMAP_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -1983,7 +1967,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DO_TILEMAP_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -1996,7 +1979,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 16; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		DO_TILEMAP_PIX; \
 		DO_TILEMAP_PIX; \
@@ -2022,7 +2004,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			DO_TILEMAP_PIX; \
 			DO_TILEMAP_PIX; \
@@ -2059,7 +2040,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_TILEMAP_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -2081,7 +2061,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_TILEMAP_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -2096,7 +2075,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 16; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
 		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
@@ -2122,7 +2100,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
 			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
@@ -2159,7 +2136,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI; \
 				} \
 				srcdata++; \
@@ -2181,7 +2157,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI; \
 			} \
 			srcdata++; \
@@ -2194,7 +2169,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 16; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		DO_TILEMAP_PIX_NOPRI; \
 		DO_TILEMAP_PIX_NOPRI; \
@@ -2220,7 +2194,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			DO_TILEMAP_PIX_NOPRI; \
 			DO_TILEMAP_PIX_NOPRI; \
@@ -2257,7 +2230,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_TILEMAP_PIX_NOINC_NOPRI; \
 				} \
 				srcdata++; \
@@ -2279,7 +2251,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_TILEMAP_PIX_NOINC_NOPRI; \
 			} \
 			srcdata++; \
@@ -3425,7 +3396,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		DO_PIX_REV; \
 		DO_PIX_REV; \
@@ -3444,7 +3414,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			DO_PIX_REV; \
 			DO_PIX_REV; \
@@ -3473,7 +3442,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3489,7 +3457,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		DO_PIX; \
 		DO_PIX; \
@@ -3507,7 +3474,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			DO_PIX; \
 			DO_PIX; \
@@ -3536,7 +3502,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3553,7 +3518,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		DO_PIX_REV; \
 		DO_PIX_REV; \
@@ -3571,7 +3535,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			DO_PIX_REV; \
 			DO_PIX_REV; \
@@ -3600,7 +3563,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3617,7 +3579,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		DO_PIX; \
 		DO_PIX; \
@@ -3635,7 +3596,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			DO_PIX; \
 			DO_PIX; \
@@ -3664,7 +3624,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					DO_PIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3686,7 +3645,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -3703,7 +3661,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -3720,7 +3677,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -3737,7 +3693,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				DO_PIX_NOINC; \
 			} \
 			srcdata++; \
@@ -3758,7 +3713,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		OPAQUE_DOPIX_REV; \
 		OPAQUE_DOPIX_REV; \
@@ -3777,7 +3731,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			OPAQUE_DOPIX_REV; \
 			OPAQUE_DOPIX_REV; \
@@ -3806,7 +3759,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3822,7 +3774,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 7; yy != -1; yy += -1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		OPAQUE_DOPIX; \
 		OPAQUE_DOPIX; \
@@ -3840,7 +3791,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			OPAQUE_DOPIX; \
 			OPAQUE_DOPIX; \
@@ -3869,7 +3819,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3886,7 +3835,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 		OPAQUE_DOPIX_REV; \
 		OPAQUE_DOPIX_REV; \
@@ -3904,7 +3852,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx + 7; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
 			OPAQUE_DOPIX_REV; \
 			OPAQUE_DOPIX_REV; \
@@ -3933,7 +3880,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -3950,7 +3896,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 	for (int yy = 0; yy != 8; yy += 1) \
 	{ \
 		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 		OPAQUE_DOPIX; \
 		OPAQUE_DOPIX; \
@@ -3968,7 +3913,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		int drawyy = yy + sy; \
 		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
 		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
 			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
 			OPAQUE_DOPIX; \
 			OPAQUE_DOPIX; \
@@ -3997,7 +3941,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 				{ \
 					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 					OPAQUE_DOPIX_NOINC; \
 				} \
 				srcdata++; \
@@ -4019,7 +3962,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -4036,7 +3978,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -4053,7 +3994,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \
@@ -4070,7 +4010,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
 			{ \
 				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
 				OPAQUE_DOPIX_NOINC; \
 			} \
 			srcdata++; \

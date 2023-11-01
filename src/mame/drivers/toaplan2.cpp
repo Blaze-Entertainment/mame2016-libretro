@@ -3692,7 +3692,11 @@ WRITE16_MEMBER(toaplan2_state::toaplan2_palette_w)
 	{
 		const uint16_t color = m_paletteram[offset];
 		//m_palette->set_pen_color(offset, expanded_palette[color]);
-		m_palette->set_pen_color(offset, rgb_t( (color & 0x001f) << 3, (color & 0x03e0) >> 2, (color & 0x7c00) >> 7));
+		rgb_t entry = rgb_t( (color & 0x001f) << 3, (color & 0x03e0) >> 2, (color & 0x7c00) >> 7);
+		for (int i=0;i<0x10;i++)
+		{
+			m_palette->set_pen_color(offset+0x1000*i, entry );
+		}
 		//	rgb_t rgb = rgb_t(pal5bit(col & 0x1f), pal5bit(col >> 5), pal5bit(col >> 10));
 	}
 }
