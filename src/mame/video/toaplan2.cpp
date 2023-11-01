@@ -377,7 +377,7 @@ UINT32 toaplan2_state::screen_update_truxton2(screen_device &screen, bitmap_ind1
 	bitmap.fill(0, cliprect);
 	m_custom_priority_bitmap.fill(0, cliprect);
 
-	gp9001_draw_a_tilemap(bitmap, cliprect, &bg, m_vram_bg);
+	gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &bg, m_vram_bg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
 	draw_sprites(bitmap,cliprect);
@@ -1845,7 +1845,54 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		} \
 	}
 
+///////////////////////
 
+#define DO_TILEMAP_PIX_NOPRI \
+	{ \
+	const UINT8 pix = *srcdata++; \
+	if (pix & 0xf) \
+	{ \
+		*dstptr++ = pix | color; \
+		*dstpri++ = priority; \
+	} \
+	else \
+	{ \
+		dstptr++; \
+		dstpri++; \
+	} \
+	}
+
+
+#define DO_TILEMAP_PIX_NOINC_NOPRI \
+	{ \
+	UINT8 pix = *srcdata; \
+	if (pix & 0xf) \
+	{ \
+		*dstptr = pix | color; \
+		*dstpri = priority;	\
+	} \
+	}
+
+
+#define OPAQUE_DO_TILEMAP_PIX_NOPRI \
+	{ \
+	const UINT8 pix = *srcdata++; \
+	*dstptr++ = pix | color; \
+	*dstpri++ = priority; \
+	}
+
+#define OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI \
+	{ \
+	UINT8 pix = *srcdata; \
+	if (pix & 0xf) \
+	{ \
+		*dstptr = pix | color; \
+		*dstpri = priority;	\
+	} \
+	}
+
+
+///////////////
 
 #define OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
 	for (int yy = 0; yy != 16; yy += 1) \
@@ -2040,6 +2087,209 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 			srcdata++; \
 		} \
 	}
+
+
+/////////////////////////
+
+
+#define OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+	}
+
+#define OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+			OPAQUE_DO_TILEMAP_PIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 16; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+					OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 16; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+				OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+
+
+#define TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+		DO_TILEMAP_PIX_NOPRI; \
+	}
+
+#define TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+			DO_TILEMAP_PIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 16; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+					DO_TILEMAP_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 16; \
+		} \
+	}
+
+#define TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 16; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 16; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
+				DO_TILEMAP_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+
+
+///////////////////////
+
 
 void toaplan2_state::draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect )
 {
@@ -2531,6 +2781,76 @@ void toaplan2_state::draw_tmap_tile(bitmap_ind16& bitmap, const rectangle& clipr
 	}
 }
 
+
+void toaplan2_state::draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color)
+{
+	sprite &= m_gfxdecode->gfx(0)->elements() - 1;
+
+	if (m_gfxdecode->gfx(0)->has_pen_usage())
+	{
+		//fully transparent; do nothing
+		UINT32 usage = m_gfxdecode->gfx(0)->pen_usage(sprite);
+		if ((usage & ~(1 << 0)) == 0)
+			return;
+
+		if ((usage & (1 << 0)) == 0) // full opaque
+		{
+			const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
+
+			if ((sx >= cliprect.min_x) && (sx + 15 <= cliprect.max_x))
+			{ // x doesn't need clipping
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{  // fully unclipped
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{ // y needs clipping
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+				}
+			}
+			else // with clipping
+			{
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+				}
+			}
+		}
+		else
+		{ // has transparent bits
+			const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
+
+			if ((sx >= cliprect.min_x) && (sx + 15 <= cliprect.max_x))
+			{ // x doesn't need clipping
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{  // fully unclipped
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{ // y needs clipping
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+				}
+			}
+			else // with clipping
+			{
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+				}
+			}
+		}
+	}
+}
+
+
 void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
 {
 	int scrollxfg = tmap->realscrollx;
@@ -2568,11 +2888,59 @@ void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
 			int priority = (attrib & 0x0f00) << 4;
 
-			draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			//if (priority != 0xf000)
+				draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			//else
+			//	draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+
 		}
 	}
 
 }
+
+void toaplan2_state::gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
+{
+	int scrollxfg = tmap->realscrollx;
+	int scrollyfg = tmap->realscrolly;
+
+	int ydraw = -(scrollyfg & 0xf);
+	int xsource_base = (scrollxfg >> 4);
+	int xdrawbase = -(scrollxfg & 0xf);
+
+	int ysourcetile= (scrollyfg >> 4);
+
+	for (int y = 0; y < 16; y++, ydraw += 16, ysourcetile++)
+	{
+		ysourcetile &= 0x1f;
+
+		int xdraw = xdrawbase;
+		int xsourcetile  = xsource_base;
+
+		for (int x = 0; x < 21; x++, xdraw += 16, xsourcetile++)
+		{
+			xsourcetile &= 0x1f;
+
+			int tile_number, attrib;
+			int tile_index = ((ysourcetile * 32) + xsourcetile);
+				
+			attrib = vram[2*tile_index];
+
+			tile_number = vram[2*tile_index+1];
+
+			if (gp9001_gfxrom_is_banked)
+			{
+				tile_number = ( gp9001_gfxrom_bank[(tile_number >> 13) & 7] << 13 ) | ( tile_number & 0x1fff );
+			}
+
+			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
+			int priority = (attrib & 0x0f00) << 4;
+
+			draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+		}
+	}
+
+}
+
 
 
 
@@ -2584,7 +2952,7 @@ void toaplan2_state::gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &cl
 		gp9001_gfxrom_bank_dirty = 0;
 	}
 
-	gp9001_draw_a_tilemap(bitmap, cliprect, &bg, m_vram_bg);
+	gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &bg, m_vram_bg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
 	draw_sprites(bitmap,cliprect);
@@ -2654,9 +3022,9 @@ void toaplan2_state::second_vdp_start()
 	save_item(NAME(second_top.flip));
 	save_item(NAME(second_sp.flip));
 
-	second_gp9001_gfxrom_is_banked = 0;
-	second_gp9001_gfxrom_bank_dirty = 0;
-	save_item(NAME(second_gp9001_gfxrom_bank));
+	//second_gp9001_gfxrom_is_banked = 0;
+	//second_gp9001_gfxrom_bank_dirty = 0;
+	//save_item(NAME(second_gp9001_gfxrom_bank));
 
 	// default layer offsets used by all original games
 	second_bg.extra_xoffset.normal  = -0x1d6;
@@ -3721,200 +4089,6 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 
 
 
-#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
-		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-		OPAQUE_DO_TILEMAP_PIX; \
-	}
-
-#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
-		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
-			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-			OPAQUE_DO_TILEMAP_PIX; \
-		} \
-		else \
-		{ \
-			srcdata += 16; \
-		} \
-	}
-
-#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
-		{ \
-			for (int xx = 0; xx != 16; xx += 1) \
-			{ \
-				int drawxx = xx + sx; \
-				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
-				{ \
-					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
-					OPAQUE_DO_TILEMAP_PIX_NOINC; \
-				} \
-				srcdata++; \
-			} \
-		} \
-		else \
-		{ \
-			srcdata += 16; \
-		} \
-	}
-
-#define second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		for (int xx = 0; xx != 16; xx += 1) \
-		{ \
-			int drawxx = xx + sx; \
-			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
-			{ \
-				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
-				OPAQUE_DO_TILEMAP_PIX_NOINC; \
-			} \
-			srcdata++; \
-		} \
-	}
-
-
-
-#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
-		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-		DO_TILEMAP_PIX; \
-	}
-
-#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
-		{ \
-			UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy) + sx; \
-			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-			DO_TILEMAP_PIX; \
-		} \
-		else \
-		{ \
-			srcdata += 16; \
-		} \
-	}
-
-#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
-		{ \
-			for (int xx = 0; xx != 16; xx += 1) \
-			{ \
-				int drawxx = xx + sx; \
-				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
-				{ \
-					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-					UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
-					DO_TILEMAP_PIX_NOINC; \
-				} \
-				srcdata++; \
-			} \
-		} \
-		else \
-		{ \
-			srcdata += 16; \
-		} \
-	}
-
-#define second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY \
-	for (int yy = 0; yy != 16; yy += 1) \
-	{ \
-		int drawyy = yy + sy; \
-		for (int xx = 0; xx != 16; xx += 1) \
-		{ \
-			int drawxx = xx + sx; \
-			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
-			{ \
-				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
-				UINT16* dstpri = (UINT16*)&this->custom_priority_bitmap->pix16(drawyy, drawxx); \
-				DO_TILEMAP_PIX_NOINC; \
-			} \
-			srcdata++; \
-		} \
-	}
-
 void toaplan2_state::second_draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect )
 {
 	const UINT16 primask = (GP9001_PRIMASK << 8);
@@ -3938,16 +4112,16 @@ void toaplan2_state::second_draw_sprites( bitmap_ind16 &bitmap, const rectangle 
 		if ((attrib & 0x8000))
 		{
 			int sprite;
-			if (!second_gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
+			//if (!second_gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
 			{
 				sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
 			}
-			else        /* Batrider Sprite select bank switching required */
-			{
-				const int sprite_num = source[offs + 1] & 0x7fff;
-				const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
-				sprite = (second_gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
-			}
+			//else        /* Batrider Sprite select bank switching required */
+			//{
+			//	const int sprite_num = source[offs + 1] & 0x7fff;
+			//	const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+			//	sprite = (second_gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
+			//}
 			const int color = ((attrib >> 2) & 0x3f) << 4;
 
 			/***** find out sprite size *****/
@@ -4356,22 +4530,22 @@ void toaplan2_state::second_draw_tmap_tile(bitmap_ind16& bitmap, const rectangle
 			{ // x doesn't need clipping
 				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
 				{  // fully unclipped
-					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
 				}
 				else
 				{ // y needs clipping
-					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
 				}
 			}
 			else // with clipping
 			{
 				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
 				{
-					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
 				}
 				else
 				{
-					second_OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
 				}
 			}
 		}
@@ -4383,27 +4557,97 @@ void toaplan2_state::second_draw_tmap_tile(bitmap_ind16& bitmap, const rectangle
 			{ // x doesn't need clipping
 				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
 				{  // fully unclipped
-					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
 				}
 				else
 				{ // y needs clipping
-					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
 				}
 			}
 			else // with clipping
 			{
 				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
 				{
-					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
 				}
 				else
 				{
-					second_TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
 				}
 			}
 		}
 	}
 }
+
+
+void toaplan2_state::second_draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color)
+{
+	sprite &= m_gfxdecode->gfx(2)->elements() - 1;
+
+	if (m_gfxdecode->gfx(2)->has_pen_usage())
+	{
+		//fully transparent; do nothing
+		UINT32 usage = m_gfxdecode->gfx(2)->pen_usage(sprite);
+		if ((usage & ~(1 << 0)) == 0)
+			return;
+
+		if ((usage & (1 << 0)) == 0) // full opaque
+		{
+			const UINT8* srcdata = m_gfxdecode->gfx(2)->get_data(sprite);
+
+			if ((sx >= cliprect.min_x) && (sx + 15 <= cliprect.max_x))
+			{ // x doesn't need clipping
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{  // fully unclipped
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{ // y needs clipping
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+				}
+			}
+			else // with clipping
+			{
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{
+					OPAQUE16_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+				}
+			}
+		}
+		else
+		{ // has transparent bits
+			const UINT8* srcdata = m_gfxdecode->gfx(2)->get_data(sprite);
+
+			if ((sx >= cliprect.min_x) && (sx + 15 <= cliprect.max_x))
+			{ // x doesn't need clipping
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{  // fully unclipped
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{ // y needs clipping
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+				}
+			}
+			else // with clipping
+			{
+				if ((sy >= cliprect.min_y) && (sy + 15 <= cliprect.max_y))
+				{
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+				}
+				else
+				{
+					TRANS16_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+				}
+			}
+		}
+	}
+}
+
 
 void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
 {
@@ -4434,10 +4678,10 @@ void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const re
 
 			tile_number = vram[2*tile_index+1];
 
-			if (second_gp9001_gfxrom_is_banked)
-			{
-				tile_number = ( second_gp9001_gfxrom_bank[(tile_number >> 13) & 7] << 13 ) | ( tile_number & 0x1fff );
-			}
+			//if (second_gp9001_gfxrom_is_banked)
+			//{
+			//	tile_number = ( second_gp9001_gfxrom_bank[(tile_number >> 13) & 7] << 13 ) | ( tile_number & 0x1fff );
+			//}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
 			int priority = (attrib & 0x0f00) << 4;
@@ -4448,17 +4692,62 @@ void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const re
 
 }
 
+void toaplan2_state::second_gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
+{
+	int scrollxfg = tmap->realscrollx;
+	int scrollyfg = tmap->realscrolly;
+
+	int ydraw = -(scrollyfg & 0xf);
+	int xsource_base = (scrollxfg >> 4);
+	int xdrawbase = -(scrollxfg & 0xf);
+
+	int ysourcetile= (scrollyfg >> 4);
+
+	for (int y = 0; y < 16; y++, ydraw += 16, ysourcetile++)
+	{
+		ysourcetile &= 0x1f;
+
+		int xdraw = xdrawbase;
+		int xsourcetile  = xsource_base;
+
+		for (int x = 0; x < 21; x++, xdraw += 16, xsourcetile++)
+		{
+			xsourcetile &= 0x1f;
+
+			int tile_number, attrib;
+			int tile_index = ((ysourcetile * 32) + xsourcetile);
+				
+			attrib = vram[2*tile_index];
+
+			tile_number = vram[2*tile_index+1];
+
+			//if (second_gp9001_gfxrom_is_banked)
+			//{
+			//	tile_number = ( second_gp9001_gfxrom_bank[(tile_number >> 13) & 7] << 13 ) | ( tile_number & 0x1fff );
+			//}
+
+			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
+			int priority = (attrib & 0x0f00) << 4;
+
+			//if (priority != 0xf000)
+				second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			//else
+			//	second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+		}
+	}
+
+}
 
 
 
 void toaplan2_state::second_gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &cliprect)
 {
-	if (second_gp9001_gfxrom_is_banked && second_gp9001_gfxrom_bank_dirty)
-	{
-		second_gp9001_gfxrom_bank_dirty = 0;
-	}
+	//if (second_gp9001_gfxrom_is_banked && second_gp9001_gfxrom_bank_dirty)
+	//{
+	//	second_gp9001_gfxrom_bank_dirty = 0;
+	//}
 
-	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_bg, second_m_vram_bg);
+	second_gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &second_bg, second_m_vram_bg);
 	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_fg, second_m_vram_fg);
 	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_top, second_m_vram_top);
 	second_draw_sprites(bitmap,cliprect);

@@ -151,7 +151,10 @@ public:
 	UINT16 m_unkram[0x800];
 	void draw_tmap_tile(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
 	void gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx* tmap, UINT16* vram);
-	void draw_tmap_tile_noclip(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
+
+	void draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
+	void gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx* tmap, UINT16* vram);
+
 
 	int m_status;
 
@@ -176,9 +179,9 @@ public:
 	// technically this is just rom banking, allowing the chip to see more graphic ROM, however it's easier to handle it
 	// in the chip implementation than externally for now (which would require dynamic decoding of the entire charsets every
 	// time the bank was changed)
-	int second_gp9001_gfxrom_is_banked;
-	int second_gp9001_gfxrom_bank_dirty;       /* dirty flag of object bank (for Batrider) */
-	UINT16 second_gp9001_gfxrom_bank[8];       /* Batrider object bank */
+	//int second_gp9001_gfxrom_is_banked;
+	//int second_gp9001_gfxrom_bank_dirty;       /* dirty flag of object bank (for Batrider) */
+	//UINT16 second_gp9001_gfxrom_bank[8];       /* Batrider object bank */
 
 
 	void second_draw_sprites( bitmap_ind16 &bitmap, const rectangle &cliprect );
@@ -221,7 +224,10 @@ public:
 	UINT16 second_m_unkram[0x800];
 	void second_draw_tmap_tile(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
 	void second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx* tmap, UINT16* vram);
-	void second_draw_tmap_tile_noclip(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
+
+	void second_draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color);
+	void second_gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx* tmap, UINT16* vram);
+
 
 	int second_m_status;
 

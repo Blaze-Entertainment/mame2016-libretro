@@ -454,6 +454,9 @@ MACHINE_START_MEMBER(toaplan2_state, dogyuun)
 MACHINE_START_MEMBER(toaplan2_state, batsugun)
 {
 #if 1
+	if (m_v25audiocpu)
+		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0);
+
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
