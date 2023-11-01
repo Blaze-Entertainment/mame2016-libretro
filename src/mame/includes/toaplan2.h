@@ -274,6 +274,7 @@ public:
 
 	DECLARE_READ8_MEMBER(vfive_sound_skip_r);
 	DECLARE_READ8_MEMBER(fixeight_alt_sound_skip_r);
+	DECLARE_READ8_MEMBER(batsugun_sound_skip_r);
 	DECLARE_WRITE16_MEMBER(v5_shared_ram_w);
 	IRQ_CALLBACK_MEMBER(irqack);
 	DECLARE_WRITE8_MEMBER(sound_status_changed);
@@ -350,6 +351,7 @@ public:
 	DECLARE_CUSTOM_INPUT_MEMBER(c2map_r);
 	DECLARE_WRITE16_MEMBER(oki_bankswitch_w);
 	DECLARE_WRITE16_MEMBER(oki1_bankswitch_w);
+	DECLARE_DRIVER_INIT(batsugun);
 	DECLARE_DRIVER_INIT(bbakraid);
 	DECLARE_DRIVER_INIT(pipibibsbl);
 	DECLARE_DRIVER_INIT(dogyuun);

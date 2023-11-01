@@ -455,7 +455,7 @@ MACHINE_START_MEMBER(toaplan2_state, batsugun)
 {
 #if 1
 	if (m_v25audiocpu)
-		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0);
+		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0xA0065);
 
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
@@ -559,6 +559,17 @@ DRIVER_INIT_MEMBER(toaplan2_state,dogyuun)
 	//const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
 }
 
+DRIVER_INIT_MEMBER(toaplan2_state,batsugun)
+{
+	m_v25_reset_line = 0x20;
+
+	m_v25audiocpu->space(AS_PROGRAM).install_read_handler(0xA0065, 0xA0065, read8_delegate(FUNC(toaplan2_state::batsugun_sound_skip_r), this));
+
+	//int sprite = 0;
+	//const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
+}
+
+
 READ8_MEMBER(toaplan2_state::tekipaki_sound_skip_r)
 {
 	int pc = m_audiocpu->pc();
@@ -638,6 +649,23 @@ READ8_MEMBER(toaplan2_state::fixeight_alt_sound_skip_r)
 	return m_shared_ram[0x2fc];
 }
 
+READ8_MEMBER(toaplan2_state::batsugun_sound_skip_r)
+{
+	int pc = m_v25audiocpu->pc();
+
+	if (pc == 0xA0066)
+	{
+		UINT8 result = m_shared_ram[0x7FF9];
+		if (result == 0)
+		{
+			//printf("spinning\n");
+			space.device().execute().spin_until_trigger(666);
+			//m_v25audiocpu->spin_until_interrupt();
+		}
+	}
+
+	return m_shared_ram[0x65];
+}
 
 
 
@@ -4276,6 +4304,7 @@ static MACHINE_CONFIG_START( batsugun, toaplan2_state )
 	MCFG_CPU_ADD("v25audiocpu", SIMPLETOAPLAN_V25, XTAL_32MHz/2)         /* NEC SIMPLETOAPLAN_V25 type Toaplan marked CPU ??? */
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
 	MCFG_CPU_IO_MAP(v25_port)
+	MCFG_DEVICE_IRQ_ACKNOWLEDGE_DRIVER(toaplan2_state, irqack)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,batsugun)
 
@@ -6094,10 +6123,10 @@ GAME( 1992, grindstm,   0,        vfive,    grindstm, toaplan2_state,   vfive,  
 GAME( 1992, grindstma,  grindstm, vfive,    grindstma, toaplan2_state,  vfive,   ROT270, "Toaplan", "Grind Stormer (older set)", MACHINE_SUPPORTS_SAVE )
 GAME( 1993, vfive,      grindstm, vfive,    vfive, toaplan2_state,      vfive,   ROT270, "Toaplan", "V-Five (Japan)", MACHINE_SUPPORTS_SAVE )
 
-GAME( 1993, batsugun,   0,        batsugun, batsugun, toaplan2_state,   dogyuun, ROT270, "Toaplan", "Batsugun", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsuguna,  batsugun, batsugun, batsugun, toaplan2_state,   dogyuun, ROT270, "Toaplan", "Batsugun (older set)", MACHINE_SUPPORTS_SAVE )
-GAME( 1993, batsugunb,  batsugun, batsugun, batsugun, toaplan2_state,   dogyuun, ROT270, "Toaplan", "Batsugun (Korean PCB)", MACHINE_SUPPORTS_SAVE ) // cheap looking PCB (same 'TP-030' numbering as original) but without Mask ROMs.  Still has original customs etc.  Jumpers were set to the Korea Unite Trading license, so likely made in Korea, not a bootleg tho.
-GAME( 1993, batsugunsp, batsugun, batsugun, batsugun, toaplan2_state,   dogyuun, ROT270, "Toaplan", "Batsugun - Special Version", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugun,   0,        batsugun, batsugun, toaplan2_state,   batsugun, ROT270, "Toaplan", "Batsugun", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsuguna,  batsugun, batsugun, batsugun, toaplan2_state,   batsugun, ROT270, "Toaplan", "Batsugun (older set)", MACHINE_SUPPORTS_SAVE )
+GAME( 1993, batsugunb,  batsugun, batsugun, batsugun, toaplan2_state,   batsugun, ROT270, "Toaplan", "Batsugun (Korean PCB)", MACHINE_SUPPORTS_SAVE ) // cheap looking PCB (same 'TP-030' numbering as original) but without Mask ROMs.  Still has original customs etc.  Jumpers were set to the Korea Unite Trading license, so likely made in Korea, not a bootleg tho.
+GAME( 1993, batsugunsp, batsugun, batsugun, batsugun, toaplan2_state,   batsugun, ROT270, "Toaplan", "Batsugun - Special Version", MACHINE_SUPPORTS_SAVE )
 
 GAME( 1994, pwrkick,    0,        pwrkick,  pwrkick, driver_device,    0,       ROT0,   "Sunwise",  "Power Kick (Japan)", 0 )
 GAME( 1995, othldrby,   0,        othldrby, othldrby,driver_device,    0,       ROT0,   "Sunwise",  "Othello Derby (Japan)", 0 )
