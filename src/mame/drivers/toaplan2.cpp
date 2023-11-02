@@ -3695,7 +3695,7 @@ WRITE16_MEMBER(toaplan2_state::toaplan2_palette_w)
 		rgb_t entry = rgb_t( (color & 0x001f) << 3, (color & 0x03e0) >> 2, (color & 0x7c00) >> 7);
 		for (int i=0;i<0x10;i++)
 		{
-			m_palette->set_pen_color(offset+0x1000*i, entry );
+			m_palette->set_pen_color(offset+0x800*i, entry );
 		}
 		//	rgb_t rgb = rgb_t(pal5bit(col & 0x1f), pal5bit(col >> 5), pal5bit(col >> 10));
 	}
@@ -5333,19 +5333,21 @@ ROM_START( othldrby )
 	ROM_LOAD( "db0.4",        0x00000, 0x80000, CRC(a9701868) SHA1(9ee89556666d358e8d3915622573b3ba660048b8) )
 ROM_END
 
+#if 0
 ROM_START( snowbro2 )
 	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
 	ROM_LOAD16_WORD_SWAP( "pro-4", 0x000000, 0x080000, CRC(4c7ee341) SHA1(ad46c605a38565d0148daac301be4e4b72302fe7) )
 
-	ROM_REGION( 0x300000, "gp9001", 0 )
+	ROM_REGION( 0x400000, "gp9001", 0 )
 	ROM_LOAD( "rom2-l", 0x000000, 0x100000, CRC(e9d366a9) SHA1(e87e3966fce3395324b90db6c134b3345104c04b) )
 	ROM_LOAD( "rom2-h", 0x100000, 0x080000, CRC(9aab7a62) SHA1(611f6a15fdbac5d3063426a365538c1482e996bf) )
-	ROM_LOAD( "rom3-l", 0x180000, 0x100000, CRC(eb06e332) SHA1(7cd597bfffc153d178530c0f0903bebd751c9dd1) )
-	ROM_LOAD( "rom3-h", 0x280000, 0x080000, CRC(df4a952a) SHA1(b76af61c8437caca573ff1312832898666a611aa) )
+	ROM_LOAD( "rom3-l", 0x200000, 0x100000, CRC(eb06e332) SHA1(7cd597bfffc153d178530c0f0903bebd751c9dd1) )
+	ROM_LOAD( "rom3-h", 0x380000, 0x080000, CRC(df4a952a) SHA1(b76af61c8437caca573ff1312832898666a611aa) )
 
 	ROM_REGION( 0x80000, "oki", 0 )         /* ADPCM Samples */
 	ROM_LOAD( "rom4", 0x00000, 0x80000, CRC(638f341e) SHA1(aa3fca25f099339ece1878ea730c5e9f18ec4823) )
 ROM_END
+#endif
 
 ROM_START( snowbro2b ) // seems to be the same data as the main set, but with the extra user1 rom and different rom layout
 	ROM_REGION( 0x080000, "maincpu", 0 )    /* Main 68K code - difference with main set is year changed from 1994 to 1998 and upper FFFF fill changed to 00FF fill */
@@ -5362,6 +5364,40 @@ ROM_START( snowbro2b ) // seems to be the same data as the main set, but with th
 	ROM_REGION( 0x8000, "user1", 0 )        /* ??? Some sort of table - same as other bootleg boards */
 	ROM_LOAD( "sb2-unk.u100", 0x0000, 0x8000, CRC(456dd16e) SHA1(84779ee64d3ea33ba1ba4dee39b504a81c6811a1) )
 ROM_END
+
+ROM_START( snowbro2 ) // seems to mostly be the same data, but with copyright changed to Q Elec. Only set with staff credits still present. Also differently arranged graphics ROMs data.
+	ROM_REGION( 0x080000, "maincpu", 0 )            /* Main 68K code */
+	ROM_LOAD16_WORD_SWAP( "rom10.bin", 0x000000, 0x080000, CRC(3e96da41) SHA1(692211d40f506efb9cb49848521de2da7890e248) ) // 27c04002
+
+	ROM_REGION( 0x400000, "gp9001", 0 )
+	ROM_LOAD16_BYTE( "rom07.bin", 0x000000, 0x080000, CRC(c54ae0b3) SHA1(94099b2da52eb12638799eab0819fe8a13aa3879) ) // 27c040
+	ROM_LOAD16_BYTE( "rom05.bin", 0x000001, 0x080000, CRC(af3c74d1) SHA1(e97a688db50dfe41723452a9f652564e89e367ed) ) // 27c040
+	ROM_LOAD16_BYTE( "rom08.bin", 0x100000, 0x040000, CRC(72812088) SHA1(1c0d410a7dd8de0bc48b7ff677979ad269966f7d) ) // 27c02001
+	ROM_LOAD16_BYTE( "rom06.bin", 0x100001, 0x040000, CRC(c8f80774) SHA1(004752d7dfa08c3beb774f545fe3260d328abff0) ) // 27c02001
+	
+	ROM_LOAD16_BYTE( "rom03.bin", 0x200000, 0x080000, CRC(42fecbd7) SHA1(96dc9d5495d7830400ca7475c6613119099e93f2) ) // 27c040
+	ROM_LOAD16_BYTE( "rom01.bin", 0x200001, 0x080000, CRC(e7134937) SHA1(7c12e7c6b08f804613e5ea0db8d622bda01bc036) ) // 27c040
+	ROM_LOAD16_BYTE( "rom04.bin", 0x300000, 0x040000, CRC(3343b7a7) SHA1(10efcb2dfae635f005773655faa573bf51ddc6a3) ) // 27c020
+	ROM_LOAD16_BYTE( "rom02.bin", 0x300001, 0x040000, CRC(af4d9551) SHA1(adcf1641e37b239b1ae4322b5710d49e53c30684) ) // 27c020
+
+	ROM_REGION( 0x80000, "oki", 0 )         /* ADPCM Samples */
+	ROM_LOAD( "rom09.bin", 0x00000, 0x80000, CRC(638f341e) SHA1(aa3fca25f099339ece1878ea730c5e9f18ec4823) )
+ROM_END
+
+ROM_START( snowbro2b3 ) // SK000616 PCB, no original parts, seems hardcoded on Europe region
+	ROM_REGION( 0x080000, "maincpu", 0 )
+	ROM_LOAD16_WORD_SWAP( "prg", 0x000000, 0x080000, CRC(8ce2ede2) SHA1(ddd8a2aa442cd5bb3a7d393b9b5c06fd981e7c61) )
+
+	ROM_REGION( 0x400000, "gp9001_0", 0 ) // not actually a GP9001
+	ROM_LOAD( "gfx2", 0x100000, 0x100000, CRC(a3be41af) SHA1(4cb1ce9c47bf8bbf7d1e36f6a1d276ce52957cfb) )
+	ROM_CONTINUE(     0x000000, 0x100000 )
+	ROM_LOAD( "gfx1", 0x300000, 0x100000, CRC(8df1ab06) SHA1(2a28caf7d545dc05acfcd2a8d2ffbd9f710af45d) )
+	ROM_CONTINUE(     0x200000, 0x100000 )
+
+	ROM_REGION( 0x80000, "oki1", 0 )
+	ROM_LOAD( "voice", 0x00000, 0x80000, CRC(638f341e) SHA1(aa3fca25f099339ece1878ea730c5e9f18ec4823) )
+ROM_END
+
 
 /* -------------------------- Raizing games ------------------------- */
 

@@ -1046,7 +1046,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define DO_PIX \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		if (pix & 0xf) \
@@ -1069,7 +1069,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define DO_PIX_REV \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		if (pix & 0xf) \
@@ -1091,7 +1091,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	}
 
 #define DO_PIX_NOINC \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
@@ -1420,7 +1420,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define OPAQUE_DOPIX \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		*dstptr++ = pix | color | priority; \
@@ -1435,7 +1435,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define OPAQUE_DOPIX_REV \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		*dstptr-- = pix | color | priority; \
@@ -1449,7 +1449,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	}
 
 #define OPAQUE_DOPIX_NOINC \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
@@ -1774,7 +1774,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 /////////////////////////////////////////////////////////////////
 
 #define DO_TILEMAP_PIX \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		if (pix & 0xf) \
@@ -1796,7 +1796,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	}
 
 #define DO_TILEMAP_PIX_NOINC \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
@@ -1807,7 +1807,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	}
 
 #define OPAQUE_DO_TILEMAP_PIX \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		const UINT8 pix = *srcdata++; \
 		*dstptr++ = pix | color | priority; \
@@ -1822,7 +1822,7 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 
 
 #define OPAQUE_DO_TILEMAP_PIX_NOINC \
-	if (priority >= (*dstptr & 0xf000)) \
+	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		UINT8 pix = *srcdata; \
 		if (pix & 0xf) \
@@ -2278,7 +2278,7 @@ void toaplan2_state::draw_sprites( bitmap_ind16 &bitmap, const rectangle &clipre
 	for (int offs = 0; offs < (GP9001_SPRITERAM_SIZE/2); offs += 4)
 	{
 		const int attrib = source[offs];
-		const UINT16 priority = ((attrib & primask) >> 8) << 12;// << 3;
+		const UINT16 priority = ((attrib & primask) >> 8) << 11;// << 3;
 			
 	//	priority+=1;
 
@@ -2857,7 +2857,7 @@ void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle
 			}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
 
 			draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
@@ -2900,7 +2900,7 @@ void toaplan2_state::gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rec
 			}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
 
 			draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
@@ -4040,7 +4040,7 @@ void toaplan2_state::second_draw_sprites( bitmap_ind16 &bitmap, const rectangle 
 	for (int offs = 0; offs < (GP9001_SPRITERAM_SIZE/2); offs += 4)
 	{
 		const int attrib = source[offs];
-		const UINT16 priority = ((attrib & primask) >> 8) << 12;// << 3;
+		const UINT16 priority = ((attrib & primask) >> 8) << 11;// << 3;
 			
 	//	priority+=1;
 
@@ -4619,7 +4619,7 @@ void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const re
 			//}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
 
 			second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
@@ -4662,7 +4662,7 @@ void toaplan2_state::second_gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, co
 			//}
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
-			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 4;
+			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
 
 			second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
 		}
