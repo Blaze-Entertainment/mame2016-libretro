@@ -443,10 +443,16 @@ MACHINE_START_MEMBER(toaplan2_state, kbash)
 
 MACHINE_START_MEMBER(toaplan2_state, dogyuun)
 {
-#if 0
+#if 1
+	if (m_v25audiocpu)
+		m_v25audiocpu->set_shareram(m_shared_ram, 0x80000, 0xf8000, 0x7fff, 0);
+
+
 	UINT16* rom = (UINT16*)memregion("maincpu")->base();
 	UINT32 size = memregion("maincpu")->bytes();
 	m_maincpu->set_fastrom(rom,size);
+
+	m_v25audiocpu->set_clock_scale(0.75f);
 #endif
 	MACHINE_START_CALL_MEMBER(toaplan2);
 }
@@ -554,6 +560,8 @@ MACHINE_RESET_MEMBER(toaplan2_state,ghox)
 DRIVER_INIT_MEMBER(toaplan2_state,dogyuun)
 {
 	m_v25_reset_line = 0x20;
+	m_v25audiocpu->space(AS_PROGRAM).install_read_handler(0xA0189, 0xA0189, read8_delegate(FUNC(toaplan2_state::dogyuun_sound_skip_r), this));
+
 
 	//int sprite = 0;
 	//const UINT8* srcdata = m_gfxdecode->gfx(0)->get_data(sprite);
@@ -665,6 +673,25 @@ READ8_MEMBER(toaplan2_state::batsugun_sound_skip_r)
 	}
 
 	return m_shared_ram[0x65];
+}
+
+
+READ8_MEMBER(toaplan2_state::dogyuun_sound_skip_r)
+{
+	int pc = m_v25audiocpu->pc();
+
+	if (pc == 0xA0189+1)
+	{
+		UINT8 result = m_shared_ram[0x7FF9];
+		if (result == 0)
+		{
+			//printf("spinning\n");
+			space.device().execute().spin_until_trigger(666);
+			//m_v25audiocpu->spin_until_interrupt();
+		}
+	}
+
+	return m_shared_ram[0x189];
 }
 
 
@@ -3857,6 +3884,7 @@ static MACHINE_CONFIG_START( dogyuun, toaplan2_state )
 	MCFG_CPU_PROGRAM_MAP(v25_mem)
 	MCFG_CPU_IO_MAP(dogyuun_v25_port)
 	MCFG_SIMPLETOAPLAN_V25_CONFIG(nitro_decryption_table)
+	MCFG_DEVICE_IRQ_ACKNOWLEDGE_DRIVER(toaplan2_state, irqack)
 
 	MCFG_MACHINE_START_OVERRIDE(toaplan2_state,dogyuun)
 

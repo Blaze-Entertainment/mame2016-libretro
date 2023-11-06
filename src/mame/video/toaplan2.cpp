@@ -396,6 +396,7 @@ UINT32 toaplan2_state::screen_update_truxton2(screen_device &screen, bitmap_ind1
 
 	bitmap.fill(0, cliprect);
 
+	m_maxpri = 0;
 	gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &bg, m_vram_bg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
@@ -1101,6 +1102,49 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		} \
 	}
 
+/////////
+
+
+#define DO_PIX_NOPRI \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		if (pix & 0xf) \
+		{ \
+			*dstptr++ = pix | color | priority; \
+		} \
+		else \
+		{ \
+			dstptr++; \
+		} \
+	}
+
+#define DO_PIX_REV_NOPRI \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		if (pix & 0xf) \
+		{ \
+			*dstptr-- = pix | color | priority; \
+		} \
+		else \
+		{ \
+			dstptr--; \
+		} \
+	}
+
+
+#define DO_PIX_NOINC_NOPRI \
+	{ \
+		UINT8 pix = *srcdata; \
+		if (pix & 0xf) \
+		{ \
+			*dstptr = pix | color | priority; \
+		} \
+	}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 #define HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY \
 	for (int yy = 7; yy != -1; yy += -1) \
@@ -1410,6 +1454,317 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	}
 
 
+////////
+
+
+
+#define HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+	}
+
+
+#define HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_FLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI \
+	}
+
+#define HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+	}
+
+#define HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
@@ -1424,13 +1779,11 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	{ \
 		const UINT8 pix = *srcdata++; \
 		*dstptr++ = pix | color | priority; \
-		/**dstpri++ = priority;*/ \
 	} \
 	else \
 	{ \
 		srcdata++; \
 		dstptr++; \
-		/*dstpri++; */\
 	}
 
 
@@ -1439,25 +1792,70 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	{ \
 		const UINT8 pix = *srcdata++; \
 		*dstptr-- = pix | color | priority; \
-		/**dstpri-- = priority;*/ \
 	} \
 	else \
 	{ \
 		srcdata++; \
 		dstptr--; \
-		/*dstpri--;*/ \
 	}
 
 #define OPAQUE_DOPIX_NOINC \
 	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		UINT8 pix = *srcdata; \
-		if (pix & 0xf) \
-		{ \
-			*dstptr = pix | color | priority; \
-			/**dstpri = priority;*/	\
-		} \
+		*dstptr = pix | color | priority; \
 	}
+
+////////////////////////////////////////////////////
+
+#define OPAQUE_DOPIX_NOPRI \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		*dstptr++ = pix | color | priority; \
+	}
+
+#define OPAQUE_DOPIX_REV_NOPRI \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		*dstptr-- = pix | color | priority; \
+	}
+
+#define OPAQUE_DOPIX_NOINC_NOPRI \
+	{ \
+		UINT8 pix = *srcdata; \
+		*dstptr = pix | color | priority; \
+	}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#define OPAQUE_DOPIX_NOPRI \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		*dstptr++ = pix | color | priority; \
+	} 
+
+
+#define OPAQUE_DOPIX_REV_NOPRI \
+	{ \
+		const UINT8 pix = *srcdata++; \
+		*dstptr-- = pix | color | priority; \
+	} 
+
+
+#define OPAQUE_DOPIX_NOINC_NOPRI \
+	{ \
+		UINT8 pix = *srcdata; \
+		*dstptr = pix | color | priority; \
+	}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 #define OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY \
@@ -1767,6 +2165,318 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 		} \
 	}
 
+/////////////////////
+
+
+
+#define OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+	}
+
+
+#define OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+	}
+
+#define OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
@@ -1825,7 +2535,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	if (priority >= (*dstptr & 0x7800)) \
 	{ \
 		UINT8 pix = *srcdata; \
-		if (pix & 0xf) \
 		{ \
 			*dstptr = pix | color | priority; \
 			/**dstpri = priority;*/	\
@@ -1840,12 +2549,10 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	if (pix & 0xf) \
 	{ \
 		*dstptr++ = pix | color | priority; \
-		/**dstpri++ = priority;*/ \
 	} \
 	else \
 	{ \
 		dstptr++; \
-		/*dstpri++; */\
 	} \
 	}
 
@@ -1856,7 +2563,6 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	if (pix & 0xf) \
 	{ \
 		*dstptr = pix | color | priority; \
-		/**dstpri = priority;*/	\
 	} \
 	}
 
@@ -1865,17 +2571,12 @@ WRITE16_MEMBER( toaplan2_state::pipibibi_bootleg_spriteram16_w )
 	{ \
 	const UINT8 pix = *srcdata++; \
 	*dstptr++ = pix | color | priority; \
-	/**dstpri++ = priority;*/ \
 	}
 
 #define OPAQUE_DO_TILEMAP_PIX_NOINC_NOPRI \
 	{ \
-	UINT8 pix = *srcdata; \
-	if (pix & 0xf) \
-	{ \
+		UINT8 pix = *srcdata; \
 		*dstptr = pix | color | priority; \
-		/**dstpri = priority;*/	\
-	} \
 	}
 
 
@@ -2282,398 +2983,801 @@ void toaplan2_state::draw_sprites( bitmap_ind16 &bitmap, const rectangle &clipre
 			
 	//	priority+=1;
 
+
+		
+	
+
 		if ((attrib & 0x8000))
 		{
-			int sprite;
-			if (!gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
+
+			if (priority >= m_maxpri)
 			{
-				sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
-			}
-			else        /* Batrider Sprite select bank switching required */
-			{
-				const int sprite_num = source[offs + 1] & 0x7fff;
-				const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
-				sprite = (gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
-			}
-			const int color = ((attrib >> 2) & 0x3f) << 4;
-
-			/***** find out sprite size *****/
-			const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
-			const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
-
-			/***** find position to display sprite *****/
-			int sx_base, sy_base;
-			if (!(attrib & 0x4000))
-			{
-				sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
-				sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
-
-			} else {
-				sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
-				sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
-			}
-
-			old_x = sx_base;
-			old_y = sy_base;
-
-			int flipx = attrib & GP9001_SPRITE_FLIPX;
-			int flipy = attrib & GP9001_SPRITE_FLIPY;
-
-			if (flipx)
-			{
-				/***** Wrap sprite position around *****/
-				sx_base -= 7;
-				if (sx_base >= 0x1c0) sx_base -= 0x200;
-			}
-			else
-			{
-				if (sx_base >= 0x180) sx_base -= 0x200;
-			}
-
-			if (flipy)
-			{
-				sy_base -= 7;
-				if (sy_base >= 0x1c0) sy_base -= 0x200;
-			}
-			else
-			{
-				if (sy_base >= 0x180) sy_base -= 0x200;
-			}
-
-			/***** Flip the sprite layer in any active X or Y flip *****/
-			if (sp.flip)
-			{
-				if (sp.flip & GP9001_SPRITE_FLIPX)
-					sx_base = 320 - sx_base;
-				if (sp.flip & GP9001_SPRITE_FLIPY)
-					sy_base = 240 - sy_base;
-			}
-
-			/***** Cancel flip, if it, and sprite layer flip are active *****/
-			flipx = (flipx ^ (sp.flip & GP9001_SPRITE_FLIPX));
-			flipy = (flipy ^ (sp.flip & GP9001_SPRITE_FLIPY));
-
-			/***** Draw the complete sprites using the dimension info *****/
-			for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
-			{
-
-
-
-				int sy;
-				if (flipy) sy = sy_base - dim_y;
-				else       sy = sy_base + dim_y;
-
-				if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
+				m_maxpri = priority;
+				int sprite;
+				if (!gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
 				{
-					sprite+=sprite_sizex >> 3;
-					continue;
+					sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
+				}
+				else        /* Batrider Sprite select bank switching required */
+				{
+					const int sprite_num = source[offs + 1] & 0x7fff;
+					const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+					sprite = (gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
+				}
+				const int color = ((attrib >> 2) & 0x3f) << 4;
+
+				/***** find out sprite size *****/
+				const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
+				const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
+
+				/***** find position to display sprite *****/
+				int sx_base, sy_base;
+				if (!(attrib & 0x4000))
+				{
+					sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
+					sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
+
+				} else {
+					sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
+					sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
 				}
 
-				for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+				old_x = sx_base;
+				old_y = sy_base;
+
+				int flipx = attrib & GP9001_SPRITE_FLIPX;
+				int flipy = attrib & GP9001_SPRITE_FLIPY;
+
+				if (flipx)
 				{
-					int sx;
-					if (flipx) sx = sx_base - dim_x;
-					else       sx = sx_base + dim_x;
+					/***** Wrap sprite position around *****/
+					sx_base -= 7;
+					if (sx_base >= 0x1c0) sx_base -= 0x200;
+				}
+				else
+				{
+					if (sx_base >= 0x180) sx_base -= 0x200;
+				}
+
+				if (flipy)
+				{
+					sy_base -= 7;
+					if (sy_base >= 0x1c0) sy_base -= 0x200;
+				}
+				else
+				{
+					if (sy_base >= 0x180) sy_base -= 0x200;
+				}
+
+				/***** Flip the sprite layer in any active X or Y flip *****/
+				if (sp.flip)
+				{
+					if (sp.flip & GP9001_SPRITE_FLIPX)
+						sx_base = 320 - sx_base;
+					if (sp.flip & GP9001_SPRITE_FLIPY)
+						sy_base = 240 - sy_base;
+				}
+
+				/***** Cancel flip, if it, and sprite layer flip are active *****/
+				flipx = (flipx ^ (sp.flip & GP9001_SPRITE_FLIPX));
+				flipy = (flipy ^ (sp.flip & GP9001_SPRITE_FLIPY));
+
+				/***** Draw the complete sprites using the dimension info *****/
+				for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
+				{
 
 
 
-					if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
+					int sy;
+					if (flipy) sy = sy_base - dim_y;
+					else       sy = sy_base + dim_y;
+
+					if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
 					{
-						sprite++;
+						sprite+=sprite_sizex >> 3;
 						continue;
 					}
 
-					sprite &= total_elements-1;
-
-					if (m_gfxdecode->gfx(1)->has_pen_usage())
+					for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
 					{
-						// fully transparent; do nothing
-						UINT32 usage = m_gfxdecode->gfx(1)->pen_usage(sprite);
-						if ((usage & ~(1 << 0)) == 0)
+						int sx;
+						if (flipx) sx = sx_base - dim_x;
+						else       sx = sx_base + dim_x;
+
+
+
+						if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
 						{
 							sprite++;
 							continue;
 						}
 
-						if ((usage & (1 << 0)) == 0) // full opaque
+						sprite &= total_elements-1;
+
+						if (m_gfxdecode->gfx(1)->has_pen_usage())
 						{
-							const UINT8* srcdata = m_gfxdecode->gfx(1)->get_data(sprite);
-
-							if (flipy) // FLIPY 
+							// fully transparent; do nothing
+							UINT32 usage = m_gfxdecode->gfx(1)->pen_usage(sprite);
+							if ((usage & ~(1 << 0)) == 0)
 							{
-								if (flipx) // FLIPY AND FLIP X
+								sprite++;
+								continue;
+							}
+
+							if ((usage & (1 << 0)) == 0) // full opaque
+							{
+								const UINT8* srcdata = m_gfxdecode->gfx(1)->get_data(sprite);
+
+								if (flipy) // FLIPY 
 								{
-									// --------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x unclipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-											OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY;
-										}
-										else
-										{ // x unclipped, y clipped
-											OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY;
-										}
-									}
-									else
-									{  // FLIPY AND FLIP X fully clipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// --------------------------
-								}
-								else // FLIPY AND NO FLIPX
-								{
-									// --------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{  // y needs clipping
-#if 1
-											OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
+									if (flipx) // FLIPY AND FLIP X
 									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY;
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{ // x unclipped, y clipped
+												OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI;
+											}
 										}
 										else
-										{
-											OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY;
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
 										}
-									}
 
-									// --------------------------
+										// --------------------------
+									}
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// --------------------------
+									}
+								}
+								else  // NO FLIP Y
+								{
+									if (flipx)  // NO FLIP Y, FLIP X
+									{
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+										}
+										else // clipping required
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+										// -------------------
+									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// -------------------
+									}
 								}
 							}
-							else  // NO FLIP Y
-							{
-								if (flipx)  // NO FLIP Y, FLIP X
+							else
+							{ // has transparent bits
+								const UINT8* srcdata = m_gfxdecode->gfx(1)->get_data(sprite);
+
+								if (flipy) // FLIPY 
 								{
-									// -------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else // x not clipped, y is
-										{
-#if 1
-											OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-									}
-									else // clipping required
+									if (flipx) // FLIPY AND FLIP X
 									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{ // x unclipped, y clipped
+												HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI;
+											}
 										}
 										else
-										{
-											OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY;
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												HANDLE_FLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
 										}
+
+										// --------------------------
 									}
-									// -------------------
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// --------------------------
+									}
 								}
-								else  // NO FLIP Y, NO FLIP X
+								else  // NO FLIP Y
 								{
-									// -------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{ // y needs clipping
-#if 1
-											OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
+									if (flipx)  // NO FLIP Y, FLIP X
 									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
 										}
-										else
+										else // clipping required
 										{
-											OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
 										}
+										// -------------------
 									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
 
-									// -------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// -------------------
+									}
 								}
 							}
 						}
-						else
-						{ // has transparent bits
-							const UINT8* srcdata = m_gfxdecode->gfx(1)->get_data(sprite);
-
-							if (flipy) // FLIPY 
-							{
-								if (flipx) // FLIPY AND FLIP X
-								{
-									// --------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x unclipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-											HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY;
-										}
-										else
-										{ // x unclipped, y clipped
-											HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY;
-										}
-									}
-									else
-									{  // FLIPY AND FLIP X fully clipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											HANDLE_FLIPX_FLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// --------------------------
-								}
-								else // FLIPY AND NO FLIPX
-								{
-									// --------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{  // y needs clipping
-#if 1
-											HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
-									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// --------------------------
-								}
-							}
-							else  // NO FLIP Y
-							{
-								if (flipx)  // NO FLIP Y, FLIP X
-								{
-									// -------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else // x not clipped, y is
-										{
-#if 1
-											HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-									}
-									else // clipping required
-									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY;
-										}
-									}
-									// -------------------
-								}
-								else  // NO FLIP Y, NO FLIP X
-								{
-									// -------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{ // y needs clipping
-#if 1
-											HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
-									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// -------------------
-								}
-							}
-						}
+						sprite++;
 					}
-					sprite++;
 				}
+			}
+			else
+			{
+				int sprite;
+				if (!gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
+				{
+					sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
+				}
+				else        /* Batrider Sprite select bank switching required */
+				{
+					const int sprite_num = source[offs + 1] & 0x7fff;
+					const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+					sprite = (gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
+				}
+				const int color = ((attrib >> 2) & 0x3f) << 4;
+
+				/***** find out sprite size *****/
+				const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
+				const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
+
+				/***** find position to display sprite *****/
+				int sx_base, sy_base;
+				if (!(attrib & 0x4000))
+				{
+					sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
+					sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
+
+				} else {
+					sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
+					sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
+				}
+
+				old_x = sx_base;
+				old_y = sy_base;
+
+				int flipx = attrib & GP9001_SPRITE_FLIPX;
+				int flipy = attrib & GP9001_SPRITE_FLIPY;
+
+				if (flipx)
+				{
+					/***** Wrap sprite position around *****/
+					sx_base -= 7;
+					if (sx_base >= 0x1c0) sx_base -= 0x200;
+				}
+				else
+				{
+					if (sx_base >= 0x180) sx_base -= 0x200;
+				}
+
+				if (flipy)
+				{
+					sy_base -= 7;
+					if (sy_base >= 0x1c0) sy_base -= 0x200;
+				}
+				else
+				{
+					if (sy_base >= 0x180) sy_base -= 0x200;
+				}
+
+				/***** Flip the sprite layer in any active X or Y flip *****/
+				if (sp.flip)
+				{
+					if (sp.flip & GP9001_SPRITE_FLIPX)
+						sx_base = 320 - sx_base;
+					if (sp.flip & GP9001_SPRITE_FLIPY)
+						sy_base = 240 - sy_base;
+				}
+
+				/***** Cancel flip, if it, and sprite layer flip are active *****/
+				flipx = (flipx ^ (sp.flip & GP9001_SPRITE_FLIPX));
+				flipy = (flipy ^ (sp.flip & GP9001_SPRITE_FLIPY));
+
+				/***** Draw the complete sprites using the dimension info *****/
+				for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
+				{
+
+
+
+					int sy;
+					if (flipy) sy = sy_base - dim_y;
+					else       sy = sy_base + dim_y;
+
+					if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
+					{
+						sprite+=sprite_sizex >> 3;
+						continue;
+					}
+
+					for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+					{
+						int sx;
+						if (flipx) sx = sx_base - dim_x;
+						else       sx = sx_base + dim_x;
+
+
+
+						if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
+						{
+							sprite++;
+							continue;
+						}
+
+						sprite &= total_elements-1;
+
+						if (m_gfxdecode->gfx(1)->has_pen_usage())
+						{
+							// fully transparent; do nothing
+							UINT32 usage = m_gfxdecode->gfx(1)->pen_usage(sprite);
+							if ((usage & ~(1 << 0)) == 0)
+							{
+								sprite++;
+								continue;
+							}
+
+							if ((usage & (1 << 0)) == 0) // full opaque
+							{
+								const UINT8* srcdata = m_gfxdecode->gfx(1)->get_data(sprite);
+
+								if (flipy) // FLIPY 
+								{
+									if (flipx) // FLIPY AND FLIP X
+									{
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY;
+											}
+											else
+											{ // x unclipped, y clipped
+												OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY;
+											}
+										}
+										else
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+								}
+								else  // NO FLIP Y
+								{
+									if (flipx)  // NO FLIP Y, FLIP X
+									{
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+										}
+										else // clipping required
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+										// -------------------
+									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// -------------------
+									}
+								}
+							}
+							else
+							{ // has transparent bits
+								const UINT8* srcdata = m_gfxdecode->gfx(1)->get_data(sprite);
+
+								if (flipy) // FLIPY 
+								{
+									if (flipx) // FLIPY AND FLIP X
+									{
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY;
+											}
+											else
+											{ // x unclipped, y clipped
+												HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY;
+											}
+										}
+										else
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												HANDLE_FLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+								}
+								else  // NO FLIP Y
+								{
+									if (flipx)  // NO FLIP Y, FLIP X
+									{
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+										}
+										else // clipping required
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+										// -------------------
+									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// -------------------
+									}
+								}
+							}
+						}
+						sprite++;
+					}
+				}				
 			}
 		}
 	}
@@ -2755,6 +3859,7 @@ void toaplan2_state::draw_tmap_tile(bitmap_ind16& bitmap, const rectangle& clipr
 
 void toaplan2_state::draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color)
 {
+
 	sprite &= m_gfxdecode->gfx(0)->elements() - 1;
 
 	if (m_gfxdecode->gfx(0)->has_pen_usage())
@@ -2824,6 +3929,8 @@ void toaplan2_state::draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle&
 
 void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
 {
+	int maxpri_this = 0;
+
 	int scrollxfg = tmap->realscrollx;
 	int scrollyfg = tmap->realscrolly;
 
@@ -2858,15 +3965,33 @@ void toaplan2_state::gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
 			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
+	
+			if (priority>=maxpri_this)
+				maxpri_this = priority;
 
-			draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			if (priority >= m_maxpri)
+			{
+				draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);	
+			}
+			else
+			{
+				draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			}
 		}
 	}
+
+//	printf("max priority for this tilemap was %04x\n",maxpri_this);
+
+	if (maxpri_this >= m_maxpri)
+		m_maxpri = maxpri_this;
 
 }
 
 void toaplan2_state::gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
 {
+	int maxpri_this = 0;
+
+
 	int scrollxfg = tmap->realscrollx;
 	int scrollyfg = tmap->realscrolly;
 
@@ -2901,11 +4026,16 @@ void toaplan2_state::gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rec
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
 			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
-
-			draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			if (priority>=maxpri_this)
+				maxpri_this = priority;
+			draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);		
 		}
 	}
+	
+//	printf("max priority for this no pri tilemap was %04x\n",maxpri_this);
 
+	if (maxpri_this >= m_maxpri)
+		m_maxpri = maxpri_this;
 }
 
 
@@ -2919,6 +4049,7 @@ void toaplan2_state::gp9001_render_vdp(bitmap_ind16 &bitmap, const rectangle &cl
 		gp9001_gfxrom_bank_dirty = 0;
 	}
 
+	m_maxpri = 0;
 	gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &bg, m_vram_bg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &fg, m_vram_fg);
 	gp9001_draw_a_tilemap(bitmap, cliprect, &top, m_vram_top);
@@ -3699,6 +4830,318 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		} \
 	}
 
+/////
+
+
+
+
+#define second_HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+	}
+
+
+#define second_HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+		DO_PIX_REV_NOPRI; \
+	}
+
+#define second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+			DO_PIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+		DO_PIX_NOPRI; \
+	}
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+			DO_PIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					DO_PIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				DO_PIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
 
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
@@ -4016,6 +5459,317 @@ WRITE16_MEMBER( toaplan2_state::second_pipibibi_bootleg_spriteram16_w )
 		} \
 	}
 
+///
+
+
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+	}
+
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI; \
+		OPAQUE_DOPIX_REV_NOPRI \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx + 7; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+			OPAQUE_DOPIX_REV_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 7; xx != -1; xx += -1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+		OPAQUE_DOPIX_NOPRI; \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			UINT16* dstptr = &bitmap.pix16(drawyy) + sx; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+			OPAQUE_DOPIX_NOPRI; \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		if ((drawyy >= cliprect.min_y) && (drawyy <= cliprect.max_y)) \
+		{ \
+			for (int xx = 0; xx != 8; xx += 1) \
+			{ \
+				int drawxx = xx + sx; \
+				if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+				{ \
+					UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+					OPAQUE_DOPIX_NOINC_NOPRI; \
+				} \
+				srcdata++; \
+			} \
+		} \
+		else \
+		{ \
+			srcdata += 8; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 0; yy != 8; yy += 1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 0; xx != 8; xx += 1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
+#define second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI \
+	for (int yy = 7; yy != -1; yy += -1) \
+	{ \
+		int drawyy = yy + sy; \
+		for (int xx = 7; xx != -1; xx += -1) \
+		{ \
+			int drawxx = xx + sx; \
+			if ((drawxx >= cliprect.min_x) && (drawxx <= cliprect.max_x)) \
+			{ \
+				UINT16* dstptr = &bitmap.pix16(drawyy, drawxx); \
+				OPAQUE_DOPIX_NOINC_NOPRI; \
+			} \
+			srcdata++; \
+		} \
+	}
+
 
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
@@ -4046,397 +5800,796 @@ void toaplan2_state::second_draw_sprites( bitmap_ind16 &bitmap, const rectangle 
 
 		if ((attrib & 0x8000))
 		{
-			int sprite;
-			//if (!second_gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
+			if (priority >= m_maxpri)
 			{
-				sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
-			}
-			//else        /* Batrider Sprite select bank switching required */
-			//{
-			//	const int sprite_num = source[offs + 1] & 0x7fff;
-			//	const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
-			//	sprite = (second_gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
-			//}
-			const int color = ((attrib >> 2) & 0x3f) << 4;
-
-			/***** find out sprite size *****/
-			const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
-			const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
-
-			/***** find position to display sprite *****/
-			int sx_base, sy_base;
-			if (!(attrib & 0x4000))
-			{
-				sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
-				sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
-
-			} else {
-				sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
-				sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
-			}
-
-			old_x = sx_base;
-			old_y = sy_base;
-
-			int flipx = attrib & GP9001_SPRITE_FLIPX;
-			int flipy = attrib & GP9001_SPRITE_FLIPY;
-
-			if (flipx)
-			{
-				/***** Wrap sprite position around *****/
-				sx_base -= 7;
-				if (sx_base >= 0x1c0) sx_base -= 0x200;
-			}
-			else
-			{
-				if (sx_base >= 0x180) sx_base -= 0x200;
-			}
-
-			if (flipy)
-			{
-				sy_base -= 7;
-				if (sy_base >= 0x1c0) sy_base -= 0x200;
-			}
-			else
-			{
-				if (sy_base >= 0x180) sy_base -= 0x200;
-			}
-
-			/***** Flip the sprite layer in any active X or Y flip *****/
-			if (second_sp.flip)
-			{
-				if (sp.flip & GP9001_SPRITE_FLIPX)
-					sx_base = 320 - sx_base;
-				if (sp.flip & GP9001_SPRITE_FLIPY)
-					sy_base = 240 - sy_base;
-			}
-
-			/***** Cancel flip, if it, and sprite layer flip are active *****/
-			flipx = (flipx ^ (second_sp.flip & GP9001_SPRITE_FLIPX));
-			flipy = (flipy ^ (second_sp.flip & GP9001_SPRITE_FLIPY));
-
-			/***** Draw the complete sprites using the dimension info *****/
-			for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
-			{
-
-
-
-				int sy;
-				if (flipy) sy = sy_base - dim_y;
-				else       sy = sy_base + dim_y;
-
-				if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
+				m_maxpri = priority;
+				int sprite;
+				//if (!second_gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
 				{
-					sprite+=sprite_sizex >> 3;
-					continue;
+					sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
+				}
+				//else        /* Batrider Sprite select bank switching required */
+				//{
+				//	const int sprite_num = source[offs + 1] & 0x7fff;
+				//	const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+				//	sprite = (second_gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
+				//}
+				const int color = ((attrib >> 2) & 0x3f) << 4;
+
+				/***** find out sprite size *****/
+				const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
+				const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
+
+				/***** find position to display sprite *****/
+				int sx_base, sy_base;
+				if (!(attrib & 0x4000))
+				{
+					sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
+					sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
+
+				} else {
+					sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
+					sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
 				}
 
-				for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+				old_x = sx_base;
+				old_y = sy_base;
+
+				int flipx = attrib & GP9001_SPRITE_FLIPX;
+				int flipy = attrib & GP9001_SPRITE_FLIPY;
+
+				if (flipx)
 				{
-					int sx;
-					if (flipx) sx = sx_base - dim_x;
-					else       sx = sx_base + dim_x;
+					/***** Wrap sprite position around *****/
+					sx_base -= 7;
+					if (sx_base >= 0x1c0) sx_base -= 0x200;
+				}
+				else
+				{
+					if (sx_base >= 0x180) sx_base -= 0x200;
+				}
+
+				if (flipy)
+				{
+					sy_base -= 7;
+					if (sy_base >= 0x1c0) sy_base -= 0x200;
+				}
+				else
+				{
+					if (sy_base >= 0x180) sy_base -= 0x200;
+				}
+
+				/***** Flip the sprite layer in any active X or Y flip *****/
+				if (second_sp.flip)
+				{
+					if (sp.flip & GP9001_SPRITE_FLIPX)
+						sx_base = 320 - sx_base;
+					if (sp.flip & GP9001_SPRITE_FLIPY)
+						sy_base = 240 - sy_base;
+				}
+
+				/***** Cancel flip, if it, and sprite layer flip are active *****/
+				flipx = (flipx ^ (second_sp.flip & GP9001_SPRITE_FLIPX));
+				flipy = (flipy ^ (second_sp.flip & GP9001_SPRITE_FLIPY));
+
+				/***** Draw the complete sprites using the dimension info *****/
+				for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
+				{
 
 
 
-					if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
+					int sy;
+					if (flipy) sy = sy_base - dim_y;
+					else       sy = sy_base + dim_y;
+
+					if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
 					{
-						sprite++;
+						sprite+=sprite_sizex >> 3;
 						continue;
 					}
 
-					sprite &= total_elements-1;
-
-					if (m_gfxdecode->gfx(3)->has_pen_usage())
+					for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
 					{
-						// fully transparent; do nothing
-						UINT32 usage = m_gfxdecode->gfx(3)->pen_usage(sprite);
-						if ((usage & ~(1 << 0)) == 0)
+						int sx;
+						if (flipx) sx = sx_base - dim_x;
+						else       sx = sx_base + dim_x;
+
+
+
+						if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
 						{
 							sprite++;
 							continue;
 						}
 
-						if ((usage & (1 << 0)) == 0) // full opaque
+						sprite &= total_elements-1;
+
+						if (m_gfxdecode->gfx(3)->has_pen_usage())
 						{
-							const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
-
-							if (flipy) // FLIPY 
+							// fully transparent; do nothing
+							UINT32 usage = m_gfxdecode->gfx(3)->pen_usage(sprite);
+							if ((usage & ~(1 << 0)) == 0)
 							{
-								if (flipx) // FLIPY AND FLIP X
+								sprite++;
+								continue;
+							}
+
+							if ((usage & (1 << 0)) == 0) // full opaque
+							{
+								const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
+
+								if (flipy) // FLIPY 
 								{
-									// --------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x unclipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-											second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY;
-										}
-										else
-										{ // x unclipped, y clipped
-											second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY;
-										}
-									}
-									else
-									{  // FLIPY AND FLIP X fully clipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// --------------------------
-								}
-								else // FLIPY AND NO FLIPX
-								{
-									// --------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{  // y needs clipping
-#if 1
-											second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
+									if (flipx) // FLIPY AND FLIP X
 									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY;
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{ // x unclipped, y clipped
+												second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI;
+											}
 										}
 										else
-										{
-											second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY;
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
 										}
-									}
 
-									// --------------------------
+										// --------------------------
+									}
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// --------------------------
+									}
+								}
+								else  // NO FLIP Y
+								{
+									if (flipx)  // NO FLIP Y, FLIP X
+									{
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+										}
+										else // clipping required
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+										// -------------------
+									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// -------------------
+									}
 								}
 							}
-							else  // NO FLIP Y
-							{
-								if (flipx)  // NO FLIP Y, FLIP X
+							else
+							{ // has transparent bits
+								const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
+
+								if (flipy) // FLIPY 
 								{
-									// -------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else // x not clipped, y is
-										{
-#if 1
-											second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-									}
-									else // clipping required
+									if (flipx) // FLIPY AND FLIP X
 									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												second_HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{ // x unclipped, y clipped
+												second_HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY_NOPRI;
+											}
 										}
 										else
-										{
-											second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY;
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_HANDLE_FLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
 										}
+
+										// --------------------------
 									}
-									// -------------------
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// --------------------------
+									}
 								}
-								else  // NO FLIP Y, NO FLIP X
+								else  // NO FLIP Y
 								{
-									// -------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{ // y needs clipping
-#if 1
-											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
+									if (flipx)  // NO FLIP Y, FLIP X
 									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
 										}
-										else
+										else // clipping required
 										{
-											second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
 										}
+										// -------------------
 									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
 
-									// -------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY_NOPRI;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY_NOPRI;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY_NOPRI;
+											}
+											else
+											{
+												second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY_NOPRI;
+											}
+										}
+
+										// -------------------
+									}
 								}
 							}
 						}
-						else
-						{ // has transparent bits
-							const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
-
-							if (flipy) // FLIPY 
-							{
-								if (flipx) // FLIPY AND FLIP X
-								{
-									// --------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x unclipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-											second_HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY;
-										}
-										else
-										{ // x unclipped, y clipped
-											second_HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY;
-										}
-									}
-									else
-									{  // FLIPY AND FLIP X fully clipped
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											second_HANDLE_FLIPX_FLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// --------------------------
-								}
-								else // FLIPY AND NO FLIPX
-								{
-									// --------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{  // y needs clipping
-#if 1
-											second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
-									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											second_HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// --------------------------
-								}
-							}
-							else  // NO FLIP Y
-							{
-								if (flipx)  // NO FLIP Y, FLIP X
-								{
-									// -------------------------
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else // x not clipped, y is
-										{
-#if 1
-											second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-									}
-									else // clipping required
-									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											second_HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY;
-										}
-									}
-									// -------------------
-								}
-								else  // NO FLIP Y, NO FLIP X
-								{
-									// -------------------------
-
-									if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
-									{ // x doesn't need clipping
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{  // fully unclipped
-#if 1
-											second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
-#endif
-										}
-										else
-										{ // y needs clipping
-#if 1
-											second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
-#endif
-										}
-
-									}
-									else // with clipping
-									{
-										if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
-										{
-											second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
-										}
-										else
-										{
-											second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
-										}
-									}
-
-									// -------------------
-								}
-							}
-						}
+						sprite++;
 					}
-					sprite++;
 				}
 			}
+			else
+			{
+				int sprite;
+				//if (!second_gp9001_gfxrom_is_banked)   /* No Sprite select bank switching needed */
+				{
+					sprite = ((attrib & 3) << 16) | source[offs + 1];   /* 18 bit */
+				}
+				//else        /* Batrider Sprite select bank switching required */
+				//{
+				//	const int sprite_num = source[offs + 1] & 0x7fff;
+				//	const int bank = ((attrib & 3) << 1) | (source[offs + 1] >> 15);
+				//	sprite = (second_gp9001_gfxrom_bank[bank] << 15 ) | sprite_num;
+				//}
+				const int color = ((attrib >> 2) & 0x3f) << 4;
+
+				/***** find out sprite size *****/
+				const int sprite_sizex = ((source[offs + 2] & 0x0f) + 1) * 8;
+				const int sprite_sizey = ((source[offs + 3] & 0x0f) + 1) * 8;
+
+				/***** find position to display sprite *****/
+				int sx_base, sy_base;
+				if (!(attrib & 0x4000))
+				{
+					sx_base = ((source[offs + 2] >> 7) - (sp.scrollx)) & 0x1ff;
+					sy_base = ((source[offs + 3] >> 7) - (sp.scrolly)) & 0x1ff;
+
+				} else {
+					sx_base = (old_x + (source[offs + 2] >> 7)) & 0x1ff;
+					sy_base = (old_y + (source[offs + 3] >> 7)) & 0x1ff;
+				}
+
+				old_x = sx_base;
+				old_y = sy_base;
+
+				int flipx = attrib & GP9001_SPRITE_FLIPX;
+				int flipy = attrib & GP9001_SPRITE_FLIPY;
+
+				if (flipx)
+				{
+					/***** Wrap sprite position around *****/
+					sx_base -= 7;
+					if (sx_base >= 0x1c0) sx_base -= 0x200;
+				}
+				else
+				{
+					if (sx_base >= 0x180) sx_base -= 0x200;
+				}
+
+				if (flipy)
+				{
+					sy_base -= 7;
+					if (sy_base >= 0x1c0) sy_base -= 0x200;
+				}
+				else
+				{
+					if (sy_base >= 0x180) sy_base -= 0x200;
+				}
+
+				/***** Flip the sprite layer in any active X or Y flip *****/
+				if (second_sp.flip)
+				{
+					if (sp.flip & GP9001_SPRITE_FLIPX)
+						sx_base = 320 - sx_base;
+					if (sp.flip & GP9001_SPRITE_FLIPY)
+						sy_base = 240 - sy_base;
+				}
+
+				/***** Cancel flip, if it, and sprite layer flip are active *****/
+				flipx = (flipx ^ (second_sp.flip & GP9001_SPRITE_FLIPX));
+				flipy = (flipy ^ (second_sp.flip & GP9001_SPRITE_FLIPY));
+
+				/***** Draw the complete sprites using the dimension info *****/
+				for (int dim_y = 0; dim_y < sprite_sizey; dim_y += 8)
+				{
+
+
+
+					int sy;
+					if (flipy) sy = sy_base - dim_y;
+					else       sy = sy_base + dim_y;
+
+					if ((sy > cliprect.max_y) || (sy + 7 < cliprect.min_y))
+					{
+						sprite+=sprite_sizex >> 3;
+						continue;
+					}
+
+					for (int dim_x = 0; dim_x < sprite_sizex; dim_x += 8)
+					{
+						int sx;
+						if (flipx) sx = sx_base - dim_x;
+						else       sx = sx_base + dim_x;
+
+
+
+						if ((sx > cliprect.max_x) || (sx + 7 < cliprect.min_x))
+						{
+							sprite++;
+							continue;
+						}
+
+						sprite &= total_elements-1;
+
+						if (m_gfxdecode->gfx(3)->has_pen_usage())
+						{
+							// fully transparent; do nothing
+							UINT32 usage = m_gfxdecode->gfx(3)->pen_usage(sprite);
+							if ((usage & ~(1 << 0)) == 0)
+							{
+								sprite++;
+								continue;
+							}
+
+							if ((usage & (1 << 0)) == 0) // full opaque
+							{
+								const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
+
+								if (flipy) // FLIPY 
+								{
+									if (flipx) // FLIPY AND FLIP X
+									{
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_NOCLIPY;
+											}
+											else
+											{ // x unclipped, y clipped
+												second_OPAQUE_HANDLEFLIPX_FLIPY__NOCLIPX_CLIPY;
+											}
+										}
+										else
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_OPAQUE_HANDLEFLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_OPAQUE_HANDLENOFLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+								}
+								else  // NO FLIP Y
+								{
+									if (flipx)  // NO FLIP Y, FLIP X
+									{
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+										}
+										else // clipping required
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_OPAQUE_HANDLEFLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+										// -------------------
+									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_OPAQUE_HANDLENOFLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// -------------------
+									}
+								}
+							}
+							else
+							{ // has transparent bits
+								const UINT8* srcdata = m_gfxdecode->gfx(3)->get_data(sprite);
+
+								if (flipy) // FLIPY 
+								{
+									if (flipx) // FLIPY AND FLIP X
+									{
+										// --------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x unclipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+												second_HANDLE_FLIPX_FLIPY__NOCLIPX_NOCLIPY;
+											}
+											else
+											{ // x unclipped, y clipped
+												second_HANDLE_FLIPX_FLIPY__NOCLIPX_CLIPY;
+											}
+										}
+										else
+										{  // FLIPY AND FLIP X fully clipped
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_FLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_HANDLE_FLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+									else // FLIPY AND NO FLIPX
+									{
+										// --------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{  // y needs clipping
+	#if 1
+												second_HANDLE_NOFLIPX_FLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_NOFLIPX_FLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_HANDLE_NOFLIPX_FLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// --------------------------
+									}
+								}
+								else  // NO FLIP Y
+								{
+									if (flipx)  // NO FLIP Y, FLIP X
+									{
+										// -------------------------
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else // x not clipped, y is
+											{
+	#if 1
+												second_HANDLE_FLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+										}
+										else // clipping required
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_FLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_HANDLE_FLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+										// -------------------
+									}
+									else  // NO FLIP Y, NO FLIP X
+									{
+										// -------------------------
+
+										if ((sx >= cliprect.min_x) && (sx + 7 <= cliprect.max_x))
+										{ // x doesn't need clipping
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{  // fully unclipped
+	#if 1
+												second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_NOCLIPY;
+	#endif
+											}
+											else
+											{ // y needs clipping
+	#if 1
+												second_HANDLE_NOFLIPX_NOFLIPY_NOCLIPX_CLIPY;
+	#endif
+											}
+
+										}
+										else // with clipping
+										{
+											if ((sy >= cliprect.min_y) && (sy + 7 <= cliprect.max_y))
+											{
+												second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_NOCLIPY;
+											}
+											else
+											{
+												second_HANDLE_NOFLIPX_NOFLIPY_CLIPX_CLIPY;
+											}
+										}
+
+										// -------------------
+									}
+								}
+							}
+						}
+						sprite++;
+					}
+				}
+			}
+
 		}
 	}
 }
@@ -4517,6 +6670,7 @@ void toaplan2_state::second_draw_tmap_tile(bitmap_ind16& bitmap, const rectangle
 
 void toaplan2_state::second_draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, int sx, int sy, int sprite, int priority, int color)
 {
+
 	sprite &= m_gfxdecode->gfx(2)->elements() - 1;
 
 	if (m_gfxdecode->gfx(2)->has_pen_usage())
@@ -4586,6 +6740,7 @@ void toaplan2_state::second_draw_tmap_tile_nopri(bitmap_ind16& bitmap, const rec
 
 void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
 {
+	int maxpri_this = 0;
 	int scrollxfg = tmap->realscrollx;
 	int scrollyfg = tmap->realscrolly;
 
@@ -4621,14 +6776,27 @@ void toaplan2_state::second_gp9001_draw_a_tilemap(bitmap_ind16& bitmap, const re
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
 			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
 
-			second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			if (priority>=maxpri_this)
+				maxpri_this = priority;
+
+			if (priority >= m_maxpri)
+			{
+				second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);	
+			}
+			else
+			{
+				second_draw_tmap_tile(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			}
 		}
 	}
-
+	
+	if (maxpri_this >= m_maxpri)
+		m_maxpri = maxpri_this;
 }
 
 void toaplan2_state::second_gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, const rectangle& cliprect, gp9001tilemaplayerx *tmap, UINT16* vram)
 {
+	int maxpri_this = 0;
 	int scrollxfg = tmap->realscrollx;
 	int scrollyfg = tmap->realscrolly;
 
@@ -4663,11 +6831,13 @@ void toaplan2_state::second_gp9001_draw_a_tilemap_nopri(bitmap_ind16& bitmap, co
 
 			int color = attrib & 0x007f; // 0x0f00 priority, 0x007f colour
 			int priority = (attrib & GP9001_PRIMASK_TMAPS) << 3;
-
-			second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);
+			if (priority>=maxpri_this)
+				maxpri_this = priority;
+			second_draw_tmap_tile_nopri(bitmap, cliprect, xdraw, ydraw, tile_number, priority, color << 4);	
 		}
 	}
-
+	if (maxpri_this >= m_maxpri)
+		m_maxpri = maxpri_this;
 }
 
 
@@ -4678,7 +6848,7 @@ void toaplan2_state::second_gp9001_render_vdp(bitmap_ind16 &bitmap, const rectan
 	//{
 	//	second_gp9001_gfxrom_bank_dirty = 0;
 	//}
-
+	m_maxpri = 0;
 	second_gp9001_draw_a_tilemap_nopri(bitmap, cliprect, &second_bg, second_m_vram_bg);
 	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_fg, second_m_vram_fg);
 	second_gp9001_draw_a_tilemap(bitmap, cliprect, &second_top, second_m_vram_top);

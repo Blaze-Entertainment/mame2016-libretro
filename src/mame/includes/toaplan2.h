@@ -143,6 +143,7 @@ public:
 	void vdp_start();
 	void vdp_reset();
 
+	UINT16 m_maxpri = 0;
 
 	UINT16 m_vram_bg[0x800];
 	UINT16 m_vram_fg[0x800];
@@ -275,6 +276,8 @@ public:
 	DECLARE_READ8_MEMBER(vfive_sound_skip_r);
 	DECLARE_READ8_MEMBER(fixeight_alt_sound_skip_r);
 	DECLARE_READ8_MEMBER(batsugun_sound_skip_r);
+	DECLARE_READ8_MEMBER(dogyuun_sound_skip_r);
+
 	DECLARE_WRITE16_MEMBER(v5_shared_ram_w);
 	IRQ_CALLBACK_MEMBER(irqack);
 	DECLARE_WRITE8_MEMBER(sound_status_changed);
