@@ -620,10 +620,6 @@ void tms340x0_device::device_start()
 	machine().save().register_postload(save_prepost_delegate(FUNC(tms340x0_device::tms34010_state_postload), this));
 
 	save_item(NAME(m_icount));
-	save_item(NAME(m_hblank_stable));
-
-	save_item(NAME(m_external_host_access));
-	save_item(NAME(m_executing));
 
 	m_icountptr = &m_icount;
 }
