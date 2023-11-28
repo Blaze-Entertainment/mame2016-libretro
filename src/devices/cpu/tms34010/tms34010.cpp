@@ -72,7 +72,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::timer0_update_timer)
 {
 	/* call through to the CPU to generate the int */
 	IOREG(REG_INTPEND) |= TMS34010_HI;
-//	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
+	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
 
 	/* generate triggers so that spin loops can key off them */
 	signal_interrupt_trigger();
@@ -82,7 +82,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::timer1_update_timer)
 {
 	/* call through to the CPU to generate the int */
 	//IOREG(REG_INTPEND) |= 0;
-//	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
+	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
 
 	/* generate triggers so that spin loops can key off them */
 	signal_interrupt_trigger();
@@ -897,7 +897,7 @@ TIMER_DEVICE_CALLBACK_MEMBER(tms340x0_device::scanline_callback)
 	{
 		/* call through to the CPU to generate the int */
 		IOREG(REG_INTPEND) |= TMS34010_DI;
-	//	LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
+		LOG(("TMS34010 '%s' set internal interrupt $%04x\n", tag(), type));
 
 		/* generate triggers so that spin loops can key off them */
 		signal_interrupt_trigger();
