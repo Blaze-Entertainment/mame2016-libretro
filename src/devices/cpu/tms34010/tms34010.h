@@ -235,7 +235,6 @@ typedef device_delegate<void (address_space &space, offs_t address, UINT16 *shif
 		tms340x0_device::set_from_shiftreg_callback(*device, from_shiftreg_cb_delegate(&_class::_method, #_class "::" #_method, downcast<_class *>(owner)));
 
 
-
 class tms340x0_device : public cpu_device,
 						public device_video_interface
 {
@@ -264,22 +263,13 @@ public:
 	DECLARE_WRITE16_MEMBER(host_w);
 	DECLARE_READ16_MEMBER(host_r);
 
-	//TIMER_CALLBACK_MEMBER(internal_interrupt_callback);
+	TIMER_CALLBACK_MEMBER(internal_interrupt_callback);
 	TIMER_CALLBACK_MEMBER(scanline_callback);
-	
-	TIMER_DEVICE_CALLBACK_MEMBER(timer0_update_timer);
-	TIMER_DEVICE_CALLBACK_MEMBER(timer1_update_timer);
 
 protected:
 	// device-level overrides
 	virtual void device_start() override;
 	virtual void device_reset() override;
-	
-	virtual machine_config_constructor device_mconfig_additions() const override;
-
-	required_device<timer_device> m_timerhi;
-	required_device<timer_device> m_timerlo;
-
 
 	// device_execute_interface overrides
 	virtual UINT32 execute_min_cycles() const override { return 1; }
