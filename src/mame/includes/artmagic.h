@@ -37,28 +37,28 @@ public:
 	required_shared_ptr<UINT16> m_vram0;
 	required_shared_ptr<UINT16> m_vram1;
 
-	UINT8 m_tms_irq; // saved
-	UINT8 m_hack_irq; // saved
-	UINT8 m_prot_input[16]; // saved
-	UINT8 m_prot_input_index; // saved
-	UINT8 m_prot_output[16]; // saved
-	UINT8 m_prot_output_index; // saved
-	UINT8 m_prot_output_bit; // saved
-	UINT8 m_prot_bit_index; // saved
-	UINT16 m_prot_save; // saved
+	UINT8 m_tms_irq;
+	UINT8 m_hack_irq;
+	UINT8 m_prot_input[16];
+	UINT8 m_prot_input_index;
+	UINT8 m_prot_output[16];
+	UINT8 m_prot_output_index;
+	UINT8 m_prot_output_bit;
+	UINT8 m_prot_bit_index;
+	UINT16 m_prot_save;
 	typedef void (artmagic_state::*prot_func)();
 	prot_func m_protection_handler;
 	void ultennis_protection();
 	void cheesech_protection();
 	void stonebal_protection();
 
-	int m_xor[16]; // saved
-	int m_is_stoneball; // set on startup (also saved)
-	UINT16 *m_blitter_base; // set on startup
-	UINT32 m_blitter_mask; // set on startup
-	UINT16 m_blitter_data[8]; // saved
-	UINT8 m_blitter_page; // saved
-	attotime m_blitter_busy_until; // not used
+	int m_xor[16];
+	int m_is_stoneball;
+	UINT16 *m_blitter_base;
+	UINT32 m_blitter_mask;
+	UINT16 m_blitter_data[8];
+	UINT8 m_blitter_page;
+	attotime m_blitter_busy_until;
 	DECLARE_WRITE16_MEMBER(control_w);
 	DECLARE_READ16_MEMBER(ultennis_hack_r);
 	DECLARE_WRITE16_MEMBER(protection_bit_w);
@@ -74,9 +74,6 @@ public:
 	DECLARE_DRIVER_INIT(cheesech);
 	DECLARE_DRIVER_INIT(ultennis);
 	DECLARE_DRIVER_INIT(stonebal);
-
-	TIMER_DEVICE_CALLBACK_MEMBER(hack_update_timer);
-
 	virtual void machine_start() override;
 	virtual void machine_reset() override;
 	virtual void video_start() override;
@@ -87,5 +84,5 @@ public:
 	inline UINT16 *address_to_vram(offs_t *address);
 
 protected:
-//	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
+	virtual void device_timer(emu_timer &timer, device_timer_id id, int param, void *ptr) override;
 };
