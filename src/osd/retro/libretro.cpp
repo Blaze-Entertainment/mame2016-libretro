@@ -746,7 +746,7 @@ static void write_dip_list(void)
          rjsonwriter_add_string(json_writer, "mask");
          rjsonwriter_add_colon(json_writer);
          rjsonwriter_add_space(json_writer);
-         rjsonwriter_add_int(json_writer, (int)dip_descs[i].field_mask);
+         rjsonwriter_add_unsigned(json_writer, dip_descs[i].field_mask);
          rjsonwriter_add_comma(json_writer);
 
          rjsonwriter_add_newline(json_writer);
@@ -754,7 +754,7 @@ static void write_dip_list(void)
          rjsonwriter_add_string(json_writer, "defvalue");
          rjsonwriter_add_colon(json_writer);
          rjsonwriter_add_space(json_writer);
-         rjsonwriter_add_int(json_writer, (int)dip_descs[i].field_defvalue);
+         rjsonwriter_add_unsigned(json_writer, dip_descs[i].field_defvalue);
          rjsonwriter_add_comma(json_writer);
 
          /* Write settings array */
@@ -784,7 +784,7 @@ static void write_dip_list(void)
             rjsonwriter_add_string(json_writer, "value");
             rjsonwriter_add_colon(json_writer);
             rjsonwriter_add_space(json_writer);
-            rjsonwriter_add_int(json_writer, (int)dip_descs[i].field_settings[j].value);
+            rjsonwriter_add_unsigned(json_writer, dip_descs[i].field_settings[j].value);
 
             rjsonwriter_add_newline(json_writer);
             rjsonwriter_add_spaces(json_writer, 8);
