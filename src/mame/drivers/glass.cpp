@@ -349,11 +349,11 @@ ROM_START( glasskr )
 	/* 0x000000-0x3fffff filled in later in the DRIVER_INIT */
 
 	ROM_REGION( 0x400000, "gfx2", 0 )   /* Graphics */
-	ROM_LOAD( "h13.bin", 0x000000, 0x200000, CRC(13ab7f31) SHA1(468424f74d6cccd1b445a9f20e2d24bc46d61ed6) )
-	ROM_LOAD( "h11.bin", 0x200000, 0x200000, CRC(c6ac41c8) SHA1(22408ef1e35c66d0fba0c72972c46fad891d1193) )
+	ROM_LOAD( "h13.bin", 0x000000, 0x200000, CRC(6ec1f954) SHA1(944d74f8b38c4dbad1c87ffbe52438b758546102) )
+	ROM_LOAD( "h11.bin", 0x200000, 0x200000, CRC(eccd933b) SHA1(696bec86c85f1697b9096ac8dd8959104a5986a0) )
 
 	ROM_REGION( 0x100000, "gfx3", 0 )   /* 16 bitmaps (320x200, indexed colors) */
-	ROM_LOAD( "glassk.h9", 0x000000, 0x100000, CRC(d499be4c) SHA1(204f754813be687e8dc00bfe7b5dbc4857ac8738) )
+	ROM_LOAD( "glassk.h9", 0x000000, 0x100000, CRC(c34a176c) SHA1(707ea9508573974db762fe2e0e93a96c22bee314) )
 
 	ROM_REGION( 0x100000, "oki", 0 )    /* ADPCM samples - sound chip is OKIM6295 */
 	ROM_LOAD( "c1.bin", 0x000000, 0x100000, CRC(d9f075a2) SHA1(31a7a677861f39d512e9d1f51925c689e481159a) )
